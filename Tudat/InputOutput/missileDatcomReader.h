@@ -1,4 +1,4 @@
-/*    Copyright (c) 2010-2017, Delft University of Technology
+/*    Copyright (c) 2010-2019, Delft University of Technology
  *    All rigths reserved
  *
  *    This file is part of the Tudat. Redistribution and use in source and
@@ -21,7 +21,7 @@
 #include <string>
 #include <vector>
 
-#include <boost/shared_ptr.hpp>
+#include <memory>
 
 namespace tudat
 {
@@ -142,7 +142,7 @@ private:
 };
 
 //! Typedef for shared-pointer to MissileDatcomReader object.
-typedef boost::shared_ptr< MissileDatcomReader > MissileDatcomReaderPointer;
+typedef std::shared_ptr< MissileDatcomReader > MissileDatcomReaderPointer;
 
 } // namespace input_output
 } // namespace tudat

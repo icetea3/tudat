@@ -1,4 +1,4 @@
-/*    Copyright (c) 2010-2017, Delft University of Technology
+/*    Copyright (c) 2010-2019, Delft University of Technology
  *    All rigths reserved
  *
  *    This file is part of the Tudat. Redistribution and use in source and
@@ -12,7 +12,6 @@
 #define BOOST_TEST_MAIN
 
 #include <boost/make_shared.hpp>
-#include <boost/assign/list_of.hpp>
 #include <boost/test/unit_test.hpp>
 
 #include "Tudat/Mathematics/BasicMathematics/mathematicalConstants.h"

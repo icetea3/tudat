@@ -1,4 +1,4 @@
-/*    Copyright (c) 2010-2017, Delft University of Technology
+/*    Copyright (c) 2010-2019, Delft University of Technology
  *    All rigths reserved
  *
  *    This file is part of the Tudat. Redistribution and use in source and
@@ -7,8 +7,6 @@
  *    a copy of the license with this file. If not, please or visit:
  *    http://tudat.tudelft.nl/LICENSE.
  */
-
-#include <boost/lexical_cast.hpp>
 
 #include "Tudat/SimulationSetup/EnvironmentSetup/createAerodynamicControlSurfaces.h"
 
@@ -19,7 +17,7 @@ namespace simulation_setup
 {
 
 //! Function to create control surface aerodynamic coefficient settings fom coefficients stored in data files
-boost::shared_ptr< ControlSurfaceIncrementAerodynamicCoefficientSettings >
+std::shared_ptr< ControlSurfaceIncrementAerodynamicCoefficientSettings >
 readTabulatedControlIncrementAerodynamicCoefficientsFromFiles(
         const std::map< int, std::string > forceCoefficientFiles,
         const std::map< int, std::string > momentCoefficientFiles,
@@ -30,7 +28,7 @@ readTabulatedControlIncrementAerodynamicCoefficientsFromFiles(
             input_output::getNumberOfIndependentVariablesInCoefficientFile( forceCoefficientFiles.begin( )->second );
 
     // Call approriate file reading function for N independent variables
-    boost::shared_ptr< ControlSurfaceIncrementAerodynamicCoefficientSettings > coefficientSettings;
+    std::shared_ptr< ControlSurfaceIncrementAerodynamicCoefficientSettings > coefficientSettings;
     if( numberOfIndependentVariables == 1 )
     {
         coefficientSettings = readGivenSizeTabulatedControlIncrementAerodynamicCoefficientsFromFiles< 1 >(
@@ -50,7 +48,7 @@ readTabulatedControlIncrementAerodynamicCoefficientsFromFiles(
     else
     {
         throw std::runtime_error( "Error when reading aerodynamic control increment coefficient settings from file, found " +
-                                  boost::lexical_cast< std::string >( numberOfIndependentVariables ) +
+                                  std::to_string( numberOfIndependentVariables ) +
                                   " independent variables, up to 3 currently supported" );
     }
 
@@ -58,7 +56,7 @@ readTabulatedControlIncrementAerodynamicCoefficientsFromFiles(
 }
 
 //! Function to create control surface aerodynamic coefficient settings fom coefficients stored in data files
-boost::shared_ptr< ControlSurfaceIncrementAerodynamicCoefficientSettings >
+std::shared_ptr< ControlSurfaceIncrementAerodynamicCoefficientSettings >
 readTabulatedControlIncrementAerodynamicCoefficientsFromFiles(
         const std::map< int, std::string > forceCoefficientFiles,
         const std::vector< aerodynamics::AerodynamicCoefficientsIndependentVariables > independentVariableNames )
@@ -68,7 +66,7 @@ readTabulatedControlIncrementAerodynamicCoefficientsFromFiles(
             input_output::getNumberOfIndependentVariablesInCoefficientFile( forceCoefficientFiles.begin( )->second );
 
     // Call approriate file reading function for N independent variables
-    boost::shared_ptr< ControlSurfaceIncrementAerodynamicCoefficientSettings > coefficientSettings;
+    std::shared_ptr< ControlSurfaceIncrementAerodynamicCoefficientSettings > coefficientSettings;
     if( numberOfIndependentVariables == 1 )
     {
         coefficientSettings = readGivenSizeTabulatedControlIncrementAerodynamicCoefficientsFromFiles< 1 >(
@@ -87,7 +85,7 @@ readTabulatedControlIncrementAerodynamicCoefficientsFromFiles(
     else
     {
         throw std::runtime_error( "Error when reading aerodynamic coefficient settings from file, found " +
-                                  boost::lexical_cast< std::string >( numberOfIndependentVariables ) +
+                                  std::to_string( numberOfIndependentVariables ) +
                                   " independent variables, up to 3 currently supported" );
     }
     return coefficientSettings;
@@ -95,14 +93,14 @@ readTabulatedControlIncrementAerodynamicCoefficientsFromFiles(
 
 
 //! Function to tabulated control surface aerodynamic coefficients from associated settings object
-boost::shared_ptr< aerodynamics::ControlSurfaceIncrementAerodynamicInterface >
+std::shared_ptr< aerodynamics::ControlSurfaceIncrementAerodynamicInterface >
 createControlSurfaceIncrementAerodynamicCoefficientInterface(
-        const boost::shared_ptr< ControlSurfaceIncrementAerodynamicCoefficientSettings > coefficientSettings,
+        const std::shared_ptr< ControlSurfaceIncrementAerodynamicCoefficientSettings > coefficientSettings,
         const std::string& body )
 {
     using namespace tudat::aerodynamics;
 
-    boost::shared_ptr< ControlSurfaceIncrementAerodynamicInterface > coefficientInterface;
+    std::shared_ptr< ControlSurfaceIncrementAerodynamicInterface > coefficientInterface;
 
     // Check type of interface that is to be created.
     switch( coefficientSettings->getAerodynamicCoefficientType( ) )
@@ -151,7 +149,7 @@ createControlSurfaceIncrementAerodynamicCoefficientInterface(
         }
         default:
             throw std::runtime_error( "Error when making tabulated control surface aerodynamic coefficient interface, " +
-                                      boost::lexical_cast< std::string >( numberOfDimensions ) + " dimensions not yet implemented" );
+                                      std::to_string( numberOfDimensions ) + " dimensions not yet implemented" );
         }
         break;
     }

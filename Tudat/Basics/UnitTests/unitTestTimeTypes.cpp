@@ -1,4 +1,4 @@
-/*    Copyright (c) 2010-2017, Delft University of Technology
+/*    Copyright (c) 2010-2019, Delft University of Technology
  *    All rigths reserved
  *
  *    This file is part of the Tudat. Redistribution and use in source and
@@ -10,10 +10,7 @@
 
 #define BOOST_TEST_MAIN
 
-#include <boost/format.hpp>
 #include <boost/test/unit_test.hpp>
-
-#include <iostream>
 
 #include "Tudat/Basics/testMacros.h"
 #include "Tudat/Basics/timeType.h"
@@ -31,7 +28,6 @@ using namespace mathematical_constants;
 //! Test if Time objects cast to the expected precision
 BOOST_AUTO_TEST_CASE( testTimeBasicCasts )
 {
-
     Time testTime( 2, LONG_PI );
 
     //Test if Time casts to double/long double at the expected precision
@@ -408,9 +404,7 @@ BOOST_AUTO_TEST_CASE( testComparisonOperators )
     }
 }
 
-
 BOOST_AUTO_TEST_SUITE_END( )
-
 
 }
 

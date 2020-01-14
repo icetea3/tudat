@@ -1,4 +1,4 @@
- #    Copyright (c) 2010-2017, Delft University of Technology
+ #    Copyright (c) 2010-2019, Delft University of Technology
  #    All rigths reserved
  #
  #    This file is part of the Tudat. Redistribution and use in source and
@@ -23,6 +23,9 @@ set(EPHEMERIDES_SOURCES
   "${SRCROOT}${EPHEMERIDESDIR}/tabulatedEphemeris.cpp"
   "${SRCROOT}${EPHEMERIDESDIR}/frameManager.cpp"
   "${SRCROOT}${EPHEMERIDESDIR}/compositeEphemeris.cpp"
+  "${SRCROOT}${EPHEMERIDESDIR}/tabulatedRotationalEphemeris.cpp"
+  "${SRCROOT}${EPHEMERIDESDIR}/synchronousRotationalEphemeris.cpp"
+  "${SRCROOT}${EPHEMERIDESDIR}/fullPlanetaryRotationModel.cpp"
 )
 
 # Set the header files.
@@ -37,11 +40,18 @@ set(EPHEMERIDES_HEADERS
   "${SRCROOT}${EPHEMERIDESDIR}/keplerStateExtractor.h"
   "${SRCROOT}${EPHEMERIDESDIR}/keplerEphemeris.h"
   "${SRCROOT}${EPHEMERIDESDIR}/rotationalEphemeris.h"
+  "${SRCROOT}${EPHEMERIDESDIR}/constantRotationalEphemeris.h"
   "${SRCROOT}${EPHEMERIDESDIR}/simpleRotationalEphemeris.h"
   "${SRCROOT}${EPHEMERIDESDIR}/tabulatedEphemeris.h"
   "${SRCROOT}${EPHEMERIDESDIR}/frameManager.h"
+  "${SRCROOT}${EPHEMERIDESDIR}/itrsToGcrsRotationModel.h"
   "${SRCROOT}${EPHEMERIDESDIR}/compositeEphemeris.h"
   "${SRCROOT}${EPHEMERIDESDIR}/constantEphemeris.h"
+  "${SRCROOT}${EPHEMERIDESDIR}/constantRotationalEphemeris.h"
+  "${SRCROOT}${EPHEMERIDESDIR}/multiArcEphemeris.h"
+  "${SRCROOT}${EPHEMERIDESDIR}/tabulatedRotationalEphemeris.h"
+  "${SRCROOT}${EPHEMERIDESDIR}/fullPlanetaryRotationModel.h"
+  "${SRCROOT}${EPHEMERIDESDIR}/synchronousRotationalEphemeris.h"
 )
 
 # Add static libraries.
@@ -67,7 +77,7 @@ target_link_libraries(test_KeplerStateExtractor tudat_ephemerides tudat_input_ou
 
 add_executable(test_RotationalEphemeris "${SRCROOT}${EPHEMERIDESDIR}/UnitTests/unitTestRotationalEphemeris.cpp")
 setup_custom_test_program(test_RotationalEphemeris "${SRCROOT}${EPHEMERIDESDIR}")
-target_link_libraries(test_RotationalEphemeris tudat_ephemerides tudat_reference_frames tudat_input_output tudat_basic_astrodynamics tudat_basic_mathematics ${Boost_LIBRARIES})
+target_link_libraries(test_RotationalEphemeris tudat_ephemerides tudat_reference_frames tudat_input_output tudat_basic_astrodynamics tudat_basic_mathematics tudat_spice_interface ${TUDAT_EXTERNAL_LIBRARIES} ${Boost_LIBRARIES})
 
 add_executable(test_SimpleRotationalEphemeris "${SRCROOT}${EPHEMERIDESDIR}/UnitTests/unitTestSimpleRotationalEphemeris.cpp")
 setup_custom_test_program(test_SimpleRotationalEphemeris "${SRCROOT}${EPHEMERIDESDIR}")
@@ -76,13 +86,32 @@ target_link_libraries(test_SimpleRotationalEphemeris tudat_ephemerides tudat_ref
 if(USE_CSPICE)
 add_executable(test_FrameManager "${SRCROOT}${EPHEMERIDESDIR}/UnitTests/unitTestFrameManager.cpp")
 setup_custom_test_program(test_FrameManager "${SRCROOT}${EPHEMERIDESDIR}")
-target_link_libraries(test_FrameManager tudat_ephemerides tudat_reference_frames tudat_input_output tudat_basic_astrodynamics tudat_basic_mathematics ${TUDAT_EXTERNAL_LIBRARIES} ${Boost_LIBRARIES})
+target_link_libraries(test_FrameManager tudat_ephemerides tudat_reference_frames ${TUDAT_EXTERNAL_INTERFACE_LIBRARIES} tudat_input_output tudat_basic_astrodynamics tudat_basic_mathematics ${TUDAT_EXTERNAL_LIBRARIES} ${Boost_LIBRARIES})
 
 add_executable(test_CompositeEphemeris "${SRCROOT}${EPHEMERIDESDIR}/UnitTests/unitTestCompositeEphemeris.cpp")
 setup_custom_test_program(test_CompositeEphemeris "${SRCROOT}${EPHEMERIDESDIR}")
 target_link_libraries(test_CompositeEphemeris ${TUDAT_PROPAGATION_LIBRARIES} ${Boost_LIBRARIES})
+
+add_executable(test_TabulatedRotationalEphemeris "${SRCROOT}${EPHEMERIDESDIR}/UnitTests/unitTestTabulatedRotationalEphemeris.cpp")
+setup_custom_test_program(test_TabulatedRotationalEphemeris "${SRCROOT}${EPHEMERIDESDIR}")
+target_link_libraries(test_TabulatedRotationalEphemeris tudat_ephemerides tudat_reference_frames tudat_input_output tudat_basic_astrodynamics tudat_basic_mathematics tudat_spice_interface ${TUDAT_EXTERNAL_LIBRARIES} ${Boost_LIBRARIES})
+
+add_executable(test_SynchronousRotationalEphemeris "${SRCROOT}${EPHEMERIDESDIR}/UnitTests/unitTestSynchronousRotationalEphemeris.cpp")
+setup_custom_test_program(test_SynchronousRotationalEphemeris "${SRCROOT}${EPHEMERIDESDIR}")
+target_link_libraries(test_SynchronousRotationalEphemeris ${TUDAT_PROPAGATION_LIBRARIES} ${Boost_LIBRARIES})
+
 endif()
 
 add_executable(test_KeplerEphemeris "${SRCROOT}${EPHEMERIDESDIR}/UnitTests/unitTestKeplerEphemeris.cpp")
 setup_custom_test_program(test_KeplerEphemeris "${SRCROOT}${EPHEMERIDESDIR}")
 target_link_libraries(test_KeplerEphemeris tudat_ephemerides tudat_reference_frames tudat_input_output tudat_basic_astrodynamics tudat_basic_mathematics ${Boost_LIBRARIES})
+
+if(USE_SOFA)
+add_executable(test_GcrsToItrsRotation "${SRCROOT}${EPHEMERIDESDIR}/UnitTests/unitTestItrsToGcrsRotationModel.cpp")
+setup_custom_test_program(test_GcrsToItrsRotation "${SRCROOT}${EPHEMERIDESDIR}")
+target_link_libraries(test_GcrsToItrsRotation tudat_ephemerides tudat_spice_interface tudat_reference_frames tudat_earth_orientation tudat_sofa_interface tudat_basic_astrodynamics tudat_basic_mathematics tudat_input_output cspice sofa ${Boost_LIBRARIES})
+endif( )
+
+add_executable(test_PlanetaryRotationModel "${SRCROOT}${EPHEMERIDESDIR}/UnitTests/unitTestPlanetaryRotationModel.cpp")
+setup_custom_test_program(test_PlanetaryRotationModel "${SRCROOT}${EPHEMERIDESDIR}")
+target_link_libraries(test_PlanetaryRotationModel ${TUDAT_PROPAGATION_LIBRARIES} ${Boost_LIBRARIES})

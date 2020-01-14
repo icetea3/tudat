@@ -1,4 +1,4 @@
-/*    Copyright (c) 2010-2017, Delft University of Technology
+/*    Copyright (c) 2010-2019, Delft University of Technology
  *    All rigths reserved
  *
  *    This file is part of the Tudat. Redistribution and use in source and
@@ -17,11 +17,10 @@
 #define TUDAT_APPROXIMATE_PLANET_POSITIONS_BASE_H
 
 #include <cmath>
-#include <fstream>
 #include <map>
 #include <string>
 
-#include <boost/shared_ptr.hpp>
+#include <memory>
 
 #include <Eigen/Core>
 
@@ -50,17 +49,64 @@ public:
         mercury, venus, earthMoonBarycenter, mars, jupiter, saturn, uranus, neptune, pluto
     };
 
+    static BodiesWithEphemerisData getBodiesWithEphemerisDataId( const std::string& bodyName )
+    {
+        BodiesWithEphemerisData bodyId;
+        if( bodyName == "Mercury" )
+        {
+            bodyId = mercury;
+        }
+        else if( bodyName == "Venus" )
+        {
+            bodyId = venus;
+        }
+        else if( bodyName == "Earth" )
+        {
+            bodyId = earthMoonBarycenter;
+        }
+        else if( bodyName == "Mars" )
+        {
+            bodyId = mars;
+        }
+        else if( bodyName == "Jupiter" )
+        {
+            bodyId = jupiter;
+        }
+        else if( bodyName == "Saturn" )
+        {
+            bodyId = saturn;
+        }
+        else if( bodyName == "Uranus" )
+        {
+            bodyId = uranus;
+        }
+        else if( bodyName == "Saturn" )
+        {
+            bodyId = neptune;
+        }
+        else if( bodyName == "Uranus" )
+        {
+            bodyId = pluto;
+        }
+        else
+        {
+            throw std::runtime_error( "Error, could find body " + bodyName + " when getting BodiesWithEphemerisData id." );
+        }
+        return bodyId;
+    }
+
     //! Default constructor.
     /*!
      * Default constructor of the base class, initializes the gravitational parameter of the Sun to
      * the input value, and all other private base class members to default values.
      *
-     * \param aSunGravitationalParameter The gravitational parameter of the Sun [m^3/s^2].
+     * \param sunGravitationalParameter The gravitational parameter of the Sun [m^3/s^2].
      * \sa ApproximatePlanetPositions, ApproximatePlanetPositionsCircularCoplanar.
      */
-    ApproximatePlanetPositionsBase( const double aSunGravitationalParameter )
-        : Ephemeris( "Sun", "J2000" ),
-          sunGravitationalParameter( aSunGravitationalParameter ),
+    ApproximatePlanetPositionsBase( const double sunGravitationalParameter )
+        : Ephemeris( "Sun", "ECLIPJ2000" ),
+          sunGravitationalParameter_( sunGravitationalParameter ),
+          planetGravitationalParameter_( 0.0 ),
           julianDate_( -0.0 ),
           meanLongitudeAtGivenJulianDate_( -0.0 ),
           numberOfCenturiesPastJ2000_( -0.0 ),
@@ -99,7 +145,9 @@ public:
      *  Returns the gravitational parameter of the Sun that is used in the calculations.
      *  \return Gravitational parameter of the Sun.
      */
-    double getSunGravitationalParameter( ){ return sunGravitationalParameter; }
+    double getSunGravitationalParameter( ){ return sunGravitationalParameter_; }
+
+    double getPlanetGravitationalParameter( ){ return planetGravitationalParameter_; }
 
 protected:
 
@@ -114,7 +162,9 @@ protected:
     /*!
      *  Gravitational parameter of the Sun.
      */
-    const double sunGravitationalParameter;
+    const double sunGravitationalParameter_;
+
+    double planetGravitationalParameter_;
 
     //! Julian date.
     /*!
@@ -163,7 +213,12 @@ private:
 };
 
 //! Typedef for shared-pointer to ApproximatePlanetPositionsBase object.
-typedef boost::shared_ptr< ApproximatePlanetPositionsBase > ApproximatePlanetPositionsBasePointer;
+typedef std::shared_ptr< ApproximatePlanetPositionsBase > ApproximatePlanetPositionsBasePointer;
+
+double getApproximatePlanetGravitationalParameter( const ApproximatePlanetPositionsBase::BodiesWithEphemerisData bodyId  );
+
+double getApproximatePlanetGravitationalParameter( const std::string& bodyName );
+
 
 } // namespace ephemerides
 } // namespace tudat

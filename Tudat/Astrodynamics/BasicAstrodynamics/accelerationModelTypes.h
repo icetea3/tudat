@@ -1,4 +1,4 @@
-/*    Copyright (c) 2010-2017, Delft University of Technology
+/*    Copyright (c) 2010-2019, Delft University of Technology
  *    All rigths reserved
  *
  *    This file is part of the Tudat. Redistribution and use in source and
@@ -12,16 +12,22 @@
 #ifndef TUDAT_ACCELERATIONMODELTYPES_H
 #define TUDAT_ACCELERATIONMODELTYPES_H
 
+
 #include "Tudat/Astrodynamics/ElectroMagnetism/cannonBallRadiationPressureAcceleration.h"
+#include "Tudat/Astrodynamics/ElectroMagnetism/panelledRadiationPressure.h"
 #include "Tudat/Astrodynamics/Gravitation/centralGravityModel.h"
 #include "Tudat/Astrodynamics/Gravitation/sphericalHarmonicsGravityModel.h"
 #include "Tudat/Astrodynamics/Gravitation/mutualSphericalHarmonicGravityModel.h"
 #include "Tudat/Astrodynamics/Gravitation/thirdBodyPerturbation.h"
+#include "Tudat/Astrodynamics/Gravitation/directTidalDissipationAcceleration.h"
 #include "Tudat/Astrodynamics/Aerodynamics/aerodynamicAcceleration.h"
 #include "Tudat/Astrodynamics/BasicAstrodynamics/massRateModel.h"
 #include "Tudat/Astrodynamics/Propulsion/thrustAccelerationModel.h"
 #include "Tudat/Astrodynamics/Propulsion/massRateFromThrust.h"
-
+#include "Tudat/Astrodynamics/Relativity/relativisticAccelerationCorrection.h"
+#include "Tudat/Astrodynamics/BasicAstrodynamics/empiricalAcceleration.h"
+#include "Tudat/Astrodynamics/Propulsion/massRateFromThrust.h"
+#include "Tudat/Astrodynamics/ElectroMagnetism/solarSailAcceleration.h"
 
 namespace tudat
 {
@@ -29,24 +35,33 @@ namespace tudat
 namespace basic_astrodynamics
 {
 
-
 //! List of accelerations available in simulations
 /*!
  *  List of accelerations available in simulations. Acceleration models not defined by this
  *  given enum cannot be used for automatic acceleration model setup.
+ *
  */
 enum AvailableAcceleration
 {
     undefined_acceleration,
-    central_gravity,
+    point_mass_gravity,
+    central_gravity = point_mass_gravity,  // deprecated
     aerodynamic,
     cannon_ball_radiation_pressure,
     spherical_harmonic_gravity,
     mutual_spherical_harmonic_gravity,
-    third_body_central_gravity,
+    third_body_point_mass_gravity,
+    third_body_central_gravity = third_body_point_mass_gravity,  // deprecated
     third_body_spherical_harmonic_gravity,
     third_body_mutual_spherical_harmonic_gravity,
-    thrust_acceleration
+    thrust_acceleration,
+    relativistic_correction_acceleration,
+    empirical_acceleration,
+    direct_tidal_dissipation_in_central_body_acceleration,
+    direct_tidal_dissipation_in_orbiting_body_acceleration,
+    panelled_radiation_pressure_acceleration,
+    momentum_wheel_desaturation_acceleration,
+    solar_sail_acceleration
 };
 
 //! Function to get a string representing a 'named identification' of an acceleration type
@@ -77,7 +92,7 @@ enum AvailableMassRateModels
  *  \return Type of the accelerationModel, as identified by AvailableAcceleration enum.
  */
 AvailableAcceleration getAccelerationModelType(
-        const boost::shared_ptr< basic_astrodynamics::AccelerationModel< Eigen::Vector3d > >
+        const std::shared_ptr< basic_astrodynamics::AccelerationModel< Eigen::Vector3d > >
         accelerationModel );
 
 //! Function to identify the type of a mass rate model.
@@ -88,7 +103,7 @@ AvailableAcceleration getAccelerationModelType(
  *  \return Type of the massRateModel, as identified by AvailableMassRateModels enum.
  */
 AvailableMassRateModels getMassRateModelType(
-        const boost::shared_ptr< MassRateModel > massRateModel );
+        const std::shared_ptr< MassRateModel > massRateModel );
 
 //! Function to get all acceleration models of a given type from a list of models
 /*!
@@ -97,9 +112,35 @@ AvailableMassRateModels getMassRateModelType(
  * \param modelType Type for which all models are to be retrieved
  * \return Subset of fullList for which the acceleration model type is modelType
  */
-std::vector< boost::shared_ptr< AccelerationModel3d > > getAccelerationModelsOfType(
-        const std::vector< boost::shared_ptr< AccelerationModel3d > >& fullList,
+std::vector< std::shared_ptr< AccelerationModel3d > > getAccelerationModelsOfType(
+        const std::vector< std::shared_ptr< AccelerationModel3d > >& fullList,
         const AvailableAcceleration modelType );
+
+//! Function to check whether an acceleration type is a direct gravitational acceleration
+/*!
+ * Function to check whether an acceleration type is a direct gravitational acceleration, e.g. a gravitational
+ * acceleration that is not from a third-body.
+ * \param accelerationType Acceleration type for which it is to be checked whether it is direct gravitational.
+ * \return True if acceleration type is direct gravitational, false otherwise.
+ */
+bool isAccelerationDirectGravitational( const AvailableAcceleration accelerationType );
+
+//! Function to check whether an acceleration type is a third-body gravitational acceleration
+/*!
+ * Function to check whether an acceleration type is a third-body gravitational acceleration
+ * \param accelerationType Acceleration type for which it is to be checked whether it is third-body gravitational.
+ * \return True if acceleration type is third-body gravitational, false otherwise.
+ */
+bool isAccelerationFromThirdBody( const AvailableAcceleration accelerationType );
+
+//! Function to get the third-body counterpart of a direct gravitational acceleration type
+/*!
+ * Function to get the third-body counterpart of a direct gravitational acceleration type, e.g. a third_body_central_gravity
+ * for a central_gravity input. Function throws an exception is input is not direct gravitational
+ * \param accelerationType Acceleration type for which the third-body counterpart is to be determined.
+ * \return Third-body counterpart of accelerationType.
+ */
+AvailableAcceleration getAssociatedThirdBodyAcceleration( const AvailableAcceleration accelerationType );
 
 } // namespace basic_astrodynamics
 

@@ -1,4 +1,4 @@
-/*    Copyright (c) 2010-2017, Delft University of Technology
+/*    Copyright (c) 2010-2019, Delft University of Technology
  *    All rigths reserved
  *
  *    This file is part of the Tudat. Redistribution and use in source and
@@ -12,10 +12,8 @@
 #ifndef TUDAT_CENTRAL_GRAVITY_MODEL_H
 #define TUDAT_CENTRAL_GRAVITY_MODEL_H
 
-#include <iostream>
-
 #include <boost/lambda/lambda.hpp>
-#include <boost/shared_ptr.hpp>
+#include <memory>
 
 #include <Eigen/Core>
 
@@ -169,11 +167,11 @@ public:
     CentralGravitationalAccelerationModel(
             const typename Base::StateFunction positionOfBodySubjectToAccelerationFunction,
             const double aGravitationalParameter,
-            const typename Base::StateFunction positionOfBodyExertingAccelerationFunction
-            = boost::lambda::constant( StateMatrix::Zero( ) ),
+            const typename Base::StateFunction positionOfBodyExertingAccelerationFunction =
+            [ ]( ){ return StateMatrix::Zero( ); },
             const bool isMutualAttractionUsed = false )
         : Base( positionOfBodySubjectToAccelerationFunction,
-                boost::lambda::constant( aGravitationalParameter ),
+                [ = ]( ){ return aGravitationalParameter; },
                 positionOfBodyExertingAccelerationFunction,
                 isMutualAttractionUsed )
     {
@@ -202,9 +200,9 @@ public:
      */
     CentralGravitationalAccelerationModel(
             const typename Base::StateFunction positionOfBodySubjectToAccelerationFunction,
-            const boost::function< double( ) > aGravitationalParameterFunction,
+            const std::function< double( ) > aGravitationalParameterFunction,
             const typename Base::StateFunction positionOfBodyExertingAccelerationFunction
-            = boost::lambda::constant( StateMatrix::Zero( ) ),
+            = [ ]( ){ return StateMatrix::Zero( ); },
             const bool isMutualAttractionUsed = false )
         : Base( positionOfBodySubjectToAccelerationFunction,
                 aGravitationalParameterFunction,
@@ -253,7 +251,7 @@ private:
 typedef CentralGravitationalAccelerationModel< > CentralGravitationalAccelerationModel3d;
 
 //! Typedef for shared-pointer to CentralGravitationalAccelerationModel3d.
-typedef boost::shared_ptr< CentralGravitationalAccelerationModel3d >
+typedef std::shared_ptr< CentralGravitationalAccelerationModel3d >
 CentralGravitationalAccelerationModel3dPointer;
 
 } // namespace gravitation

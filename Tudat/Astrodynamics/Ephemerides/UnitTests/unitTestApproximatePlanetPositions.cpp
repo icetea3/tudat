@@ -1,4 +1,4 @@
-/*    Copyright (c) 2010-2017, Delft University of Technology
+/*    Copyright (c) 2010-2019, Delft University of Technology
  *    All rigths reserved
  *
  *    This file is part of the Tudat. Redistribution and use in source and
@@ -78,7 +78,7 @@ BOOST_AUTO_TEST_CASE( testOrbitalElements )
     TUDAT_CHECK_MATRIX_CLOSE_FRACTION( expectedEphemeris, marsState, tolerance );
 
     // Check that the reference frame properties are as expected.
-    BOOST_CHECK_EQUAL( marsEphemeris.getReferenceFrameOrientation( ), "J2000" );
+    BOOST_CHECK_EQUAL( marsEphemeris.getReferenceFrameOrientation( ), "ECLIPJ2000" );
     BOOST_CHECK_EQUAL( marsEphemeris.getReferenceFrameOrigin( ), "Sun" );
 }
 
@@ -98,7 +98,7 @@ BOOST_AUTO_TEST_CASE( testCircularCoplannar )
     Eigen::Vector6d keplerianElementsCircularCoplanar;
     keplerianElementsCircularCoplanar = orbital_element_conversions::
             convertCartesianToKeplerianElements( marsStateCircularCoplanar,
-                    marsEphemeris.getSunGravitationalParameter( ) );
+                    marsEphemeris.getSunGravitationalParameter( ) + marsEphemeris.getPlanetGravitationalParameter( ) );
 
     // Check the eccentricity, inclination and z-component of velocity and position are 0.
     BOOST_CHECK_SMALL( keplerianElementsCircularCoplanar( 1 ), 1e-15 );
@@ -109,7 +109,7 @@ BOOST_AUTO_TEST_CASE( testCircularCoplannar )
                        std::numeric_limits< double >::min( ) );
 
     // Check that the reference frame properties are as expected.
-    BOOST_CHECK_EQUAL( marsEphemeris.getReferenceFrameOrientation( ), "J2000" );
+    BOOST_CHECK_EQUAL( marsEphemeris.getReferenceFrameOrientation( ), "ECLIPJ2000" );
     BOOST_CHECK_EQUAL( marsEphemeris.getReferenceFrameOrigin( ), "Sun" );
 }
 
@@ -129,8 +129,8 @@ BOOST_AUTO_TEST_SUITE_END( )
 //        isApproximatePlanetPositionsErroneous = true;
 
 //        // Generate error statements.
-//        cerr << "The computed relative error in position of the  "<< endl;
-//        cerr << "coplanar circular position of Mars ( " << errorSemiMajorAxis << " )"<< endl;
+//        cerr << "The computed relative error in position of the  " << endl;
+//        cerr << "coplanar circular position of Mars ( " << errorSemiMajorAxis << " )" << endl;
 //        cerr << "using the ApproximatePlanetPositionsCircularCoplanar class, exceeds "
 //             << "the maximum expected error " << endl;
 //        cerr << "( " << errorTolerance_ << " )." << endl;
@@ -150,7 +150,7 @@ BOOST_AUTO_TEST_SUITE_END( )
 //        isApproximatePlanetPositionsErroneous = true;
 
 //        // Generate error statements.
-//        cerr << "The computed error in position vector of the  "<< endl;
+//        cerr << "The computed error in position vector of the  " << endl;
 //        cerr << "coplanar circular position of Mars ( "
 //             << errorPositionVector << " meters )" << endl;
 //        cerr << "using the ApproximatePlanetPositionsCircularCoplanar class, exceeds "
@@ -177,7 +177,7 @@ BOOST_AUTO_TEST_SUITE_END( )
         isApproximatePlanetPositionsErroneous = true;
 
         // Generate error statements.
-        cerr << "The computed error in velocity of the "<< endl;
+        cerr << "The computed error in velocity of the " << endl;
         cerr << "coplanar circular position of Mars "
              << "( " << errorVelocity.norm( ) << " meters per second )" << endl;
         cerr << "using the ApproximatePlanetPositionsCircularCoplanar class, exceeds "

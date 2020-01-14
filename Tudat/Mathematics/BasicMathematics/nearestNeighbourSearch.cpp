@@ -1,4 +1,4 @@
-/*    Copyright (c) 2010-2017, Delft University of Technology
+/*    Copyright (c) 2010-2019, Delft University of Technology
  *    All rigths reserved
  *
  *    This file is part of the Tudat. Redistribution and use in source and
@@ -139,7 +139,7 @@ int computeNearestNeighborUsingBinarySearch(
 
 //! Nearest left neighbor binary search.
 int computeNearestLeftNeighborUsingBinarySearch(
-        const std::map < double, Eigen::VectorXd >& sortedIndepedentAndDependentVariables,
+        const std::map< double, Eigen::VectorXd >& sortedIndepedentAndDependentVariables,
         const double targetValueInMapOfData )
 {
     // Declare local variables.

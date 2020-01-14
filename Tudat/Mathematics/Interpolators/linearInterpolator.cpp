@@ -1,4 +1,4 @@
-/*    Copyright (c) 2010-2017, Delft University of Technology
+/*    Copyright (c) 2010-2019, Delft University of Technology
  *    All rigths reserved
  *
  *    This file is part of the Tudat. Redistribution and use in source and
@@ -91,6 +91,14 @@ Eigen::VectorXd computeLinearInterpolation(
              + mapIteratorIntervalRight->second
              * locationTargetIndependentVariableValueInInterval );
 }
+
+template class LinearInterpolator< double, Eigen::VectorXd >;
+template class LinearInterpolator< double, Eigen::Vector6d >;
+template class LinearInterpolator< double, Eigen::MatrixXd >;
+
+template class LinearInterpolator< double, Eigen::Matrix< long double, Eigen::Dynamic, 1 > >;
+template class LinearInterpolator< double, Eigen::Matrix< long double, Eigen::Dynamic, 6 > >;
+template class LinearInterpolator< double, Eigen::Matrix< long double, Eigen::Dynamic,  Eigen::Dynamic > >;
 
 } // namespace interpolators
 } // mamespace tudat

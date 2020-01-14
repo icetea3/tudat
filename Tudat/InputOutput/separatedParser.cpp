@@ -1,4 +1,4 @@
-/*    Copyright (c) 2010-2017, Delft University of Technology
+/*    Copyright (c) 2010-2019, Delft University of Technology
  *    All rigths reserved
  *
  *    This file is part of the Tudat. Redistribution and use in source and
@@ -30,7 +30,7 @@ SeparatedParser::SeparatedParser( std::string separator, int numberOfFields, ...
     separator_ = separator;
 
     // Create a fancy vector (list) of all the fields.
-    va_list listOfArguments;	        // Define argument list variable.
+    va_list listOfArguments;                // Define argument list variable.
     va_start( listOfArguments,numberOfFields );  // init list; point to last defined argument.
 
     for ( int i = 0; i < numberOfFields; i++ )
@@ -78,7 +78,7 @@ void SeparatedParser::parseLine( std::string& line )
     }
 
     // Create a new data line
-    ParsedDataLineMapPtr currentLineData = boost::make_shared< ParsedDataLineMap >(
+    ParsedDataLineMapPtr currentLineData = std::make_shared< ParsedDataLineMap >(
                 std::map< FieldType, FieldValuePtr >( ) );
 
     // Register the data line with the global current parsed data vector
@@ -98,7 +98,7 @@ void SeparatedParser::parseLine( std::string& line )
         FieldType type( typeList.at( currentFieldNumber ) );
 
         // Define unit transformer.
-        boost::shared_ptr< FieldTransform > transformer;
+        std::shared_ptr< FieldTransform > transformer;
 
         // If type corresponds to one of the entries of the unit transformation map.
         if ( unitTransformationMap_.find( type ) != unitTransformationMap_.end( ) )
@@ -109,7 +109,7 @@ void SeparatedParser::parseLine( std::string& line )
         // Else, do nothing.
         else
         {
-            transformer = boost::shared_ptr< FieldTransform >( );
+            transformer = std::shared_ptr< FieldTransform >( );
         }
 
         // Store the resulting string.

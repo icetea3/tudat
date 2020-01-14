@@ -1,4 +1,4 @@
-/*    Copyright (c) 2010-2017, Delft University of Technology
+/*    Copyright (c) 2010-2019, Delft University of Technology
  *    All rigths reserved
  *
  *    This file is part of the Tudat. Redistribution and use in source and
@@ -8,11 +8,10 @@
  *    http://tudat.tudelft.nl/LICENSE.
  */
 
-#include <Tudat/Astrodynamics/Aerodynamics/trimOrientation.h>
-#include <Tudat/Mathematics/BasicMathematics/functionProxy.h>
-#include <Tudat/Mathematics/RootFinders/secantRootFinder.h>
-#include <Tudat/Mathematics/RootFinders/terminationConditions.h>
-
+#include "Tudat/Astrodynamics/Aerodynamics/trimOrientation.h"
+#include "Tudat/Mathematics/BasicMathematics/functionProxy.h"
+#include "Tudat/Mathematics/RootFinders/secantRootFinder.h"
+#include "Tudat/Mathematics/RootFinders/terminationConditions.h"
 namespace tudat
 {
 
@@ -21,8 +20,8 @@ namespace aerodynamics
 
 //! Constructor
 TrimOrientationCalculator::TrimOrientationCalculator(
-        const boost::shared_ptr< AerodynamicCoefficientInterface > coefficientInterface,
-        const boost::shared_ptr< root_finders::RootFinderCore< double > > rootFinder ):
+        const std::shared_ptr< AerodynamicCoefficientInterface > coefficientInterface,
+        const std::shared_ptr< root_finders::RootFinderCore< double > > rootFinder ):
     coefficientInterface_( coefficientInterface ), rootFinder_( rootFinder )
 {
     // Find index of angle of attack in aerodynamic coefficient interface (throw error if not found)
@@ -51,8 +50,8 @@ TrimOrientationCalculator::TrimOrientationCalculator(
                     currentIndependentVariables.begin( ), currentIndependentVariables.end( ), angle_of_attack_dependent );
         if( ( variableIterator == currentIndependentVariables.end( ) ) )
         {
-            std::cerr<<"Warning when getting trim angle of attack, no angle of attack dependency is found for control surface "
-                       + controlSurfaceIterator->first<<std::endl;
+            std::cerr << "Warning when getting trim angle of attack, no angle of attack dependency is found for control surface "
+                       + controlSurfaceIterator->first << std::endl;
         }
         else
         {
@@ -64,12 +63,12 @@ TrimOrientationCalculator::TrimOrientationCalculator(
     // If no root finder provided, use default value.
     if ( !rootFinder_.get( ) )
     {
-        rootFinder_ = boost::make_shared< root_finders::SecantRootFinderCore< double > >(
-                    boost::bind(
+        rootFinder_ = std::make_shared< root_finders::SecantRootFinderCore< double > >(
+                    std::bind(
                         &root_finders::termination_conditions::RootAbsoluteToleranceTerminationCondition< double >::
                         checkTerminationCondition,
-                        boost::make_shared< root_finders::termination_conditions::RootAbsoluteToleranceTerminationCondition
-                        < double > >( 1.0E-15, 1000 ), _1, _2, _3, _4, _5 ), 0.5 );
+                        std::make_shared< root_finders::termination_conditions::RootAbsoluteToleranceTerminationCondition
+                        < double > >( 1.0E-15, 1000 ), std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4, std::placeholders::_5 ), 0.5 );
     }
 }
 
@@ -79,9 +78,9 @@ double TrimOrientationCalculator::findTrimAngleOfAttack(
         const std::map< std::string, std::vector< double > > untrimmedControlSurfaceIndependentVariables )
 {
     // Determine function for which the root is to be determined.
-    boost::function< double( const double ) > coefficientFunction =
-            boost::bind( &TrimOrientationCalculator::getPerturbedMomentCoefficient,
-                         this, _1, untrimmedIndependentVariables, untrimmedControlSurfaceIndependentVariables );
+    std::function< double( const double ) > coefficientFunction =
+            std::bind( &TrimOrientationCalculator::getPerturbedMomentCoefficient,
+                         this, std::placeholders::_1, untrimmedIndependentVariables, untrimmedControlSurfaceIndependentVariables );
 
     double trimmedAngleOfAttack = TUDAT_NAN;
 
@@ -89,7 +88,7 @@ double TrimOrientationCalculator::findTrimAngleOfAttack(
     try
     {
         trimmedAngleOfAttack = rootFinder_->execute(
-                    boost::make_shared< basic_mathematics::FunctionProxy< double, double > >( coefficientFunction ),
+                    std::make_shared< basic_mathematics::FunctionProxy< double, double > >( coefficientFunction ),
                     untrimmedIndependentVariables.at( variableIndex_ ) );
     }
     // Throw error if not converged

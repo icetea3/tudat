@@ -1,7 +1,7 @@
 #ifndef TUDAT_OBLATESPHEROIDBODYSHAPEMODEL_H
 #define TUDAT_OBLATESPHEROIDBODYSHAPEMODEL_H
 
-/*    Copyright (c) 2010-2017, Delft University of Technology
+/*    Copyright (c) 2010-2019, Delft University of Technology
  *    All rigths reserved
  *
  *    This file is part of the Tudat. Redistribution and use in source and
@@ -17,9 +17,6 @@
 
 
 #include <Eigen/Core>
-#include <iostream>
-
-#include <boost/lambda/lambda.hpp>
 
 #include "Tudat/Astrodynamics/BasicAstrodynamics/bodyShapeModel.h"
 #include "Tudat/Astrodynamics/BasicAstrodynamics/geodeticCoordinateConversions.h"
@@ -108,7 +105,7 @@ public:
      */
     double getAverageRadius( )
     {
-        return ( ( 2.0 * equatorialRadius_+ polarRadius_) / 3.0 );
+        return ( ( 2.0 * equatorialRadius_ + polarRadius_ ) / 3.0 );
     }
 
     //! Function to obtain the equatorial radius

@@ -1,4 +1,4 @@
-/*    Copyright (c) 2010-2017, Delft University of Technology
+/*    Copyright (c) 2010-2019, Delft University of Technology
  *    All rigths reserved
  *
  *    This file is part of the Tudat. Redistribution and use in source and
@@ -14,7 +14,7 @@
 
 #include <vector>
 
-#include <boost/shared_ptr.hpp>
+#include <memory>
 
 #include "Tudat/Mathematics/BasicMathematics/nearestNeighbourSearch.h"
 
@@ -134,7 +134,7 @@ public:
         {
             // If requested value is in same interval, return same value as previous time.
             if ( basic_mathematics::isIndependentVariableInInterval< IndependentVariableType >
-                 ( previousNearestLowerIndex_,  valueToLookup, independentVariableValues_ ) )
+                 ( previousNearestLowerIndex_, valueToLookup, independentVariableValues_ ) )
             {
                 newNearestLowerIndex = previousNearestLowerIndex_;
             }
@@ -211,17 +211,18 @@ public:
         return basic_mathematics::computeNearestLeftNeighborUsingBinarySearch
                 < IndependentVariableType >( independentVariableValues_, valueToLookup );
     }
+
 };
 
 //! Typedef for shared-pointer to LookUpScheme object with double-type entries.
-typedef boost::shared_ptr< LookUpScheme< double > > LookUpSchemeDoublePointer;
+typedef std::shared_ptr< LookUpScheme< double > > LookUpSchemeDoublePointer;
 
 //! Typedef for shared-pointer to HuntingAlgorithmLookupScheme object with double-type entries.
-typedef boost::shared_ptr< HuntingAlgorithmLookupScheme< double > >
+typedef std::shared_ptr< HuntingAlgorithmLookupScheme< double > >
 HuntingAlgorithmLookupSchemeDoublePointer;
 
 //! Typedef for shared-pointer to BinarySearchLookupScheme object with double-type entries.
-typedef boost::shared_ptr< BinarySearchLookupScheme< double > >
+typedef std::shared_ptr< BinarySearchLookupScheme< double > >
 BinarySearchLookupSchemeDoublePointer;
 
 } // namespace interpolators

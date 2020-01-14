@@ -1,4 +1,4 @@
-/*    Copyright (c) 2010-2017, Delft University of Technology
+/*    Copyright (c) 2010-2019, Delft University of Technology
  *    All rigths reserved
  *
  *    This file is part of the Tudat. Redistribution and use in source and
@@ -39,7 +39,7 @@ public:
      *  \param bodiesToIntegrate List of names of bodies that are to be integrated numerically.
      */
     NBodyCowellStateDerivative( const basic_astrodynamics::AccelerationMap& accelerationModelsPerBody,
-                                const boost::shared_ptr< CentralBodyData< StateScalarType, TimeType > > centralBodyData,
+                                const std::shared_ptr< CentralBodyData< StateScalarType, TimeType > > centralBodyData,
                                 const std::vector< std::string >& bodiesToIntegrate ):
         NBodyStateDerivative< StateScalarType, TimeType >(
             accelerationModelsPerBody, centralBodyData, cowell, bodiesToIntegrate ){ }
@@ -63,7 +63,7 @@ public:
             Eigen::Block< Eigen::Matrix< StateScalarType, Eigen::Dynamic, Eigen::Dynamic > > stateDerivative )
     {
         stateDerivative.setZero( );
-        this->sumStateDerivativeContributions( stateOfSystemToBeIntegrated, stateDerivative );
+        this->sumStateDerivativeContributions( stateOfSystemToBeIntegrated, stateDerivative, true );
     }
 
     //! Function to convert the state in the conventional form to the propagator-specific form.
@@ -100,7 +100,16 @@ public:
     {
         currentCartesianLocalSoluton = internalSolution;
     }
+
 };
+
+extern template class NBodyCowellStateDerivative< double, double >;
+
+#if( BUILD_WITH_EXTENDED_PRECISION_PROPAGATION_TOOLS )
+extern template class NBodyCowellStateDerivative< long double, double >;
+extern template class NBodyCowellStateDerivative< double, Time >;
+extern template class NBodyCowellStateDerivative< long double, Time >;
+#endif
 
 } // namespace propagators
 

@@ -1,4 +1,4 @@
-/*    Copyright (c) 2010-2017, Delft University of Technology
+/*    Copyright (c) 2010-2019, Delft University of Technology
  *    All rigths reserved
  *
  *    This file is part of the Tudat. Redistribution and use in source and
@@ -138,7 +138,7 @@ BOOST_AUTO_TEST_CASE( testSeparatedParserMultiLine )
     // Check if the data was correcly separated.
     BOOST_CHECK_EQUAL( myLineData->find( general::id )->second->getRaw( ),
                        ( " 12 " ) ); // Trim additional spaces is disabled, so it should give
-                                     // padding spaces.
+    // padding spaces.
 
     BOOST_CHECK_EQUAL( myLineData->find( state::cartesianXCoordinate )->second->getRaw( ),
                        ( "1" ) );
@@ -219,7 +219,7 @@ BOOST_AUTO_TEST_CASE( testSeparatedParserWhitespace )
     BOOST_CHECK_EQUAL( testLineData->find( state::inclination )->second->getRaw( ),
                        ( "6.87574" ) );
     BOOST_CHECK_EQUAL( testLineData->find( state::longitudeOfAscendingNode
-                                              )->second->getRaw( ), ( "16.88982" ) );
+                                           )->second->getRaw( ), ( "16.88982" ) );
     BOOST_CHECK_EQUAL( testLineData->find( state::argumentOfPeriapsis )->second->getRaw( ),
                        ( "48.9603" ) );
     BOOST_CHECK_EQUAL( testLineData->find( state::meanAnomaly )->second->getRaw( ),
@@ -253,30 +253,29 @@ BOOST_AUTO_TEST_CASE( testSeparatedParserFieldTransform )
                 "  2011542 3.9501468 0.2391642   6.87574   16.88982  48.9603 229.49648 54000   " );
 
     // Create unit transformation map
-    std::map< FieldType, boost::shared_ptr< FieldTransform > > unitTransformationMap =
-            boost::assign::map_list_of
-            ( field_types::state::semiMajorAxis, boost::shared_ptr< FieldTransform >(
-                  new LinearFieldTransform(
-                      convertAstronomicalUnitsToMeters< double >( 1.0 ),
-                      0.0 ) ) )
-            ( field_types::state::inclination, boost::shared_ptr< FieldTransform >(
-                  new LinearFieldTransform(
-                      convertDegreesToRadians< double >( 1.0 ),
-                      0.0 ) ) )
-            ( field_types::state::longitudeOfAscendingNode, boost::shared_ptr< FieldTransform >(
-                  new LinearFieldTransform(
-                      convertDegreesToRadians< double >( 1.0 ),
-                      0.0 ) ) )
-            ( field_types::state::argumentOfPeriapsis, boost::shared_ptr< FieldTransform >(
-                  new LinearFieldTransform(
-                      convertDegreesToRadians< double >( 1.0 ),
-                      0.0 ) ) )
-            ( field_types::state::meanAnomaly, boost::shared_ptr< FieldTransform >(
-                  new LinearFieldTransform(
-                      convertDegreesToRadians< double >( 1.0 ),
-                      0.0 ) ) )
-            ( field_types::time::epoch, boost::shared_ptr< FieldTransform >(
-                  new LinearFieldTransform( 1.0, 2400000.5 ) ) );
+    std::map< FieldType, std::shared_ptr< FieldTransform > > unitTransformationMap =
+    { { field_types::state::semiMajorAxis, std::shared_ptr< FieldTransform >(
+        new LinearFieldTransform(
+        convertAstronomicalUnitsToMeters< double >( 1.0 ),
+        0.0 ) ) },
+      { field_types::state::inclination, std::shared_ptr< FieldTransform >(
+        new LinearFieldTransform(
+        convertDegreesToRadians< double >( 1.0 ),
+        0.0 ) ) },
+      { field_types::state::longitudeOfAscendingNode, std::shared_ptr< FieldTransform >(
+        new LinearFieldTransform(
+        convertDegreesToRadians< double >( 1.0 ),
+        0.0 ) ) },
+      { field_types::state::argumentOfPeriapsis, std::shared_ptr< FieldTransform >(
+        new LinearFieldTransform(
+        convertDegreesToRadians< double >( 1.0 ),
+        0.0 ) ) },
+      { field_types::state::meanAnomaly, std::shared_ptr< FieldTransform >(
+        new LinearFieldTransform(
+        convertDegreesToRadians< double >( 1.0 ),
+        0.0 ) ) },
+      { field_types::time::epoch, std::shared_ptr< FieldTransform >(
+        new LinearFieldTransform( 1.0, 2400000.5 ) ) } };
 
     // Pass unit transformation map to parser.
     testWhiteSpaceParser.setUnitTransformationMap( unitTransformationMap );
@@ -298,24 +297,24 @@ BOOST_AUTO_TEST_CASE( testSeparatedParserFieldTransform )
                        ( "2011542" ) );
     BOOST_CHECK_EQUAL( testLineData->find(
                            field_types::state::semiMajorAxis )->second->getTransformed( ),
-                       ( "590933550196.86743" ) );
+                       ( "590933550196.867432" ) );
     BOOST_CHECK_EQUAL( testLineData->find(
                            field_types::state::eccentricity )->second->getTransformed( ),
                        ( "0.2391642" ) );
     BOOST_CHECK_EQUAL( testLineData->find(
                            field_types::state::inclination )->second->getTransformed( ),
-                       ( "0.12000430151107493" ) );
+                       ( "0.120004" ) );
     BOOST_CHECK_EQUAL( testLineData->find( field_types::state::longitudeOfAscendingNode
                                            )->second->getTransformed( ),
-                       ( "0.29478296906918866" ) );
+                       ( "0.294783" ) );
     BOOST_CHECK_EQUAL( testLineData->find(
-                              field_types::state::argumentOfPeriapsis )->second->getTransformed( ),
-                       ( "0.85451843776417968" ) );
+                           field_types::state::argumentOfPeriapsis )->second->getTransformed( ),
+                       ( "0.854518" ) );
     BOOST_CHECK_EQUAL( testLineData->find(
                            field_types::state::meanAnomaly )->second->getTransformed( ),
-                       ( "4.005469197737316" ) );
+                       ( "4.005469" ) );
     BOOST_CHECK_EQUAL( testLineData->find( field_types::time::epoch )->second->getTransformed( ),
-                       ( "2454000.5" ) );
+                       ( "2454000.500000" ) );
 
     // Check if it fails to find a field that is not passed in the constructor.
     BOOST_CHECK( testLineData->find( field_types::state::trueAnomaly ) == testLineData->end( ) );

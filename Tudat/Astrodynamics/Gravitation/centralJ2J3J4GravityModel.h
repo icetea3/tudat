@@ -1,4 +1,4 @@
-/*    Copyright (c) 2010-2017, Delft University of Technology
+/*    Copyright (c) 2010-2019, Delft University of Technology
  *    All rigths reserved
  *
  *    This file is part of the Tudat. Redistribution and use in source and
@@ -15,7 +15,7 @@
 #include <map>
 
 #include <boost/lambda/lambda.hpp>
-#include <boost/shared_ptr.hpp>
+#include <memory>
 
 #include <Eigen/Core>
 
@@ -155,8 +155,8 @@ public:
             const double aJ2GravityCoefficient,
             const double aJ3GravityCoefficient,
             const double aJ4GravityCoefficient,
-            const StateFunction positionOfBodyExertingAccelerationFunction
-            = boost::lambda::constant( Eigen::Vector3d::Zero( ) ) )
+            const StateFunction positionOfBodyExertingAccelerationFunction =
+            [ ]( ){ return Eigen::Vector3d::Zero( ); } )
         : Base( positionOfBodySubjectToAccelerationFunction,
                 aGravitationalParameter,
                 positionOfBodyExertingAccelerationFunction, false ),
@@ -223,7 +223,7 @@ private:
 };
 
 //! Typedef for shared-pointer to CentralJ2J3J4GravitationalAccelerationModel.
-typedef boost::shared_ptr< CentralJ2J3J4GravitationalAccelerationModel >
+typedef std::shared_ptr< CentralJ2J3J4GravitationalAccelerationModel >
 CentralJ2J3J4GravitationalAccelerationModelPointer;
 
 } // namespace gravitation

@@ -1,4 +1,4 @@
-/*    Copyright (c) 2010-2017, Delft University of Technology
+/*    Copyright (c) 2010-2018, Delft University of Technology
  *    All rigths reserved
  *
  *    This file is part of the Tudat. Redistribution and use in source and
@@ -7,7 +7,6 @@
  *    a copy of the license with this file. If not, please or visit:
  *    http://tudat.tudelft.nl/LICENSE.
  */
-
 
 #ifndef TUDAT_SIMULATIONHEADER_H
 #define TUDAT_SIMULATIONHEADER_H
@@ -21,10 +20,13 @@
 #include "Tudat/Astrodynamics/ReferenceFrames/referenceFrameTransformations.h"
 
 #include "Tudat/InputOutput/basicInputOutput.h"
+#include "Tudat/InputOutput/mapTextFileReader.h"
+
+#include "Tudat/Basics/basicTypedefs.h"
 
 #include "Tudat/Mathematics/BasicMathematics/linearAlgebra.h"
-#include "Tudat/Basics/basicTypedefs.h"
 #include "Tudat/Mathematics/BasicMathematics/mathematicalConstants.h"
+#include "Tudat/Mathematics/Filters/createFilter.h"
 #include "Tudat/Mathematics/NumericalIntegrators/createNumericalIntegrator.h"
 #include "Tudat/Mathematics/Interpolators/createInterpolator.h"
 
@@ -43,7 +45,7 @@
 #include "Tudat/SimulationSetup/PropagationSetup/propagationSettings.h"
 #include "Tudat/SimulationSetup/PropagationSetup/propagationOutputSettings.h"
 #include "Tudat/SimulationSetup/PropagationSetup/propagationTerminationSettings.h"
-#include "Tudat/SimulationSetup/PropagationSetup/createNumericalSimulator.h"
+#include "Tudat/SimulationSetup/EstimationSetup/createNumericalSimulator.h"
 #include "Tudat/SimulationSetup/PropagationSetup/thrustSettings.h"
 #include "Tudat/SimulationSetup/PropagationSetup/createMassRateModels.h"
 

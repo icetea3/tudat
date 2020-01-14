@@ -1,4 +1,4 @@
-/*    Copyright (c) 2010-2017, Delft University of Technology
+/*    Copyright (c) 2010-2019, Delft University of Technology
  *    All rigths reserved
  *
  *    This file is part of the Tudat. Redistribution and use in source and
@@ -18,9 +18,7 @@
 #ifndef TUDAT_CAPSULE_H
 #define TUDAT_CAPSULE_H
 
-#include <iostream>
-
-#include <boost/shared_ptr.hpp>
+#include <memory>
 
 #include "Tudat/Mathematics/GeometricShapes/compositeSurfaceGeometry.h"
 
@@ -94,6 +92,28 @@ public:
      */
     double getSideRadius( ) { return sideRadius_; }
 
+    //! Get capsule volume (from analytical expressions).
+    /*!
+     * Returns the capsule volume.
+     * \return capsule volume.
+     */
+    double getVolume( ) { return capsuleVolume_; }
+
+    //! Get capsule frontal area (reference area).
+    /*!
+     * Returns the capsule frontal area.
+     * \return capsule volume.
+     */
+    double getFrontalArea( ) { return frontalArea_; }
+
+    //! Get capsule length (from tip of nose sphere to tip of rear sphere).
+    /*!
+     * Returns the total capsule length.
+     * \return side radius.
+     */
+
+    double getLength( ) { return totalLength_; }
+
     //! Overload ostream to print class information.
     /*!
      * Overloads ostream to print class information, prints the class type,
@@ -102,7 +122,7 @@ public:
      * \param capsule Capsule of which info is to be printed.
      * \return Stream with printed info.
      */
-    friend std::ostream &operator<<( std::ostream &stream, Capsule& capsule );
+    friend std::ostream &operator << ( std::ostream &stream, Capsule& capsule );
 
 protected:
 
@@ -137,10 +157,28 @@ private:
      * Rear angle.
      */
     double rearAngle_;
+
+    //! Capsule volume.
+    /*!
+     *  Capsule volume.
+     */
+    double capsuleVolume_;
+
+    //! Frontal area.
+    /*!
+     *  Frontal area.
+     */
+    double frontalArea_;
+
+    //! Total capsule length.
+    /*!
+     *  Total capsule length.
+     */
+    double totalLength_;
 };
 
 //! Typedef for shared-pointer to Capsule object.
-typedef boost::shared_ptr< Capsule > CapsulePointer;
+typedef std::shared_ptr< Capsule > CapsulePointer;
 
 } // namespace geometric_shapes
 } // namespace tudat

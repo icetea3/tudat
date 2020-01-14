@@ -1,4 +1,4 @@
-/*    Copyright (c) 2010-2017, Delft University of Technology
+/*    Copyright (c) 2010-2019, Delft University of Technology
  *    All rigths reserved
  *
  *    This file is part of the Tudat. Redistribution and use in source and
@@ -6,6 +6,13 @@
  *    under the terms of the Modified BSD license. You should have received
  *    a copy of the license with this file. If not, please or visit:
  *    http://tudat.tudelft.nl/LICENSE.
+ *
+ *    References:
+ *
+ *    Kluever (2010), Low-Thrust Trajectory Optimization Using Orbital Averaging and Control Parameterization, In: Conway,
+ *    (editor) Spacecraft trajectory optimization. Cambridge University Press, 2010.
+ *    Boudestijn (2014), DEVELOPMENT OF A LOW -THRUST EARTH-CENTERED TRANSFER OPTIMIZER FOR THE PRELIMINARY MISSION DESIGN PHASE,
+ *    M.Sc. Thesis, Delft University of Technology
  */
 
 #ifndef TUDAT_THRUSTSETTINGS_H
@@ -14,7 +21,7 @@
 #include <Eigen/Geometry>
 
 #include <boost/bind.hpp>
-#include <boost/function.hpp>
+#include <functional>
 
 #include "Tudat/Astrodynamics/Propulsion/thrustGuidance.h"
 #include "Tudat/Astrodynamics/Propulsion/thrustMagnitudeWrapper.h"
@@ -35,9 +42,10 @@ enum ThrustDirectionGuidanceTypes
     colinear_with_state_segment_thrust_direction,
     thrust_direction_from_existing_body_orientation,
     custom_thrust_direction,
-    custom_thrust_orientation
+    custom_thrust_orientation,
+    mee_costate_based_thrust_direction
 
-};
+}; 
 
 //! Function to create a list of functions that (compute and) return independent variables for thrust
 /*!
@@ -51,11 +59,11 @@ enum ThrustDirectionGuidanceTypes
  * \param guidanceInputFunctions Functions returning user-defined variables on which the thrust/specific impulse depends
  * \return List of functions that (compute and) return independent variables for thrust
  */
-std::vector< boost::function< double( ) > > getPropulsionInputVariables(
-        const boost::shared_ptr< Body > bodyWithGuidance,
+std::vector< std::function< double( ) > > getPropulsionInputVariables(
+        const std::shared_ptr< Body > bodyWithGuidance,
         const std::vector< propulsion::ThrustIndependentVariables > independentVariables,
-        const std::vector< boost::function< double( ) > > guidanceInputFunctions =
-         std::vector< boost::function< double( ) > >( ) );
+        const std::vector< std::function< double( ) > > guidanceInputFunctions =
+         std::vector< std::function< double( ) > >( ) );
 
 //! Class defining settings for the thrust direction
 /*!
@@ -75,7 +83,7 @@ public:
     */
     ThrustDirectionGuidanceSettings(
             const ThrustDirectionGuidanceTypes thrustDirectionType,
-            const std::string relativeBody ):
+            const std::string relativeBody = "" ):
         thrustDirectionType_( thrustDirectionType ), relativeBody_( relativeBody ){ }
 
     //! Destructor.
@@ -86,6 +94,7 @@ public:
 
     //! Body relative to which thrust guidance algorithm is defined.
     std::string relativeBody_;
+
 };
 
 //! Thrust guidance settings for thrust that is colinear with position/velocity vector
@@ -133,7 +142,7 @@ public:
      * \param thrustDirectionFunction Function returning thrust direction unit vector as function fo time.
      */
     CustomThrustDirectionSettings(
-            const boost::function< Eigen::Vector3d( const double ) > thrustDirectionFunction ):
+            const std::function< Eigen::Vector3d( const double ) > thrustDirectionFunction ):
         ThrustDirectionGuidanceSettings( custom_thrust_direction, "" ),
         thrustDirectionFunction_( thrustDirectionFunction ){ }
 
@@ -141,13 +150,14 @@ public:
     ~CustomThrustDirectionSettings( ){ }
 
     //! Function returning thrust direction unit vector as function fo time.
-    boost::function< Eigen::Vector3d( const double ) > thrustDirectionFunction_;
+    std::function< Eigen::Vector3d( const double ) > thrustDirectionFunction_;
+
 };
 
 //! Class for defining custom orientation of thrust (i.e. predefined body-fixed-to-propagation rotation as function of time)
 /*!
  *  Class for defining custom orientation of thrust (i.e. predefined body-fixed-to-propagation rotation as function of time).
- *  Thrust is then computed from body-fixed direction of thrust (defined in ThrustEngineSettings).
+ *  Thrust is then computed from body-fixed direction of thrust (defined in ThrustMagnitudeSettings).
  */
 class CustomThrustOrientationSettings: public ThrustDirectionGuidanceSettings
 {
@@ -160,7 +170,7 @@ public:
      * as function of time)
      */
     CustomThrustOrientationSettings(
-            const boost::function< Eigen::Quaterniond( const double ) > thrustOrientationFunction ):
+            const std::function< Eigen::Quaterniond( const double ) > thrustOrientationFunction ):
         ThrustDirectionGuidanceSettings( custom_thrust_orientation, "" ),
         thrustOrientationFunction_( thrustOrientationFunction ){ }
 
@@ -168,7 +178,76 @@ public:
     ~CustomThrustOrientationSettings( ){ }
 
     //! Custom orientation of thrust (i.e. predefined body-fixed-to-propagation rotation as function of time.
-    boost::function< Eigen::Quaterniond( const double ) > thrustOrientationFunction_ ;
+    std::function< Eigen::Quaterniond( const double ) > thrustOrientationFunction_;
+
+};
+
+//! Class for defining settings for MEE-costate based thrust direction guidance
+/*!
+ *  Class for defining settings for MEE-costate based thrust direction guidance. Model details can be found in Kluever (2010) and
+ *  Boudestijn (2014). The MEE-costates are provided for the five slow elements, as a function of time. Constructors for
+ *  constant costates, and costates from an interpolator, are also provided.
+ */
+class MeeCostateBasedThrustDirectionSettings: public ThrustDirectionGuidanceSettings
+{
+public:
+
+    //! Constructor with costate function
+    /*!
+     * Constructor with costate function
+     * \param vehicleName Name of vehicle under thrust
+     * \param centralBodyName Name of central body (w.r.t. which MEE are calculated)
+     * \param costateFunction Function returning the 5 costates as a function of time
+     */
+    MeeCostateBasedThrustDirectionSettings(
+            const std::string& vehicleName,
+            const std::string& centralBodyName,
+            const std::function< Eigen::VectorXd( const double ) > costateFunction ):
+        ThrustDirectionGuidanceSettings( mee_costate_based_thrust_direction, centralBodyName ),
+    vehicleName_( vehicleName ), costateFunction_( costateFunction ){ }
+
+    //! Constructor with costate function
+    /*!
+     * Constructor with costate function
+     * \param vehicleName Name of vehicle under thrust
+     * \param centralBodyName Name of central body (w.r.t. which MEE are calculated)
+     * \param costateInterpolator Interpolator returning the 5 costates as a function of time
+     */
+    MeeCostateBasedThrustDirectionSettings(
+            const std::string& vehicleName,
+            const std::string& centralBodyName,
+            const std::shared_ptr< interpolators::OneDimensionalInterpolator< double, Eigen::VectorXd > > costateInterpolator ):
+        ThrustDirectionGuidanceSettings( mee_costate_based_thrust_direction, centralBodyName ),
+        vehicleName_( vehicleName ),
+        costateFunction_(
+            std::bind( static_cast< Eigen::VectorXd( interpolators::OneDimensionalInterpolator< double, Eigen::VectorXd >::* )
+                         ( const double ) >( &interpolators::OneDimensionalInterpolator< double, Eigen::VectorXd >::interpolate ),
+                         costateInterpolator, std::placeholders::_1 ) ){ }
+
+    //! Constructor with costate function
+    /*!
+     * Constructor with costate function
+     * \param vehicleName Name of vehicle under thrust
+     * \param centralBodyName Name of central body (w.r.t. which MEE are calculated)
+     * \param constantCostates The 5 costates, which will be used as constants in time
+     */
+    MeeCostateBasedThrustDirectionSettings(
+            const std::string& vehicleName,
+            const std::string& centralBodyName,
+            const Eigen::VectorXd constantCostates ):
+        ThrustDirectionGuidanceSettings( mee_costate_based_thrust_direction, centralBodyName ),
+    vehicleName_( vehicleName ), costateFunction_( [ = ]( const double ){ return constantCostates; } ){ }
+
+
+    //! Destructor.
+    ~MeeCostateBasedThrustDirectionSettings( ){ }
+
+    //! Name of vehicle under thrust
+    std::string vehicleName_;
+
+    //! Function returning the 5 costates as a function of time
+    std::function< Eigen::VectorXd( const double ) > costateFunction_;
+
 };
 
 //! Function to create the object determining the direction of the thrust acceleration.
@@ -182,11 +261,11 @@ public:
  * extended by this function as needed.
  * \return Function determining the thrust direction in the propagation frame according to given requirements.
  */
-boost::shared_ptr< propulsion::BodyFixedForceDirectionGuidance  > createThrustGuidanceModel(
-        const boost::shared_ptr< ThrustDirectionGuidanceSettings > thrustDirectionGuidanceSettings,
+std::shared_ptr< propulsion::BodyFixedForceDirectionGuidance  > createThrustGuidanceModel(
+        const std::shared_ptr< ThrustDirectionGuidanceSettings > thrustDirectionGuidanceSettings,
         const NamedBodyMap& bodyMap,
         const std::string& nameOfBodyWithGuidance,
-        const boost::function< Eigen::Vector3d( ) > bodyFixedThrustOrientation,
+        const std::function< Eigen::Vector3d( ) > bodyFixedThrustOrientation,
         std::map< propagators::EnvironmentModelsToUpdate, std::vector< std::string > >& magnitudeUpdateSettings );
 
 //! List of available types of thust magnitude types
@@ -195,7 +274,8 @@ enum ThrustMagnitudeTypes
     constant_thrust_magnitude,
     from_engine_properties_thrust_magnitude,
     thrust_magnitude_from_time_function,
-    thrust_magnitude_from_dependent_variables
+    thrust_magnitude_from_dependent_variables,
+    bang_bang_thrust_magnitude_from_mee_costates
 };
 
 //! Class defining settings for the thrust magnitude
@@ -204,7 +284,7 @@ enum ThrustMagnitudeTypes
  *  settings of thrust magnitude that require no information in addition to their type.
  *  Classes defining settings for thrust magnitude requiring additional information must be derived from this class.
  */
-class ThrustEngineSettings
+class ThrustMagnitudeSettings
 {
 public:
 
@@ -214,24 +294,25 @@ public:
      * \param thrustMagnitudeGuidanceType Type of thrust magnitude guidance that is to be used
      * \param thrustOriginId Reference id of thrust origin that is to be used (empty if N/A).
      */
-    ThrustEngineSettings(
+    ThrustMagnitudeSettings(
             const ThrustMagnitudeTypes thrustMagnitudeGuidanceType,
             const std::string& thrustOriginId ):
         thrustMagnitudeGuidanceType_( thrustMagnitudeGuidanceType ),
         thrustOriginId_( thrustOriginId ){ }
 
     //! Destructor
-    virtual ~ThrustEngineSettings( ){ }
+    virtual ~ThrustMagnitudeSettings( ){ }
 
     //! Type of thrust magnitude guidance that is to be used
     ThrustMagnitudeTypes thrustMagnitudeGuidanceType_;
 
     //! Reference id of thrust origin that is to be used (empty if N/A).
     std::string thrustOriginId_;
+
 };
 
 //! Class to define settigns for constant thrust settings.
-class ConstantThrustEngineSettings: public ThrustEngineSettings
+class ConstantThrustMagnitudeSettings: public ThrustMagnitudeSettings
 {
 public:
 
@@ -242,16 +323,16 @@ public:
      * \param specificImpulse Constant specific impulse that is to be used
      * \param bodyFixedThrustDirection Direction of thrust force in body-fixed frame (along longitudinal axis by default).
      */
-    ConstantThrustEngineSettings(
+    ConstantThrustMagnitudeSettings(
             const double thrustMagnitude,
             const double specificImpulse,
             const Eigen::Vector3d bodyFixedThrustDirection = Eigen::Vector3d::UnitX( ) ):
-        ThrustEngineSettings( constant_thrust_magnitude, "" ),
+        ThrustMagnitudeSettings( constant_thrust_magnitude, "" ),
         thrustMagnitude_( thrustMagnitude ), specificImpulse_( specificImpulse ),
         bodyFixedThrustDirection_( bodyFixedThrustDirection ){ }
 
     //! Destructor
-    ~ConstantThrustEngineSettings( ){ }
+    ~ConstantThrustMagnitudeSettings( ){ }
 
     //! Constant thrust magnitude that is to be used.
     double thrustMagnitude_;
@@ -261,10 +342,11 @@ public:
 
     //! Direction of thrust force in body-fixed frame
     Eigen::Vector3d bodyFixedThrustDirection_;
+
 };
 
 //! Class to define thrust magnitude  to be taken directly from an engine model
-class FromBodyThrustEngineSettings: public ThrustEngineSettings
+class FromBodyThrustMagnitudeSettings: public ThrustMagnitudeSettings
 {
 public:
 
@@ -276,14 +358,15 @@ public:
      * \param thrustOrigin Name of engine model from which thrust is to be derived (must be empty if
      * useAllThrustModels is set to true)
      */
-    FromBodyThrustEngineSettings(
+    FromBodyThrustMagnitudeSettings(
             const bool useAllEngines = 1,
             const std::string& thrustOrigin = "" ):
-        ThrustEngineSettings( from_engine_properties_thrust_magnitude, thrustOrigin ),
+        ThrustMagnitudeSettings( from_engine_properties_thrust_magnitude, thrustOrigin ),
         useAllEngines_( useAllEngines ){ }
 
     //! Boolean denoting whether all engines of the associated body are to be combined into a single thrust magnitude
     bool useAllEngines_;
+
 };
 
 //! Class to define custom settings for thrust magnitude/specific impulse.
@@ -295,7 +378,7 @@ public:
  * clear physical meaning (e.g. dynamic pressure, Mach number, freestream density, etc.), the
  * ParameterizedThrustMagnitudeSettings settings object can be used.
  */
-class FromFunctionThrustEngineSettings: public ThrustEngineSettings
+class FromFunctionThrustMagnitudeSettings: public ThrustMagnitudeSettings
 {
 public:
 
@@ -310,13 +393,13 @@ public:
      * \param customThrustResetFunction Custom function that is to be called when signalling that a new time step is
      * being started (empty by default)
      */
-    FromFunctionThrustEngineSettings(
-            const boost::function< double( const double ) > thrustMagnitudeFunction,
-            const boost::function< double( const double ) > specificImpulseFunction,
-            const boost::function< bool( const double ) > isEngineOnFunction = boost::lambda::constant( true ),
-            const Eigen::Vector3d bodyFixedThrustDirection = Eigen::Vector3d::UnitX( ),
-            const boost::function< void( const double ) > customThrustResetFunction = boost::function< void( const double ) >( ) ):
-        ThrustEngineSettings( thrust_magnitude_from_time_function, "" ),
+    FromFunctionThrustMagnitudeSettings(
+            const std::function< double( const double ) > thrustMagnitudeFunction,
+            const std::function< double( const double ) > specificImpulseFunction,
+            const std::function< bool( const double ) > isEngineOnFunction = [ ]( const double ){ return true; },
+            const std::function< Eigen::Vector3d( ) > bodyFixedThrustDirection = [ ]( ){ return  Eigen::Vector3d::UnitX( ); },
+            const std::function< void( const double ) > customThrustResetFunction = std::function< void( const double ) >( ) ):
+        ThrustMagnitudeSettings( thrust_magnitude_from_time_function, "" ),
         thrustMagnitudeFunction_( thrustMagnitudeFunction ),
         specificImpulseFunction_( specificImpulseFunction ),
         isEngineOnFunction_( isEngineOnFunction ),
@@ -324,22 +407,140 @@ public:
         customThrustResetFunction_( customThrustResetFunction ){ }
 
     //! Destructor.
-    ~FromFunctionThrustEngineSettings( ){ }
+    ~FromFunctionThrustMagnitudeSettings( ){ }
 
     //! Function returning thrust magnitude as a function of time.
-    boost::function< double( const double) > thrustMagnitudeFunction_;
+    std::function< double( const double) > thrustMagnitudeFunction_;
 
     //! Function returning specific impulse as a function of time.
-    boost::function< double( const double) > specificImpulseFunction_;
+    std::function< double( const double) > specificImpulseFunction_;
 
     //! Function returning boolean denoting whether thrust is to be used.
-    boost::function< bool( const double ) > isEngineOnFunction_;
+    std::function< bool( const double ) > isEngineOnFunction_;
 
     //! Direction of thrust force in body-fixed frame
-    Eigen::Vector3d bodyFixedThrustDirection_;
+    std::function< Eigen::Vector3d( ) > bodyFixedThrustDirection_;
 
-    boost::function< void( const double ) > customThrustResetFunction_;
+    //! Custom function that is to be called when signalling that a new time step is being started.
+    std::function< void( const double ) > customThrustResetFunction_;
 };
+
+
+//! Class for defining settings for bang-bang MEE-costate based thrust magnitude.
+/*!
+ *  Class for defining settings for bang-bang MEE-costate based thrust magnitude. Model details can be found in Kluever (2010) and
+ *  Boudestijn (2014). The MEE-costates are provided for the five slow elements, as a function of time. Constructors for
+ *  constant costates, and costates from an interpolator, are also provided.
+ */
+class FromMeeCostatesBangBangThrustMagnitudeSettings: public ThrustMagnitudeSettings
+{
+public:
+
+    //! Constructor with costates function.
+    /*!
+     * Constructor with costates function.
+     * \param thrustMagnitude Maximum thrust magnitude (if engine is on).
+     * \param specificImpulseFunction Function returning specific impulse as a function of time.
+     * \param costateFunction Function returning the MEE 5 costates as a function of time.
+     * \param vehicleName Name of vehicle under thrust.
+     * \param centralBodyName Name of central body (w.r.t. which MEE are calculated).
+     * \param bodyFixedThrustDirection Direction of thrust force in body-fixed frame (along longitudinal axis by default).
+     * \param customThrustResetFunction Custom function that is to be called when signalling that a new time step is
+     * being started (empty by default).
+     *
+     */
+    FromMeeCostatesBangBangThrustMagnitudeSettings(
+            const double thrustMagnitude,
+            const std::function< double( const double ) > specificImpulseFunction,
+            const std::function< Eigen::VectorXd( const double ) > costatesFunction,
+            const std::string& vehicleName,
+            const std::string& centralBodyName,
+            const std::function< Eigen::Vector3d( ) > bodyFixedThrustDirection = [ ]( ){ return  Eigen::Vector3d::UnitX( ); },
+            const std::function< void( const double ) > customThrustResetFunction = std::function< void( const double ) >( ) ):
+    ThrustMagnitudeSettings( bang_bang_thrust_magnitude_from_mee_costates, "" ),
+    maximumThrustMagnitude_( thrustMagnitude ), specificImpulseFunction_( specificImpulseFunction ),
+    costatesFunction_( costatesFunction ), vehicleName_( vehicleName ), centralBodyName_( centralBodyName ),
+    bodyFixedThrustDirection_( bodyFixedThrustDirection ), customThrustResetFunction_( customThrustResetFunction ){ }
+
+    //! Constructor with costate function
+    /*!
+     * Constructor with costate function
+     * \param thrustMagnitude Maximum thrust magnitude (if engine is on).
+     * \param specificImpulseFunction Function returning specific impulse as a function of time.
+     * \param costateInterpolator Interpolator returning the 5 MEE costates as a function of time.
+     * \param vehicleName Name of vehicle under thrust.
+     * \param centralBodyName Name of central body (w.r.t. which MEE are calculated).
+     * \param bodyFixedThrustDirection Direction of thrust force in body-fixed frame (along longitudinal axis by default).
+     * \param customThrustResetFunction Custom function that is to be called when signalling that a new time step is
+     * being started (empty by default).
+     */
+    FromMeeCostatesBangBangThrustMagnitudeSettings(
+            const double thrustMagnitude,
+            const std::function< double( const double ) > specificImpulseFunction,
+            const std::string& vehicleName,
+            const std::string& centralBodyName,
+            const std::shared_ptr< interpolators::OneDimensionalInterpolator< double, Eigen::VectorXd > > costateInterpolator,
+            const std::function< Eigen::Vector3d( ) > bodyFixedThrustDirection = [ ]( ){ return  Eigen::Vector3d::UnitX( ); },
+            const std::function< void( const double ) > customThrustResetFunction = std::function< void( const double ) >( ) ):
+        ThrustMagnitudeSettings( bang_bang_thrust_magnitude_from_mee_costates, "" ),
+        maximumThrustMagnitude_( thrustMagnitude ), specificImpulseFunction_( specificImpulseFunction ),
+        costatesFunction_( std::bind( static_cast< Eigen::VectorXd( interpolators::OneDimensionalInterpolator< double, Eigen::VectorXd >::* )
+                                      ( const double ) >( &interpolators::OneDimensionalInterpolator< double, Eigen::VectorXd >::interpolate ),
+                                      costateInterpolator, std::placeholders::_1 ) ),
+        vehicleName_( vehicleName ), centralBodyName_( centralBodyName ), bodyFixedThrustDirection_( bodyFixedThrustDirection ),
+        customThrustResetFunction_( customThrustResetFunction ){ }
+
+    //! Constructor with costate function
+    /*!
+     * Constructor with costate function
+     * \param thrustMagnitude Maximum thrust magnitude (if engine is on).
+     * \param specificImpulseFunction Function returning specific impulse as a function of time.
+     * \param costateInterpolator The MEE 5 costates, which will be used as constants in time.
+     * \param vehicleName Name of vehicle under thrust.
+     * \param centralBodyName Name of central body (w.r.t. which MEE are calculated).
+     * \param bodyFixedThrustDirection Direction of thrust force in body-fixed frame (along longitudinal axis by default).
+     * \param customThrustResetFunction Custom function that is to be called when signalling that a new time step is
+     * being started (empty by default).
+     */
+    FromMeeCostatesBangBangThrustMagnitudeSettings(
+            const double thrustMagnitude,
+            const std::function< double( const double ) > specificImpulseFunction,
+            const std::string& vehicleName,
+            const std::string& centralBodyName,
+            const Eigen::VectorXd constantCostates,
+            const std::function< Eigen::Vector3d( ) > bodyFixedThrustDirection = [ ]( ){ return  Eigen::Vector3d::UnitX( ); },
+            const std::function< void( const double ) > customThrustResetFunction = std::function< void( const double ) >( ) ):
+    ThrustMagnitudeSettings( bang_bang_thrust_magnitude_from_mee_costates, "" ),
+    maximumThrustMagnitude_( thrustMagnitude ), specificImpulseFunction_( specificImpulseFunction ),
+    costatesFunction_( [ = ]( const double ){ return constantCostates; } ),
+    vehicleName_( vehicleName ), centralBodyName_( centralBodyName ), bodyFixedThrustDirection_( bodyFixedThrustDirection ),
+    customThrustResetFunction_( customThrustResetFunction ) { }
+
+
+    //! Destructor.
+    ~FromMeeCostatesBangBangThrustMagnitudeSettings( ){ }
+
+    //! Maximum thrust magnitude.
+    double maximumThrustMagnitude_;
+
+    //! Function returning specific impulse as a function of time.
+    std::function< double( const double) > specificImpulseFunction_;
+
+    //! Vector of Mee costates.
+    std::function< Eigen::VectorXd( const double ) > costatesFunction_;
+
+    //! Name of the body under thrust.
+    std::string vehicleName_;
+
+    //! Name of the central body.
+    std::string centralBodyName_;
+
+    //! Direction of thrust force in body-fixed frame.
+    std::function< Eigen::Vector3d( ) > bodyFixedThrustDirection_;
+
+    std::function< void( const double ) > customThrustResetFunction_;
+};
+
 
 //! Interface function to multiply a maximum thrust by a multiplier to obtain the actual thrust
 /*!
@@ -351,10 +552,9 @@ public:
  * \return
  */
 double multiplyMaximumThrustByScalingFactor(
-        const boost::function< double( const std::vector< double >& ) > maximumThrustFunction,
-        const boost::function< double( ) > maximumThrustMultiplier,
+        const std::function< double( const std::vector< double >& ) > maximumThrustFunction,
+        const std::function< double( ) > maximumThrustMultiplier,
         const std::vector< double >& maximumThrustIndependentVariables );
-
 
 //! Interface base class that can be defined by user to make the use of the ParameterizedThrustMagnitudeSettings class easier
 /*!
@@ -547,7 +747,7 @@ public:
             const std::string nameOfBodyWithGuidance,
             const std::string nameOfCentralBody,
             const std::vector< propulsion::ThrustIndependentVariables > independentVariables,
-            const boost::shared_ptr< interpolators::Interpolator< double, double > > thrustInterpolator,
+            const std::shared_ptr< interpolators::Interpolator< double, double > > thrustInterpolator,
             const double maximumAcceleration ): ThrustInputParameterGuidance( 1, 0, true, 0 ),
         bodyWithGuidance_( bodyMap.at( nameOfBodyWithGuidance ) ), thrustInterpolator_( thrustInterpolator ),
         maximumAcceleration_( maximumAcceleration )
@@ -578,10 +778,10 @@ public:
         }
 
         // Create thrust input.
-        if( bodyWithGuidance_->getFlightConditions( ) == NULL && nameOfCentralBody != "" )
+        if( bodyWithGuidance_->getFlightConditions( ) == nullptr && nameOfCentralBody != "" )
         {
             bodyWithGuidance_->setFlightConditions(
-                        createFlightConditions( bodyWithGuidance_,
+                        createAtmosphericFlightConditions( bodyWithGuidance_,
                                                 bodyMap.at( nameOfCentralBody ),
                                                 nameOfBodyWithGuidance,
                                                 nameOfCentralBody ) );
@@ -623,19 +823,20 @@ public:
 private:
 
     //! Body for which thrust guidance is used.
-    boost::shared_ptr< simulation_setup::Body > bodyWithGuidance_;
+    std::shared_ptr< simulation_setup::Body > bodyWithGuidance_;
 
     //! Interpolator that computes the maximum thrust as a function of the independent variables.
-    boost::shared_ptr< interpolators::Interpolator< double, double > > thrustInterpolator_;
+    std::shared_ptr< interpolators::Interpolator< double, double > > thrustInterpolator_;
 
     //! Maxmum allowable acceleration due to the thrust force.
     double maximumAcceleration_;
 
     //! Functions to compute the current entries of the input to thrustInterpolator_.
-    std::vector< boost::function< double( ) > >  thrustInputFunctions_;
+    std::vector< std::function< double( ) > >  thrustInputFunctions_;
 
     //! Pre-declared vector used as input to thrustInterpolator_.
     std::vector< double >  currentThrustInput_;
+
 };
 
 //! Class to define the thrust magnitude and specific impulse as an interpolated function of N independent variables
@@ -648,7 +849,7 @@ private:
  *  is assumed to define the maximum possible thrust, which is then multiplied by the function defining the
  *  throttle_dependent_thrust.
  */
-class ParameterizedThrustMagnitudeSettings: public ThrustEngineSettings
+class ParameterizedThrustMagnitudeSettings: public ThrustMagnitudeSettings
 {
 public:
 
@@ -678,21 +879,21 @@ public:
      * vehicle front).
      */
     ParameterizedThrustMagnitudeSettings(
-            const boost::shared_ptr< interpolators::Interpolator< double, double > > thrustMagnitudeInterpolator,
+            const std::shared_ptr< interpolators::Interpolator< double, double > > thrustMagnitudeInterpolator,
             const std::vector< propulsion::ThrustIndependentVariables > thrustIndependentVariables,
-            const boost::shared_ptr< interpolators::Interpolator< double, double > > specificImpulseInterpolator,
+            const std::shared_ptr< interpolators::Interpolator< double, double > > specificImpulseInterpolator,
             const std::vector< propulsion::ThrustIndependentVariables > specificImpulseDependentVariables,
-            const std::vector< boost::function< double( ) > > thrustGuidanceInputVariables =
-            std::vector< boost::function< double( ) > >( ),
-            const std::vector< boost::function< double( ) > > specificImpulseGuidanceInputVariables =
-            std::vector< boost::function< double( ) > >( ),
-            const boost::function< void( const double) > inputUpdateFunction = boost::function< void( const double) >( ),
+            const std::vector< std::function< double( ) > > thrustGuidanceInputVariables =
+            std::vector< std::function< double( ) > >( ),
+            const std::vector< std::function< double( ) > > specificImpulseGuidanceInputVariables =
+            std::vector< std::function< double( ) > >( ),
+            const std::function< void( const double) > inputUpdateFunction = std::function< void( const double) >( ),
             const Eigen::Vector3d bodyFixedThrustDirection = Eigen::Vector3d::UnitX( ) ):
-        ThrustEngineSettings( thrust_magnitude_from_dependent_variables, "" ),
-        thrustMagnitudeFunction_( boost::bind( &interpolators::Interpolator< double, double >::interpolate,
-                                               thrustMagnitudeInterpolator, _1 ) ),
-        specificImpulseFunction_( boost::bind( &interpolators::Interpolator< double, double >::interpolate,
-                                               specificImpulseInterpolator, _1 ) ),
+        ThrustMagnitudeSettings( thrust_magnitude_from_dependent_variables, "" ),
+        thrustMagnitudeFunction_( std::bind( &interpolators::Interpolator< double, double >::interpolate,
+                                               thrustMagnitudeInterpolator, std::placeholders::_1 ) ),
+        specificImpulseFunction_( std::bind( &interpolators::Interpolator< double, double >::interpolate,
+                                               specificImpulseInterpolator, std::placeholders::_1 ) ),
         thrustIndependentVariables_( thrustIndependentVariables ),
         specificImpulseDependentVariables_( specificImpulseDependentVariables ),
         thrustGuidanceInputVariables_( thrustGuidanceInputVariables ),
@@ -722,31 +923,31 @@ public:
      * vehicle front).
      */
     ParameterizedThrustMagnitudeSettings(
-            const boost::shared_ptr< interpolators::Interpolator< double, double > > thrustMagnitudeInterpolator,
+            const std::shared_ptr< interpolators::Interpolator< double, double > > thrustMagnitudeInterpolator,
             const std::vector< propulsion::ThrustIndependentVariables > thrustIndependentVariables,
             const double constantSpecificImpulse,
-            const std::vector< boost::function< double( ) > > thrustGuidanceInputVariables =
-            std::vector< boost::function< double( ) > >( ),
-            const boost::function< void( const double ) > inputUpdateFunction = boost::function< void( const double) >( ),
+            const std::vector< std::function< double( ) > > thrustGuidanceInputVariables =
+            std::vector< std::function< double( ) > >( ),
+            const std::function< void( const double ) > inputUpdateFunction = std::function< void( const double) >( ),
             const Eigen::Vector3d bodyFixedThrustDirection = Eigen::Vector3d::UnitX( ) ):
-        ThrustEngineSettings( thrust_magnitude_from_dependent_variables, "" ),
-        thrustMagnitudeFunction_( boost::bind( &interpolators::Interpolator< double, double >::interpolate,
-                                               thrustMagnitudeInterpolator, _1 ) ),
-        specificImpulseFunction_( boost::lambda::constant( constantSpecificImpulse ) ),
+        ThrustMagnitudeSettings( thrust_magnitude_from_dependent_variables, "" ),
+        thrustMagnitudeFunction_( std::bind( &interpolators::Interpolator< double, double >::interpolate,
+                                               thrustMagnitudeInterpolator, std::placeholders::_1 ) ),
+        specificImpulseFunction_( [ = ]( const std::vector< double >& ){ return constantSpecificImpulse; } ),
         thrustIndependentVariables_( thrustIndependentVariables ),
         thrustGuidanceInputVariables_( thrustGuidanceInputVariables ),
         inputUpdateFunction_( inputUpdateFunction ),
         bodyFixedThrustDirection_( bodyFixedThrustDirection )
     {
         parseInputDataAndCheckConsistency(
-                    thrustMagnitudeInterpolator, boost::shared_ptr< interpolators::Interpolator< double, double > >( ) );
+                    thrustMagnitudeInterpolator, std::shared_ptr< interpolators::Interpolator< double, double > >( ) );
     }
 
     //! Function returning the thrust as a function of the independent variables.
-    boost::function< double( const std::vector< double >& ) > thrustMagnitudeFunction_;
+    std::function< double( const std::vector< double >& ) > thrustMagnitudeFunction_;
 
     //! Function returning the specific impulse as a function of the independent variables.
-    boost::function< double( const std::vector< double >& ) > specificImpulseFunction_;
+    std::function< double( const std::vector< double >& ) > specificImpulseFunction_;
 
     //! List of identifiers for the physical meaning of each of the entries of the input to thrustMagnitudeFunction_.
     std::vector< propulsion::ThrustIndependentVariables > thrustIndependentVariables_;
@@ -755,13 +956,13 @@ public:
     std::vector< propulsion::ThrustIndependentVariables > specificImpulseDependentVariables_;
 
     //! List of functions returning user-defined guidance input variables for the thrust
-    std::vector< boost::function< double( ) > > thrustGuidanceInputVariables_;
+    std::vector< std::function< double( ) > > thrustGuidanceInputVariables_;
 
     //! List of functions returning user-defined guidance input variables for the specific impulse
-    std::vector< boost::function< double( ) > > specificImpulseGuidanceInputVariables_;
+    std::vector< std::function< double( ) > > specificImpulseGuidanceInputVariables_;
 
     //! Function that is called to update the user-defined guidance to the current time
-    boost::function< void( const double ) > inputUpdateFunction_;
+    std::function< void( const double ) > inputUpdateFunction_;
 
     //! Direction of the thrust vector in the body-fixed frame
     Eigen::Vector3d bodyFixedThrustDirection_;
@@ -775,8 +976,8 @@ private:
      *  \param specificImpulseInterpolator Interpolator for the specific impulse provided to the constructor
      */
     void parseInputDataAndCheckConsistency(
-            const boost::shared_ptr< interpolators::Interpolator< double, double > > thrustMagnitudeInterpolator,
-            const boost::shared_ptr< interpolators::Interpolator< double, double > > specificImpulseInterpolator );
+            const std::shared_ptr< interpolators::Interpolator< double, double > > thrustMagnitudeInterpolator,
+            const std::shared_ptr< interpolators::Interpolator< double, double > > specificImpulseInterpolator );
 };
 
 //! Function to read a thrust or specific impulse interpolator from a file.
@@ -785,7 +986,7 @@ private:
  * \param coefficientFile Filename containing data to be used as input for interpolator.
  * \return Interpolator set according to data in coefficientFile
  */
-boost::shared_ptr< interpolators::Interpolator< double, double > > readCoefficientInterpolatorFromFile(
+std::shared_ptr< interpolators::Interpolator< double, double > > readCoefficientInterpolatorFromFile(
         const std::string coefficientFile );
 
 //! Function to create thrust magnitude settings from guidance input and tables
@@ -804,11 +1005,11 @@ boost::shared_ptr< interpolators::Interpolator< double, double > > readCoefficie
  * input to the 'interpolate' function of specificImpulseInterpolator.
  * \return Thrust magnitude settings for given input.
  */
-boost::shared_ptr< ParameterizedThrustMagnitudeSettings > createParameterizedThrustMagnitudeSettings(
-        const boost::shared_ptr< ThrustInputParameterGuidance > thrustInputParameterGuidance,
-        const boost::shared_ptr< interpolators::Interpolator< double, double > > thrustMagnitudeInterpolator,
+std::shared_ptr< ParameterizedThrustMagnitudeSettings > createParameterizedThrustMagnitudeSettings(
+        const std::shared_ptr< ThrustInputParameterGuidance > thrustInputParameterGuidance,
+        const std::shared_ptr< interpolators::Interpolator< double, double > > thrustMagnitudeInterpolator,
         const std::vector< propulsion::ThrustIndependentVariables > thrustIndependentVariables,
-        const boost::shared_ptr< interpolators::Interpolator< double, double > > specificImpulseInterpolator,
+        const std::shared_ptr< interpolators::Interpolator< double, double > > specificImpulseInterpolator,
         const std::vector< propulsion::ThrustIndependentVariables > specificImpulseDependentVariables );
 
 //! Function to create thrust magnitude settings from guidance input and tables
@@ -826,8 +1027,8 @@ boost::shared_ptr< ParameterizedThrustMagnitudeSettings > createParameterizedThr
  * input to the 'interpolate' function of specificImpulseInterpolator.
  * \return Thrust magnitude settings for given input.
  */
-boost::shared_ptr< ParameterizedThrustMagnitudeSettings > createParameterizedThrustMagnitudeSettings(
-        const boost::shared_ptr< ThrustInputParameterGuidance > thrustInputParameterGuidance,
+std::shared_ptr< ParameterizedThrustMagnitudeSettings > createParameterizedThrustMagnitudeSettings(
+        const std::shared_ptr< ThrustInputParameterGuidance > thrustInputParameterGuidance,
         const std::string thrustMagnitudeDataFile,
         const std::vector< propulsion::ThrustIndependentVariables > thrustIndependentVariables,
         const std::string specificImpulseDataFile,
@@ -846,9 +1047,9 @@ boost::shared_ptr< ParameterizedThrustMagnitudeSettings > createParameterizedThr
  * \param constantSpecificImpulse Specific impulse that is to be used at all times.
  * \return Thrust magnitude settings for given input.
  */
-boost::shared_ptr< ParameterizedThrustMagnitudeSettings > createParameterizedThrustMagnitudeSettings(
-        const boost::shared_ptr< ThrustInputParameterGuidance > thrustInputParameterGuidance,
-        const boost::shared_ptr< interpolators::Interpolator< double, double > > thrustMagnitudeInterpolator,
+std::shared_ptr< ParameterizedThrustMagnitudeSettings > createParameterizedThrustMagnitudeSettings(
+        const std::shared_ptr< ThrustInputParameterGuidance > thrustInputParameterGuidance,
+        const std::shared_ptr< interpolators::Interpolator< double, double > > thrustMagnitudeInterpolator,
         const std::vector< propulsion::ThrustIndependentVariables > thrustIndependentVariables,
         const double constantSpecificImpulse );
 
@@ -865,8 +1066,8 @@ boost::shared_ptr< ParameterizedThrustMagnitudeSettings > createParameterizedThr
  * \param constantSpecificImpulse Specific impulse that is to be used at all times.
  * \return Thrust magnitude settings for given input.
  */
-boost::shared_ptr< ParameterizedThrustMagnitudeSettings > createParameterizedThrustMagnitudeSettings(
-        const boost::shared_ptr< ThrustInputParameterGuidance > thrustInputParameterGuidance,
+std::shared_ptr< ParameterizedThrustMagnitudeSettings > createParameterizedThrustMagnitudeSettings(
+        const std::shared_ptr< ThrustInputParameterGuidance > thrustInputParameterGuidance,
         const std::string thrustMagnitudeDataFile,
         const std::vector< propulsion::ThrustIndependentVariables > thrustIndependentVariables,
         const double constantSpecificImpulse );
@@ -888,11 +1089,11 @@ boost::shared_ptr< ParameterizedThrustMagnitudeSettings > createParameterizedThr
  * is used as an independent variable of the thrust).
  * \return Thrust magnitude settings according to input.
  */
-boost::shared_ptr< ParameterizedThrustMagnitudeSettings > createAccelerationLimitedParameterizedThrustMagnitudeSettings(
+std::shared_ptr< ParameterizedThrustMagnitudeSettings > createAccelerationLimitedParameterizedThrustMagnitudeSettings(
         const NamedBodyMap& bodyMap,
         const std::string nameOfBodyWithGuidance,
         const double maximumAcceleration,
-        const boost::shared_ptr< interpolators::Interpolator< double, double > > thrustMagnitudeInterpolator,
+        const std::shared_ptr< interpolators::Interpolator< double, double > > thrustMagnitudeInterpolator,
         const std::vector< propulsion::ThrustIndependentVariables > thrustIndependentVariables,
         const double specificImpulse,
         const std::string nameOfCentralBody = "" );
@@ -913,7 +1114,7 @@ boost::shared_ptr< ParameterizedThrustMagnitudeSettings > createAccelerationLimi
  * is used as an independent variable of the thrust).
  * \return Thrust magnitude settings according to input.
  */
-boost::shared_ptr< ParameterizedThrustMagnitudeSettings > createAccelerationLimitedParameterizedThrustMagnitudeSettings(
+std::shared_ptr< ParameterizedThrustMagnitudeSettings > createAccelerationLimitedParameterizedThrustMagnitudeSettings(
         const NamedBodyMap& bodyMap,
         const std::string nameOfBodyWithGuidance,
         const double maximumAcceleration,
@@ -942,13 +1143,13 @@ boost::shared_ptr< ParameterizedThrustMagnitudeSettings > createAccelerationLimi
  * is used as an independent variable of the thrust).
  * \return Thrust magnitude settings according to input.
  */
-boost::shared_ptr< ParameterizedThrustMagnitudeSettings > createAccelerationLimitedParameterizedThrustMagnitudeSettings(
+std::shared_ptr< ParameterizedThrustMagnitudeSettings > createAccelerationLimitedParameterizedThrustMagnitudeSettings(
         const NamedBodyMap& bodyMap,
         const std::string nameOfBodyWithGuidance,
         const double maximumAcceleration,
-        const boost::shared_ptr< interpolators::Interpolator< double, double > > thrustMagnitudeInterpolator,
+        const std::shared_ptr< interpolators::Interpolator< double, double > > thrustMagnitudeInterpolator,
         const std::vector< propulsion::ThrustIndependentVariables > thrustIndependentVariables,
-        const boost::shared_ptr< interpolators::Interpolator< double, double > > specificImpulseInterpolator,
+        const std::shared_ptr< interpolators::Interpolator< double, double > > specificImpulseInterpolator,
         const std::vector< propulsion::ThrustIndependentVariables > specificImpulseDependentVariables,
         const std::string nameOfCentralBody = "" );
 
@@ -971,7 +1172,7 @@ boost::shared_ptr< ParameterizedThrustMagnitudeSettings > createAccelerationLimi
  * is used as an independent variable of the thrust).
  * \return Thrust magnitude settings according to input.
  */
-boost::shared_ptr< ParameterizedThrustMagnitudeSettings > createAccelerationLimitedParameterizedThrustMagnitudeSettings(
+std::shared_ptr< ParameterizedThrustMagnitudeSettings > createAccelerationLimitedParameterizedThrustMagnitudeSettings(
         const NamedBodyMap& bodyMap,
         const std::string nameOfBodyWithGuidance,
         const double maximumAcceleration,
@@ -981,8 +1182,8 @@ boost::shared_ptr< ParameterizedThrustMagnitudeSettings > createAccelerationLimi
         const std::vector< propulsion::ThrustIndependentVariables > specificImpulseDependentVariables,
         const std::string nameOfCentralBody = "" );
 
-
 } // namespace simulation_setup
 
 } // namespace tudat
+
 #endif // TUDAT_THRUSTSETTINGS_H

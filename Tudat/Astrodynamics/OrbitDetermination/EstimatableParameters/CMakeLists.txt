@@ -1,4 +1,4 @@
- #    Copyright (c) 2010-2017, Delft University of Technology
+ #    Copyright (c) 2010-2019, Delft University of Technology
  #    All rigths reserved
  #
  #    This file is part of the Tudat. Redistribution and use in source and
@@ -12,6 +12,7 @@ set(ESTIMATABLE_PARAMETERS_SOURCES
   "${SRCROOT}${ESTIMATABLEPARAMETERSDIR}/estimatableParameter.cpp"
   "${SRCROOT}${ESTIMATABLEPARAMETERSDIR}/sphericalHarmonicSineCoefficients.cpp"
   "${SRCROOT}${ESTIMATABLEPARAMETERSDIR}/sphericalHarmonicCosineCoefficients.cpp"
+  "${SRCROOT}${ESTIMATABLEPARAMETERSDIR}/tidalLoveNumber.cpp"
 )
 
 # Set the header files.
@@ -19,11 +20,26 @@ set(ESTIMATABLE_PARAMETERS_HEADERS
   "${SRCROOT}${ESTIMATABLEPARAMETERSDIR}/estimatableParameter.h"
   "${SRCROOT}${ESTIMATABLEPARAMETERSDIR}/gravitationalParameter.h"
   "${SRCROOT}${ESTIMATABLEPARAMETERSDIR}/initialTranslationalState.h"
+  "${SRCROOT}${ESTIMATABLEPARAMETERSDIR}/initialRotationalState.h"
   "${SRCROOT}${ESTIMATABLEPARAMETERSDIR}/radiationPressureCoefficient.h"
   "${SRCROOT}${ESTIMATABLEPARAMETERSDIR}/sphericalHarmonicSineCoefficients.h"
   "${SRCROOT}${ESTIMATABLEPARAMETERSDIR}/sphericalHarmonicCosineCoefficients.h"
   "${SRCROOT}${ESTIMATABLEPARAMETERSDIR}/constantRotationRate.h"
+  "${SRCROOT}${ESTIMATABLEPARAMETERSDIR}/constantDragCoefficient.h"
   "${SRCROOT}${ESTIMATABLEPARAMETERSDIR}/constantRotationalOrientation.h"
+  "${SRCROOT}${ESTIMATABLEPARAMETERSDIR}/observationBiasParameter.h"
+  "${SRCROOT}${ESTIMATABLEPARAMETERSDIR}/ppnParameters.h"
+  "${SRCROOT}${ESTIMATABLEPARAMETERSDIR}/groundStationPosition.h"
+  "${SRCROOT}${ESTIMATABLEPARAMETERSDIR}/equivalencePrincipleViolationParameter.h"
+  "${SRCROOT}${ESTIMATABLEPARAMETERSDIR}/empiricalAccelerationCoefficients.h"
+  "${SRCROOT}${ESTIMATABLEPARAMETERSDIR}/tidalLoveNumber.h"
+  "${SRCROOT}${ESTIMATABLEPARAMETERSDIR}/directTidalTimeLag.h"
+  "${SRCROOT}${ESTIMATABLEPARAMETERSDIR}/meanMomentOfInertiaParameter.h"
+  "${SRCROOT}${ESTIMATABLEPARAMETERSDIR}/desaturationDeltaV.h"
+  "${SRCROOT}${ESTIMATABLEPARAMETERSDIR}/periodicSpinVariation.h"
+  "${SRCROOT}${ESTIMATABLEPARAMETERSDIR}/polarMotionAmplitude.h"
+  "${SRCROOT}${ESTIMATABLEPARAMETERSDIR}/coreFactor.h"
+  "${SRCROOT}${ESTIMATABLEPARAMETERSDIR}/freeCoreNutationRate.h"
 )
 
 # Add static libraries.

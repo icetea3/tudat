@@ -1,4 +1,4 @@
-/*    Copyright (c) 2010-2017, Delft University of Technology
+/*    Copyright (c) 2010-2019, Delft University of Technology
  *    All rigths reserved
  *
  *    This file is part of the Tudat. Redistribution and use in source and
@@ -51,7 +51,7 @@ public:
      * \param input Input string.
      * \return Shared-pointer to transformed string.
      */
-    boost::shared_ptr< std::string > transform( const std::string& input );
+    std::shared_ptr< std::string > transform( const std::string& input );
 
 protected:
 
@@ -65,7 +65,7 @@ private:
 };
 
 //! Typedef for shared-pointer to LinearFieldTransform object.
-typedef boost::shared_ptr< LinearFieldTransform > LinearFieldTransformPointer;
+typedef std::shared_ptr< LinearFieldTransform > LinearFieldTransformPointer;
 
 } // namespace input_output
 } // namespace tudat

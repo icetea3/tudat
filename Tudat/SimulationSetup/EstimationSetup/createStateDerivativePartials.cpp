@@ -1,9 +1,44 @@
-/*    Copyright (c) 2010-2017, Delft University of Technology
- *    All rigths reserved
- *
- *    This file is part of the Tudat. Redistribution and use in source and
- *    binary forms, with or without modification, are permitted exclusively
- *    under the terms of the Modified BSD license. You should have received
- *    a copy of the license with this file. If not, please or visit:
- *    http://tudat.tudelft.nl/LICENSE.
- */
+#include "Tudat/SimulationSetup/EstimationSetup/createStateDerivativePartials.h"
+
+namespace tudat
+{
+
+namespace simulation_setup
+{
+
+template std::map< propagators::IntegratedStateType, orbit_determination::StateDerivativePartialsMap > createStateDerivativePartials< double, double >(
+        const std::unordered_map< propagators::IntegratedStateType,
+        std::vector< std::shared_ptr< propagators::SingleStateTypeDerivative< double, double > > > >
+        stateDerivativeModels,
+        const simulation_setup::NamedBodyMap& bodyMap,
+        const std::shared_ptr< estimatable_parameters::EstimatableParameterSet< double > >
+        parametersToEstimate );
+
+#if( BUILD_WITH_EXTENDED_PRECISION_PROPAGATION_TOOLS )
+template std::map< propagators::IntegratedStateType, orbit_determination::StateDerivativePartialsMap > createStateDerivativePartials< long double, double >(
+        const std::unordered_map< propagators::IntegratedStateType,
+        std::vector< std::shared_ptr< propagators::SingleStateTypeDerivative< long double, double > > > >
+        stateDerivativeModels,
+        const simulation_setup::NamedBodyMap& bodyMap,
+        const std::shared_ptr< estimatable_parameters::EstimatableParameterSet< long double > >
+        parametersToEstimate );
+template std::map< propagators::IntegratedStateType, orbit_determination::StateDerivativePartialsMap > createStateDerivativePartials< double, Time >(
+        const std::unordered_map< propagators::IntegratedStateType,
+        std::vector< std::shared_ptr< propagators::SingleStateTypeDerivative< double, Time > > > >
+        stateDerivativeModels,
+        const simulation_setup::NamedBodyMap& bodyMap,
+        const std::shared_ptr< estimatable_parameters::EstimatableParameterSet< double > >
+        parametersToEstimate );
+template std::map< propagators::IntegratedStateType, orbit_determination::StateDerivativePartialsMap > createStateDerivativePartials< long double, Time >(
+        const std::unordered_map< propagators::IntegratedStateType,
+        std::vector< std::shared_ptr< propagators::SingleStateTypeDerivative< long double, Time > > > >
+        stateDerivativeModels,
+        const simulation_setup::NamedBodyMap& bodyMap,
+        const std::shared_ptr< estimatable_parameters::EstimatableParameterSet< long double > >
+        parametersToEstimate );
+#endif
+
+} // namespace simulation_setup
+
+} // namespace tudat
+

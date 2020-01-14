@@ -1,4 +1,4 @@
-/*    Copyright (c) 2010-2017, Delft University of Technology
+/*    Copyright (c) 2010-2019, Delft University of Technology
  *    All rigths reserved
  *
  *    This file is part of the Tudat. Redistribution and use in source and
@@ -44,11 +44,7 @@ BOOST_AUTO_TEST_SUITE( test_light_time )
 BOOST_AUTO_TEST_CASE( testLightWithSpice )
 {
     // Load spice kernels.
-    const std::string kernelsPath = input_output::getSpiceKernelPath( );
-    loadSpiceKernelInTudat( kernelsPath + "pck00009.tpc" );
-    loadSpiceKernelInTudat( kernelsPath + "de-403-masses.tpc" );
-    loadSpiceKernelInTudat( kernelsPath + "de421.bsp" );
-    loadSpiceKernelInTudat( kernelsPath + "naif0009.tls" );
+    spice_interface::loadStandardSpiceKernels( );
 
     // Define names of bodies and frames.
     const std::string earth = "Earth";
@@ -56,16 +52,16 @@ BOOST_AUTO_TEST_CASE( testLightWithSpice )
     const std::string frame = "ECLIPJ2000";
 
     // Create ephemerides of Earth and Moon, with data from Spice.
-    boost::shared_ptr< SpiceEphemeris > earthEphemeris = boost::make_shared< SpiceEphemeris >(
+    std::shared_ptr< SpiceEphemeris > earthEphemeris = std::make_shared< SpiceEphemeris >(
                 earth, "SSB", false, false, false, frame );
-    boost::shared_ptr< SpiceEphemeris > moonEphemeris = boost::make_shared< SpiceEphemeris >(
+    std::shared_ptr< SpiceEphemeris > moonEphemeris = std::make_shared< SpiceEphemeris >(
                 moon, "SSB", false, false, false, frame );
 
     // Create light-time calculator, Earth center transmitter, Moon center receiver.
-    boost::shared_ptr< LightTimeCalculator< > > lightTimeEarthToMoon =
-            boost::make_shared< LightTimeCalculator< > >
-            ( boost::bind( &Ephemeris::getCartesianState, earthEphemeris, _1 ),
-              boost::bind( &Ephemeris::getCartesianState, moonEphemeris, _1 ) );
+    std::shared_ptr< LightTimeCalculator< > > lightTimeEarthToMoon =
+            std::make_shared< LightTimeCalculator< > >
+            ( std::bind( &Ephemeris::getCartesianState, earthEphemeris, std::placeholders::_1 ),
+              std::bind( &Ephemeris::getCartesianState, moonEphemeris, std::placeholders::_1 ) );
 
     // Define input time for tests.
     const double testTime = 1.0E6;
@@ -154,10 +150,10 @@ BOOST_AUTO_TEST_CASE( testLightWithSpice )
     lightTimeCorrections.push_back( &getTimeDifferenceLightTimeCorrection );
 
     // Create light-time object with correction.
-    boost::shared_ptr< LightTimeCalculator< > > lightTimeEarthToMoonWithCorrection =
-            boost::make_shared< LightTimeCalculator< > >
-            ( boost::bind( &Ephemeris::getCartesianState, earthEphemeris, _1 ),
-              boost::bind( &Ephemeris::getCartesianState, moonEphemeris, _1 ),
+    std::shared_ptr< LightTimeCalculator< > > lightTimeEarthToMoonWithCorrection =
+            std::make_shared< LightTimeCalculator< > >
+            ( std::bind( &Ephemeris::getCartesianState, earthEphemeris, std::placeholders::_1 ),
+              std::bind( &Ephemeris::getCartesianState, moonEphemeris, std::placeholders::_1 ),
               lightTimeCorrections, true );
 
     // Calculate newtonian light time.
@@ -179,9 +175,9 @@ BOOST_AUTO_TEST_CASE( testLightWithSpice )
 
     // Create light-time object with correction, without iterating light-time corrections.
     lightTimeEarthToMoonWithCorrection =
-            boost::make_shared< LightTimeCalculator< > >
-            ( boost::bind( &Ephemeris::getCartesianState, earthEphemeris, _1 ),
-              boost::bind( &Ephemeris::getCartesianState, moonEphemeris, _1 ),
+            std::make_shared< LightTimeCalculator< > >
+            ( std::bind( &Ephemeris::getCartesianState, earthEphemeris, std::placeholders::_1 ),
+              std::bind( &Ephemeris::getCartesianState, moonEphemeris, std::placeholders::_1 ),
               lightTimeCorrections, false );
 
     // Calculate newtonian light time.
@@ -207,9 +203,9 @@ BOOST_AUTO_TEST_CASE( testLightWithSpice )
 
     // Create light-time object with multiple corrections.
     lightTimeEarthToMoonWithCorrection =
-            boost::make_shared< LightTimeCalculator< > >
-            ( boost::bind( &Ephemeris::getCartesianState, earthEphemeris, _1 ),
-              boost::bind( &Ephemeris::getCartesianState, moonEphemeris, _1 ),
+            std::make_shared< LightTimeCalculator< > >
+            ( std::bind( &Ephemeris::getCartesianState, earthEphemeris, std::placeholders::_1 ),
+              std::bind( &Ephemeris::getCartesianState, moonEphemeris, std::placeholders::_1 ),
               lightTimeCorrections, true );
 
     // Calculate newtonian light time.

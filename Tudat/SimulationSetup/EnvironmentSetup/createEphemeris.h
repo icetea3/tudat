@@ -1,4 +1,4 @@
-/*    Copyright (c) 2010-2017, Delft University of Technology
+/*    Copyright (c) 2010-2019, Delft University of Technology
  *    All rigths reserved
  *
  *    This file is part of the Tudat. Redistribution and use in source and
@@ -14,14 +14,17 @@
 #include <string>
 #include <map>
 
-#include <boost/shared_ptr.hpp>
+#include <memory>
 
 #include "Tudat/InputOutput/matrixTextFileReader.h"
 #include "Tudat/Astrodynamics/Ephemerides/ephemeris.h"
 #include "Tudat/Astrodynamics/Ephemerides/tabulatedEphemeris.h"
 #include "Tudat/Astrodynamics/Ephemerides/approximatePlanetPositionsBase.h"
 #include "Tudat/Mathematics/Interpolators/createInterpolator.h"
+
+#if USE_CSPICE
 #include "Tudat/External/SpiceInterface/spiceInterface.h"
+#endif
 
 namespace tudat
 {
@@ -41,7 +44,8 @@ enum EphemerisType
     tabulated_ephemeris,
     interpolated_spice,
     constant_ephemeris,
-    kepler_ephemeris
+    kepler_ephemeris,
+    custom_ephemeris
 };
 
 //! Class for providing settings for ephemeris model.
@@ -71,7 +75,8 @@ public:
                        const  std::string& frameOrientation = "ECLIPJ2000" ):
         ephemerisType_( ephemerisType ),
         frameOrigin_( frameOrigin ),
-        frameOrientation_( frameOrientation ){ }
+        frameOrientation_( frameOrientation ),
+        makeMultiArcEphemeris_( false ){ }
 
     //! Destructor
     virtual ~EphemerisSettings( ){ }
@@ -97,6 +102,16 @@ public:
      */
     std::string getFrameOrientation( ){ return frameOrientation_;}
 
+    //! Function to retrieve boolean denoting whether the ephemeris that is to be created is a multi-arc ephemeris
+    /*!
+     * Function to retrieve boolean denoting whether the ephemeris that is to be created is a multi-arc ephemeris
+     * \return Boolean denoting whether the ephemeris that is to be created is a multi-arc ephemeris
+     */
+    bool getMakeMultiArcEphemeris( )
+    {
+        return makeMultiArcEphemeris_;
+    }
+
     //! Function to reset the origin of the frame.
     /*!
      * Function to reset the origin of the frame.
@@ -111,6 +126,16 @@ public:
      */
     void resetFrameOrientation( const std::string& frameOrientation ){ frameOrientation_ = frameOrientation; }
 
+    //! Function to reset boolean denoting whether the ephemeris that is to be created is a multi-arc ephemeris
+    /*!
+     * Function to reset boolean denoting whether the ephemeris that is to be created is a multi-arc ephemeris
+     * \param makeMultiArcEphemeris New boolean denoting whether the ephemeris that is to be created is a multi-arc ephemeris
+     */
+    void resetMakeMultiArcEphemeris( const bool makeMultiArcEphemeris )
+    {
+        makeMultiArcEphemeris_ = makeMultiArcEphemeris;
+    }
+
 protected:
 
     //! Type of ephemeris model that is to be created.
@@ -121,6 +146,14 @@ protected:
 
     //! Orientation of frame in which ephemeris data is defined.
     std::string frameOrientation_;
+
+    //! Boolean denoting whether the ephemeris that is to be created is a multi-arc ephemeris
+    /*!
+     *  Boolean denoting whether the ephemeris that is to be created is a multi-arc ephemeris. If true, the createEphemeris
+     *  function creates a multi-arc ephemeris with a single arc spanning all time, created according to the contents of the
+     *  EphemerisSettings object.
+     */
+    bool makeMultiArcEphemeris_;
 };
 
 //! EphemerisSettings derived class for defining settings of an ephemeris linked directly to Spice.
@@ -132,11 +165,11 @@ public:
     /*! Constructor, sets the properties from which the Spice ephemeris is to be retrieved.
      * \param frameOrigin Name of body relative to which the ephemeris is to be calculated
      *        (optional "SSB" by default).
-     * \param correctForStellarAbberation Boolean whether to correct for stellar Abberation in
+     * \param correctForStellarAberration Boolean whether to correct for stellar Aberration in
      *          retrieved values of (observed state) (optional "ECLIPJ2000" by defalut).
-     * \param correctForLightTimeAbberation Boolean whether to correct for light time in
+     * \param correctForLightTimeAberration Boolean whether to correct for light time in
      *          retrieved values of (observed state) (optional false by default).
-     * \param convergeLighTimeAbberation Boolean whether to use single iteration or max. 3
+     * \param convergeLighTimeAberration Boolean whether to use single iteration or max. 3
      *          iterations for calculating light time (optional false by default).
      * \param frameOrientation Orientatioan of the reference frame in which the epehemeris is to be
      *          calculated (optional false by default).
@@ -147,26 +180,26 @@ public:
      */
     DirectSpiceEphemerisSettings( const std::string frameOrigin = "SSB",
                                   const std::string frameOrientation = "ECLIPJ2000",
-                                  const bool correctForStellarAbberation = false,
-                                  const bool correctForLightTimeAbberation = false,
-                                  const bool convergeLighTimeAbberation = false,
+                                  const bool correctForStellarAberration = false,
+                                  const bool correctForLightTimeAberration = false,
+                                  const bool convergeLighTimeAberration = false,
                                   const EphemerisType ephemerisType = direct_spice_ephemeris ):
         EphemerisSettings( ephemerisType, frameOrigin, frameOrientation ),
-        correctForStellarAbberation_( correctForStellarAbberation ),
-        correctForLightTimeAbberation_( correctForLightTimeAbberation ),
-        convergeLighTimeAbberation_( convergeLighTimeAbberation ){ }
+        correctForStellarAberration_( correctForStellarAberration ),
+        correctForLightTimeAberration_( correctForLightTimeAberration ),
+        convergeLighTimeAberration_( convergeLighTimeAberration ){ }
 
 
     //! Destructor
     virtual ~DirectSpiceEphemerisSettings( ){ }
 
-    //! Returns whether to correct for stellar abberation in retrieved values of (observed state).
+    //! Returns whether to correct for stellar aberration in retrieved values of (observed state).
     /*!
-     *  Returns whether to correct for stellar abberation in retrieved values of (observed state).
-     *  \return Boolean defining whether to correct for stellar abberation in retrieved
+     *  Returns whether to correct for stellar aberration in retrieved values of (observed state).
+     *  \return Boolean defining whether to correct for stellar aberration in retrieved
      *  values of (observed state).
      */
-    bool getCorrectForStellarAbberation( ){ return correctForStellarAbberation_; }
+    bool getCorrectForStellarAberration( ){ return correctForStellarAberration_; }
 
     //! Returns whether to correct for light time in retrieved values of (observed state).
     /*!
@@ -174,7 +207,7 @@ public:
      *  \return Boolean defining whether to correct for light time in retrieved values of
      *  (observed state).
      */
-    bool getCorrectForLightTimeAbberation( ){ return correctForLightTimeAbberation_; }
+    bool getCorrectForLightTimeAberration( ){ return correctForLightTimeAberration_; }
 
     //! Returns whether to use single iteration or max. 3 iterations for calculating light time.
     /*!
@@ -182,17 +215,17 @@ public:
      *  \return Boolean defining whether to use single iteration or max. 3 iterations for
      *  calculating light time.
      */
-    bool getConvergeLighTimeAbberation( ){ return convergeLighTimeAbberation_; }
+    bool getConvergeLighTimeAberration( ){ return convergeLighTimeAberration_; }
 protected:
 
-    //! Boolean whether to correct for stellar abberation in retrieved values of (observed state).
-    bool correctForStellarAbberation_;
+    //! Boolean whether to correct for stellar aberration in retrieved values of (observed state).
+    bool correctForStellarAberration_;
 
     //! Boolean whether to correct for light time in retrieved values of (observed state).
-    bool correctForLightTimeAbberation_;
+    bool correctForLightTimeAberration_;
 
     //! Boolean whether to use single iteration or max. 3 iterations for calculating light time.
-    bool convergeLighTimeAbberation_;
+    bool convergeLighTimeAberration_;
 };
 
 //! EphemerisSettings derived class for defining settings of a ephemeris interpolated from Spice
@@ -226,8 +259,8 @@ public:
                                         double timeStep,
                                         std::string frameOrigin = "SSB",
                                         std::string frameOrientation = "ECLIPJ2000",
-                                        boost::shared_ptr< interpolators::InterpolatorSettings > interpolatorSettings =
-            boost::make_shared< interpolators::LagrangeInterpolatorSettings >( 6 ) ):
+                                        std::shared_ptr< interpolators::InterpolatorSettings > interpolatorSettings =
+            std::make_shared< interpolators::LagrangeInterpolatorSettings >( 6 ) ):
         DirectSpiceEphemerisSettings( frameOrigin, frameOrientation, 0, 0, 0,
                                       interpolated_spice ),
         initialTime_( initialTime ), finalTime_( finalTime ), timeStep_( timeStep ),
@@ -260,7 +293,7 @@ public:
      *  \return Settings to be used for the state interpolation.
      */
 
-    boost::shared_ptr< interpolators::InterpolatorSettings > getInterpolatorSettings( )
+    std::shared_ptr< interpolators::InterpolatorSettings > getInterpolatorSettings( )
     {
         return interpolatorSettings_;
     }
@@ -280,14 +313,14 @@ private:
     //! Initial time from which interpolated data from Spice should be created.
     double initialTime_;
 
-    //! Final time from which interpolated data from Spice should be created.
+    //! Final time until which interpolated data from Spice should be created.
     double finalTime_;
 
     //! Time step with which interpolated data from Spice should be created.
     double timeStep_;
 
     //! Settings to be used for the state interpolation.
-    boost::shared_ptr< interpolators::InterpolatorSettings > interpolatorSettings_;
+    std::shared_ptr< interpolators::InterpolatorSettings > interpolatorSettings_;
 
     bool useLongDoubleStates_;
 };
@@ -387,6 +420,42 @@ private:
 
     //! Constant state that will be provided as output of the ephemeris at all times.
     Eigen::Vector6d constantState_;
+};
+
+//! EphemerisSettings derived class for defining settings of an ephemeris producing a custom
+//! state (e.g. arbitrary state as a function of time)
+class CustomEphemerisSettings: public EphemerisSettings
+{
+public:
+
+    //! Constructor of settings for an ephemeris producing a constant (time-independent) state.
+    /*!
+     * Constructor of settings for an ephemeris producing a constant (time-independent) state.
+     * \param customStateFunction Function returning the state as a function of time
+     * \param frameOrigin Origin of frame in which ephemeris data is defined.
+     * \param frameOrientation Orientation of frame in which ephemeris data is defined.
+     */
+    CustomEphemerisSettings( const std::function< Eigen::Vector6d( const double ) > customStateFunction,
+                               const std::string& frameOrigin = "SSB",
+                               const std::string& frameOrientation = "ECLIPJ2000" ):
+        EphemerisSettings( custom_ephemeris,
+                           frameOrigin,
+                           frameOrientation ), customStateFunction_( customStateFunction ){ }
+
+    //! Function to return the function returning the state as a function of time
+    /*!
+     *  Function to return the function returning the state as a function of time
+     *  \return  Function returning the state as a function of time
+     */
+    std::function< Eigen::Vector6d( const double ) > getCustomStateFunction( )
+    {
+        return customStateFunction_;
+    }
+
+private:
+
+    //! Function returning the state as a function of time
+    std::function< Eigen::Vector6d( const double ) > customStateFunction_;
 };
 
 //! EphemerisSettings derived class for defining settings of an ephemeris representing an ideal
@@ -579,15 +648,15 @@ private:
  * \return Tabulated ephemeris using data from Spice.
  */
 template< typename StateScalarType = double, typename TimeType = double >
-boost::shared_ptr< ephemerides::Ephemeris > createTabulatedEphemerisFromSpice(
+std::shared_ptr< ephemerides::Ephemeris > createTabulatedEphemerisFromSpice(
         const std::string& body,
         const TimeType initialTime,
         const TimeType endTime,
         const TimeType timeStep,
         const std::string& observerName,
         const std::string& referenceFrameName,
-        boost::shared_ptr< interpolators::InterpolatorSettings > interpolatorSettings =
-        boost::make_shared< interpolators::LagrangeInterpolatorSettings >( 8 ) )
+        std::shared_ptr< interpolators::InterpolatorSettings > interpolatorSettings =
+        std::make_shared< interpolators::LagrangeInterpolatorSettings >( 8 ) )
 {
     using namespace interpolators;
 
@@ -604,12 +673,12 @@ boost::shared_ptr< ephemerides::Ephemeris > createTabulatedEphemerisFromSpice(
     }
 
     // Create interpolator.
-    boost::shared_ptr< OneDimensionalInterpolator< TimeType, Eigen::Matrix< StateScalarType, 6, 1 > > > interpolator =
+    std::shared_ptr< OneDimensionalInterpolator< TimeType, Eigen::Matrix< StateScalarType, 6, 1 > > > interpolator =
             interpolators::createOneDimensionalInterpolator(
                 timeHistoryOfState, interpolatorSettings );
 
     // Create ephemeris and return.
-    return boost::make_shared< ephemerides::TabulatedCartesianEphemeris< StateScalarType, TimeType > >(
+    return std::make_shared< ephemerides::TabulatedCartesianEphemeris< StateScalarType, TimeType > >(
                 interpolator, observerName, referenceFrameName );
 }
 #endif
@@ -622,10 +691,19 @@ boost::shared_ptr< ephemerides::Ephemeris > createTabulatedEphemerisFromSpice(
  *  \param bodyName Name of the body for which the ephemeris model is to be created.
  *  \return Ephemeris model created according to settings in ephemerisSettings.
  */
-boost::shared_ptr< ephemerides::Ephemeris > createBodyEphemeris(
-        const boost::shared_ptr< EphemerisSettings > ephemerisSettings,
+std::shared_ptr< ephemerides::Ephemeris > createBodyEphemeris(
+        const std::shared_ptr< EphemerisSettings > ephemerisSettings,
         const std::string& bodyName );
 
+//! Function that retrieves the time interval at which an ephemeris can be safely interrogated
+/*!
+ * Function that retrieves the time interval at which an ephemeris can be safely interrogated. For most ephemeris types,
+ * this function returns the full range of double values ( lowest( ) to max( ) ). For the tabulated ephemeris, the interval
+ * on which the interpolator inside this object is valid is checked and returned
+ * \param ephemerisModel Ephemeris model for which the interval is to be determined.
+ * \return The time interval at which the ephemeris can be safely interrogated
+ */
+std::pair< double, double > getSafeInterpolationInterval( const std::shared_ptr< ephemerides::Ephemeris > ephemerisModel );
 
 } // namespace simulation_setup
 

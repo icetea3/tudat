@@ -1,4 +1,4 @@
-/*    Copyright (c) 2010-2017, Delft University of Technology
+/*    Copyright (c) 2010-2019, Delft University of Technology
  *    All rigths reserved
  *
  *    This file is part of the Tudat. Redistribution and use in source and
@@ -17,12 +17,9 @@
  */
 
 #include <cmath>
-#include <iostream>
-#include <sstream>
 #include <stdexcept>
 
 #include <boost/bind.hpp>
-#include <boost/exception/all.hpp>
 #include <boost/make_shared.hpp>
 #include <boost/math/special_functions.hpp>
 
@@ -56,14 +53,8 @@ void solveLambertProblemIzzo( const Eigen::Vector3d& cartesianPositionAtDepartur
     // Sanity check for specified time-of-flight.
     if ( timeOfFlight <= 0.0 )
     {
-        // Define error message.
-        std::stringstream errorMessage;
-        errorMessage << "Specified time-of-flight must be strictly positive.\n"
-                     << "Specified time-of-flight: " << timeOfFlight << " days." << std::endl;
-
         // Throw exception.
-        boost::throw_exception( boost::enable_error_info(
-                                    std::runtime_error( errorMessage.str( ) ) ) );
+        throw std::runtime_error( "Specified time-of-flight must be strictly positive: " + std::to_string( timeOfFlight ) + " days." );
     }
 
     // Compute normalizing values.
@@ -169,7 +160,7 @@ void solveLambertProblemIzzo( const Eigen::Vector3d& cartesianPositionAtDepartur
     if ( iterator == maximumNumberOfIterations )
     {
         std::string errorMessage = "Lambert Solver did not converge within the maximum number of iterations: " +
-                boost::lexical_cast< std::string >( maximumNumberOfIterations );
+                std::to_string( maximumNumberOfIterations );
         throw std::runtime_error( errorMessage );
     }
 
@@ -372,7 +363,7 @@ void solveLambertProblemGooding( const Eigen::Vector3d& cartesianPositionAtDepar
 {
     if ( !rootFinder.get( ) )
     {
-        rootFinder = boost::make_shared< root_finders::NewtonRaphson >( 1.0e-12, 1000 );
+        rootFinder = std::make_shared< root_finders::NewtonRaphson >( 1.0e-12, 1000 );
     }
 
     // Normalize positions.
@@ -490,14 +481,14 @@ void solveLambertProblemGooding( const Eigen::Vector3d& cartesianPositionAtDepar
     // Create an object containing the function of which we whish to obtain the root from.
     using basic_mathematics::UnivariateProxyPointer;
     using basic_mathematics::UnivariateProxy;
-    UnivariateProxyPointer rootFunction = boost::make_shared< UnivariateProxy >(
-                boost::bind( &LambertFunctionsGooding::computeLambertFunctionGooding,
-                             lambertFunctionsGooding, _1 ) );
+    UnivariateProxyPointer rootFunction = std::make_shared< UnivariateProxy >(
+                std::bind( &LambertFunctionsGooding::computeLambertFunctionGooding,
+                             lambertFunctionsGooding, std::placeholders::_1 ) );
 
     // Add the first derivative of the root function.
-    rootFunction->addBinding( -1, boost::bind( &LambertFunctionsGooding::
+    rootFunction->addBinding( -1, std::bind( &LambertFunctionsGooding::
                                                computeFirstDerivativeLambertFunctionGooding,
-                                               lambertFunctionsGooding, _1 ) );
+                                               lambertFunctionsGooding, std::placeholders::_1 ) );
 
     // Initialize the xParameter.
     double xParameter = TUDAT_NAN;

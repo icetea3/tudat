@@ -1,4 +1,4 @@
-/*    Copyright (c) 2010-2017, Delft University of Technology
+/*    Copyright (c) 2010-2019, Delft University of Technology
  *    All rigths reserved
  *
  *    This file is part of the Tudat. Redistribution and use in source and
@@ -32,7 +32,7 @@ namespace electro_magnetism
  *          object.                                                                             [-]
  * \param area Area on which radiation pressure is assumed to act.                            [m^2]
  * \param radiationPressureCoefficient Coefficient to scale effective force. Equal to 1 +
- *          emmisivitty, assuming no diffuse reflection.                                        [-]
+ *          emissivitty, assuming no diffuse reflection.                                        [-]
  * \return Force due to radiation pressure.                                                     [N]
  */
 Eigen::Vector3d computeCannonBallRadiationPressureForce(

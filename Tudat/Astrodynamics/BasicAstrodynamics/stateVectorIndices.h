@@ -1,4 +1,4 @@
-/*    Copyright (c) 2010-2017, Delft University of Technology
+/*    Copyright (c) 2010-2019, Delft University of Technology
  *    All rigths reserved
  *
  *    This file is part of the Tudat. Redistribution and use in source and
@@ -14,6 +14,7 @@
 
 namespace tudat
 {
+
 namespace orbital_element_conversions
 {
 
@@ -62,35 +63,71 @@ enum SphericalOrbitalStateElementIndices
     headingAngleIndex = 5
 };
 
-//! Unified State Model indices.
-enum UnifiedStateModelElementIndices
+//! Unified state model with quaternions indices.
+enum UnifiedStateModelQuaternionsElementIndices
 {
-    CHodographIndex = 0,
-    Rf1HodographIndex = 1,
-    Rf2HodographIndex = 2,
-    epsilon1QuaternionIndex = 3,
-    epsilon2QuaternionIndex = 4,
-    epsilon3QuaternionIndex = 5,
-    etaQuaternionIndex = 6
+    CHodographUSM7Index = 0,
+    Rf1HodographUSM7Index = 1,
+    Rf2HodographUSM7Index = 2,
+    etaUSM7Index = 3,
+    epsilon1USM7Index = 4,
+    epsilon2USM7Index = 5,
+    epsilon3USM7Index = 6
 };
 
-//! Cartesian acceleration indices.
-enum CartesianAccelerationElementIndices
+//! Unified state model with modified Rodrigues parameters indices.
+enum UnifiedStateModelModifiedRodriguesParametersElementIndices
 {
-    xCartesianAccelerationIndex,
-    yCartesianAccelerationIndex,
-    zCartesianAccelerationIndex
+    CHodographUSM6Index = 0,
+    Rf1HodographUSM6Index = 1,
+    Rf2HodographUSM6Index = 2,
+    sigma1USM6Index = 3,
+    sigma2USM6Index = 4,
+    sigma3USM6Index = 5,
+    shadowFlagUSM6Index = 6
 };
 
-//! Acceleration indices in CSN frame for orbital elements.
-enum CSNAccelerationElementIndices
+//! Unified state model with exponential map indices.
+enum UnifiedStateModelExponentialMapElementIndices
 {
-    cAccelerationIndex,
-    sAccelerationIndex,
-    nAccelerationIndex
+    CHodographUSMEMIndex = 0,
+    Rf1HodographUSMEMIndex = 1,
+    Rf2HodographUSMEMIndex = 2,
+    e1USMEMIndex = 3,
+    e2USMEMIndex = 4,
+    e3USMEMIndex = 5,
+    shadowFlagUSMEMIndex = 6
+};
+
+//! Quaternions indices.
+enum QuaternionsElementIndices
+{
+    etaQuaternionIndex = 0,
+    epsilon1QuaternionIndex = 1,
+    epsilon2QuaternionIndex = 2,
+    epsilon3QuaternionIndex = 3
+};
+
+//! Modified Rodrigues parameters indices.
+enum ModifiedRodriguesParametersElementIndices
+{
+    sigma1ModifiedRodriguesParametersIndex = 0,
+    sigma2ModifiedRodriguesParametersIndex = 1,
+    sigma3ModifiedRodriguesParametersIndex = 2,
+    shadowFlagModifiedRodriguesParametersIndex = 3
+};
+
+//! Exponential map indices.
+enum ExponentialMapElementIndices
+{
+    e1ExponentialMapIndex = 0,
+    e2ExponentialMapIndex = 1,
+    e3ExponentialMapIndex = 2,
+    shadowFlagExponentialMapIndex = 3
 };
 
 } // namespace orbital_element_conversions
+
 } // namespace tudat
 
 #endif // TUDAT_STATE_INDICES_H

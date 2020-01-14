@@ -1,4 +1,4 @@
-/*    Copyright (c) 2010-2017, Delft University of Technology
+/*    Copyright (c) 2010-2019, Delft University of Technology
  *    All rigths reserved
  *
  *    This file is part of the Tudat. Redistribution and use in source and
@@ -23,7 +23,7 @@ namespace basic_astrodynamics
 //! Function to calculate the altitude of a point over a central body
 //! from positions of both the point and the body (in any frame)
 double getAltitudeFromNonBodyFixedPosition(
-        const boost::shared_ptr< BodyShapeModel > bodyShapeModel, const Eigen::Vector3d& position,
+        const std::shared_ptr< BodyShapeModel > bodyShapeModel, const Eigen::Vector3d& position,
         const Eigen::Vector3d& bodyPosition, const Eigen::Quaterniond& toBodyFixedFrame )
 {
     return bodyShapeModel->getAltitude( toBodyFixedFrame * ( position - bodyPosition ) );
@@ -32,9 +32,9 @@ double getAltitudeFromNonBodyFixedPosition(
 //! Function to calculate the altitude of a point over a central body
 //! from positions of both the point and the body (in any frame)
 double getAltitudeFromNonBodyFixedPositionFunctions(
-        const boost::shared_ptr< BodyShapeModel > bodyShapeModel, const Eigen::Vector3d& position,
-        const boost::function< Eigen::Vector3d( ) > bodyPositionFunction,
-        const boost::function< Eigen::Quaterniond( ) > toBodyFixedFrameFunction )
+        const std::shared_ptr< BodyShapeModel > bodyShapeModel, const Eigen::Vector3d& position,
+        const std::function< Eigen::Vector3d( ) > bodyPositionFunction,
+        const std::function< Eigen::Quaterniond( ) > toBodyFixedFrameFunction )
 {
     return getAltitudeFromNonBodyFixedPosition( bodyShapeModel, position,  bodyPositionFunction( ),
                                                 toBodyFixedFrameFunction( ) );

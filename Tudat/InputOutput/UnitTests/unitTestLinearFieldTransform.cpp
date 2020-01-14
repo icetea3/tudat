@@ -1,4 +1,4 @@
-/*    Copyright (c) 2010-2017, Delft University of Technology
+/*    Copyright (c) 2010-2019, Delft University of Technology
  *    All rigths reserved
  *
  *    This file is part of the Tudat. Redistribution and use in source and
@@ -15,12 +15,10 @@
 
 #define BOOST_TEST_MAIN
 
-#include <iostream>
 #include <string>
 
-#include <boost/lexical_cast.hpp>
 #include <boost/make_shared.hpp>
-#include <boost/shared_ptr.hpp>
+#include <memory>
 #include <boost/test/floating_point_comparison.hpp>
 #include <boost/test/unit_test.hpp>
 
@@ -53,11 +51,11 @@ BOOST_AUTO_TEST_CASE( testLinearFieldTransform1 )
     const double expectedValue = 39.0724;
 
     // Transform test string.
-    boost::shared_ptr< std::string > returnedValue =
+    std::shared_ptr< std::string > returnedValue =
             testLinearFieldTransform1.transform( testString );
 
     // Check that returned and expected strings are identical.
-    BOOST_CHECK_CLOSE_FRACTION( boost::lexical_cast< double >( *returnedValue ), expectedValue,
+    BOOST_CHECK_CLOSE_FRACTION( std::stod( *returnedValue ), expectedValue,
                                 tolerance );
 }
 
@@ -80,11 +78,11 @@ BOOST_AUTO_TEST_CASE( testLinearFieldTransform2 )
     const double expectedValue = 36.0;
 
     // Transform test string.
-    boost::shared_ptr< std::string > returnedValue =
+    std::shared_ptr< std::string > returnedValue =
             testLinearFieldTransform2.transform( testString );
 
     // Check that returned and expected strings are identical.
-    BOOST_CHECK_CLOSE_FRACTION( boost::lexical_cast< double >( *returnedValue ), expectedValue,
+    BOOST_CHECK_CLOSE_FRACTION( std::stod( *returnedValue ), expectedValue,
                                 tolerance );
 }
 
@@ -107,11 +105,11 @@ BOOST_AUTO_TEST_CASE( testLinearFieldTransform3 )
     const double expectedValue = -86.0272;
 
     // Transform test string.
-    boost::shared_ptr< std::string > returnedValue =
+    std::shared_ptr< std::string > returnedValue =
             testLinearFieldTransform3.transform( testString );
 
     // Check that returned and expected strings are identical.
-    BOOST_CHECK_CLOSE_FRACTION( boost::lexical_cast< double >( *returnedValue ), expectedValue,
+    BOOST_CHECK_CLOSE_FRACTION( std::stod( *returnedValue ), expectedValue,
                                 tolerance );
 }
 
@@ -131,11 +129,11 @@ BOOST_AUTO_TEST_CASE( testLinearFieldTransform4 )
     LinearFieldTransform testLinearFieldTransform4( 0.0, 0.0 );
 
     // Transform test string.
-    boost::shared_ptr< std::string > returnedValue =
+    std::shared_ptr< std::string > returnedValue =
             testLinearFieldTransform4.transform( testString );
 
     // Check that returned and expected strings are identical.
-    BOOST_CHECK_SMALL( boost::lexical_cast< double >( *returnedValue ), tolerance );
+    BOOST_CHECK_SMALL( std::stod( *returnedValue ), tolerance );
 }
 
 // Close Boost test suite.

@@ -1,4 +1,4 @@
-/*    Copyright (c) 2010-2017, Delft University of Technology
+/*    Copyright (c) 2010-2019, Delft University of Technology
  *    All rigths reserved
  *
  *    This file is part of the Tudat. Redistribution and use in source and
@@ -10,7 +10,8 @@
 
 #include "Tudat/SimulationSetup/EnvironmentSetup/body.h"
 #include "Tudat/SimulationSetup/EstimationSetup/createLightTimeCorrection.h"
-#include "Tudat/Astrodynamics/ObservationModels/ObservableCorrections/firstOrderRelativisticLightTimeCorrection.h"
+#include "Tudat/Astrodynamics/ObservationModels/ObservableCorrections/firstOrderRelativisticCorrection.h"
+#include "Tudat/Astrodynamics/Relativity/metric.h"
 
 namespace tudat
 {
@@ -19,8 +20,8 @@ namespace observation_models
 {
 
 //! Function to create object that computes a single (type of) correction to the light-time
-boost::shared_ptr< LightTimeCorrection > createLightTimeCorrections(
-        const boost::shared_ptr< LightTimeCorrectionSettings > correctionSettings,
+std::shared_ptr< LightTimeCorrection > createLightTimeCorrections(
+        const std::shared_ptr< LightTimeCorrectionSettings > correctionSettings,
         const simulation_setup::NamedBodyMap& bodyMap,
         const std::pair< std::string, std::string >& transmitter,
         const std::pair< std::string, std::string >& receiver )
@@ -29,7 +30,7 @@ boost::shared_ptr< LightTimeCorrection > createLightTimeCorrections(
     using namespace tudat::ephemerides;
     using namespace tudat::gravitation;
 
-    boost::shared_ptr< LightTimeCorrection > lightTimeCorrection;
+    std::shared_ptr< LightTimeCorrection > lightTimeCorrection;
 
     // Identify type of light time correction to be created.
     switch( correctionSettings->getCorrectionType( ) )
@@ -37,15 +38,15 @@ boost::shared_ptr< LightTimeCorrection > createLightTimeCorrections(
     case first_order_relativistic:
     {
         // Check input consistency
-        if( boost::dynamic_pointer_cast< FirstOrderRelativisticLightTimeCorrectionSettings >( correctionSettings ) != NULL )
+        if( std::dynamic_pointer_cast< FirstOrderRelativisticLightTimeCorrectionSettings >( correctionSettings ) != nullptr )
         {
             // Retrieve list of bodies causing light time perturbation
             std::vector< std::string > perturbingBodies =
-                    boost::dynamic_pointer_cast< FirstOrderRelativisticLightTimeCorrectionSettings >( correctionSettings )->
+                    std::dynamic_pointer_cast< FirstOrderRelativisticLightTimeCorrectionSettings >( correctionSettings )->
                     getPerturbingBodies( );
 
-            std::vector< boost::function< Eigen::Vector6d( const double ) > > perturbingBodyStateFunctions;
-            std::vector< boost::function< double( ) > > perturbingBodyGravitationalParameterFunctions;
+            std::vector< std::function< Eigen::Vector6d( const double ) > > perturbingBodyStateFunctions;
+            std::vector< std::function< double( ) > > perturbingBodyGravitationalParameterFunctions;
 
             // Retrieve mass and state functions for each perturbing body.
             for( unsigned int i = 0; i < perturbingBodies.size( ); i++ )
@@ -60,21 +61,22 @@ boost::shared_ptr< LightTimeCorrection > createLightTimeCorrections(
                 {
                     // Set state function.
                     perturbingBodyStateFunctions.push_back(
-                                boost::bind( &simulation_setup::Body::getStateInBaseFrameFromEphemeris< double, double >,
-                                                                         bodyMap.at( perturbingBodies[ i ] ), _1 ) );
+                                std::bind( &simulation_setup::Body::getStateInBaseFrameFromEphemeris< double, double >,
+                                                                         bodyMap.at( perturbingBodies[ i ] ), std::placeholders::_1 ) );
 
                     // Set gravitational parameter function.
                     perturbingBodyGravitationalParameterFunctions.push_back(
-                                boost::bind( &gravitation::GravityFieldModel::getGravitationalParameter,
+                                std::bind( &gravitation::GravityFieldModel::getGravitationalParameter,
                                              bodyMap.at( perturbingBodies[ i ] )->
                                              getGravityFieldModel( ) ) );
                 }
             }
 
             // Create light-time correction function
-            lightTimeCorrection = boost::make_shared< FirstOrderLightTimeCorrectionCalculator >(
+            lightTimeCorrection = std::make_shared< FirstOrderLightTimeCorrectionCalculator >(
                         perturbingBodyStateFunctions, perturbingBodyGravitationalParameterFunctions, perturbingBodies,
-                        transmitter.first, receiver.first );
+                        transmitter.first, receiver.first,
+                        std::bind( &relativity::PPNParameterSet::getParameterGamma, relativity::ppnParameterSet ) );
 
         }
         else
@@ -88,7 +90,7 @@ boost::shared_ptr< LightTimeCorrection > createLightTimeCorrections(
     default:
     {
         std::string errorMessage = "Error, light time correction type " +
-                boost::lexical_cast< std::string >( correctionSettings->getCorrectionType( ) ) + " not recognized.";
+                std::to_string( correctionSettings->getCorrectionType( ) ) + " not recognized.";
         throw std::runtime_error( errorMessage );
 
         break;

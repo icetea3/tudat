@@ -1,4 +1,4 @@
-/*    Copyright (c) 2010-2017, Delft University of Technology
+/*    Copyright (c) 2010-2019, Delft University of Technology
  *    All rigths reserved
  *
  *    This file is part of the Tudat. Redistribution and use in source and
@@ -13,7 +13,6 @@
 
 #include <boost/assign.hpp>
 #include <boost/algorithm/string/replace.hpp>
-
 #include "Tudat/InputOutput/streamFilters.h"
 
 namespace tudat
@@ -68,8 +67,8 @@ ReplaceElements::ReplaceElements( std::string searchFilter, std::string replaceS
       replaceString_( replaceString ), isOmitIfEmpty_( isOmitIfEmpty )
 {
     // The following are all characters with special meaning in regex, so escape them:
-    std::vector< std::string > replaceCharacters_ = boost::assign::list_of
-        ("\\")(".")("[")("]")("{")("}")("(")(")")("*")("+")("?")("|")("^")("$");
+    std::vector< std::string > replaceCharacters_ =
+    { "\\", ".", "[", "]", "{", "}", "(", ")", "*", "+", "?", "|", "^", "$" };
 
     // Iterate over each possible character.
     for ( unsigned int i = 0; i < replaceCharacters_.size( ); i++ )

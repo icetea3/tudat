@@ -1,4 +1,4 @@
-/*    Copyright (c) 2010-2017, Delft University of Technology
+/*    Copyright (c) 2010-2019, Delft University of Technology
  *    All rigths reserved
  *
  *    This file is part of the Tudat. Redistribution and use in source and
@@ -20,7 +20,7 @@ namespace input_output
 
 //! Create a FieldValue containing type, string content and transformation of field.
 FieldValue::FieldValue( const FieldType& fieldType, const std::string& fieldContent,
-                        const boost::shared_ptr< FieldTransform > transformer )
+                        const std::shared_ptr< FieldTransform > transformer )
     : type( fieldType ), rawField( fieldContent ), transform ( transformer )
 { }
 

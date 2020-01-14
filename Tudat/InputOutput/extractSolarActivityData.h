@@ -1,4 +1,4 @@
-/*    Copyright (c) 2010-2017, Delft University of Technology
+/*    Copyright (c) 2010-2019, Delft University of Technology
  *    All rigths reserved
  *
  *    This file is part of the Tudat. Redistribution and use in source and
@@ -22,7 +22,7 @@
 #include "Tudat/InputOutput/solarActivityData.h"
 #include "Tudat/InputOutput/extractor.h"
 
-#include <boost/shared_ptr.hpp>
+#include <memory>
 
 namespace tudat
 {
@@ -47,7 +47,7 @@ public:
      * Extracts the solar activity data from a "ParsedDataLineMap" object and saves it in a
      * "SolarActivityData" contatiner.
      */
-    boost::shared_ptr< tudat::input_output::solar_activity::SolarActivityData > extract(
+    std::shared_ptr< tudat::input_output::solar_activity::SolarActivityData > extract(
                 tudat::input_output::parsed_data_vector_utilities::ParsedDataLineMapPtr data );
 
 protected:

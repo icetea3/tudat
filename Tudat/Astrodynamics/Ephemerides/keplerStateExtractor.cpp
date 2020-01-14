@@ -1,4 +1,4 @@
-/*    Copyright (c) 2010-2017, Delft University of Technology
+/*    Copyright (c) 2010-2019, Delft University of Technology
  *    All rigths reserved
  *
  *    This file is part of the Tudat. Redistribution and use in source and
@@ -19,7 +19,6 @@
 
 #include <stdexcept>
 
-#include <boost/exception/all.hpp>
 #include <boost/make_shared.hpp>
 
 #include "Tudat/Astrodynamics/BasicAstrodynamics/orbitalElementConversions.h"
@@ -35,7 +34,7 @@ namespace ephemerides
 {
 
 //! Extract the Keplerian Elements.
-boost::shared_ptr< Eigen::Vector6d > KeplerStateExtractor::extract(
+std::shared_ptr< Eigen::Vector6d > KeplerStateExtractor::extract(
         ParsedDataLineMapPtr dataLineMap )
 {
     // Short-hand notation.
@@ -43,8 +42,8 @@ boost::shared_ptr< Eigen::Vector6d > KeplerStateExtractor::extract(
     using Eigen::Vector6d;
 
     // Create a new KeplerianElements object.
-    boost::shared_ptr< Vector6d > keplerianElements
-            = boost::allocate_shared< Vector6d >( Eigen::aligned_allocator< Vector6d >( ) );
+    std::shared_ptr< Vector6d > keplerianElements
+            = std::allocate_shared< Vector6d >( Eigen::aligned_allocator< Vector6d >( ) );
 
     // Find and set semi-major axis.
     if ( checkOptionalFieldType( dataLineMap, 1,
@@ -57,8 +56,7 @@ boost::shared_ptr< Eigen::Vector6d > KeplerStateExtractor::extract(
 
     else
     {
-        boost::throw_exception( boost::enable_error_info(
-                                    std::runtime_error( "No semi-major axis entry found." ) ) );
+        throw std::runtime_error( "No semi-major axis entry found." );
     }
 
     // Find and set eccentricity.
@@ -72,8 +70,7 @@ boost::shared_ptr< Eigen::Vector6d > KeplerStateExtractor::extract(
 
     else
     {
-        boost::throw_exception( boost::enable_error_info(
-                                    std::runtime_error( "No eccentricity entry found." ) ) );
+        throw std::runtime_error( "No eccentricity entry found." );
     }
 
     // Find and set inclination.
@@ -87,8 +84,7 @@ boost::shared_ptr< Eigen::Vector6d > KeplerStateExtractor::extract(
 
     else
     {
-        boost::throw_exception( boost::enable_error_info(
-                                    std::runtime_error( "No inclination entry found." ) ) );
+        throw std::runtime_error( "No inclination entry found." );
     }
 
     // Find and set longitude of ascending node.
@@ -102,9 +98,7 @@ boost::shared_ptr< Eigen::Vector6d > KeplerStateExtractor::extract(
 
     else
     {
-        boost::throw_exception( boost::enable_error_info(
-                                    std::runtime_error(
-                                        "No longitude of ascending node entry found." ) ) );
+        throw std::runtime_error( "No longitude of ascending node entry found." );
     }
 
     // Find and set argument of periapsis.
@@ -118,9 +112,7 @@ boost::shared_ptr< Eigen::Vector6d > KeplerStateExtractor::extract(
 
     else
     {
-        boost::throw_exception( boost::enable_error_info(
-                                    std::runtime_error(
-                                        "No argument of periapsis entry found." ) ) );
+        throw std::runtime_error( "No argument of periapsis entry found." );
     }
 
     // Find and set true anomaly.
@@ -156,9 +148,7 @@ boost::shared_ptr< Eigen::Vector6d > KeplerStateExtractor::extract(
 
     else
     {
-        boost::throw_exception( boost::enable_error_info(
-                                    std::runtime_error(
-                                        "No true anomaly or mean anomaly entries found." ) ) );
+        throw std::runtime_error( "No true anomaly or mean anomaly entries found." );
     }
 
     return keplerianElements;

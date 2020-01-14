@@ -1,4 +1,4 @@
-/*    Copyright (c) 2010-2017, Delft University of Technology
+/*    Copyright (c) 2010-2019, Delft University of Technology
  *    All rigths reserved
  *
  *    This file is part of the Tudat. Redistribution and use in source and
@@ -15,14 +15,16 @@ namespace tudat
 namespace gravitation
 {
 
-//! Function to manually remove the C(0,0) term from cosine coefficients,
+//! Function to manually remove the C(0,0) term from cosine coefficients.
 Eigen::MatrixXd setDegreeAndOrderCoefficientToZero(
-        const boost::function< Eigen::MatrixXd( ) > originalCosineCoefficientFunction )
+        const std::function< Eigen::MatrixXd( ) > originalCosineCoefficientFunction )
 {
     Eigen::MatrixXd newCoefficients = originalCosineCoefficientFunction( );
     newCoefficients( 0, 0 ) = 0.0;
     return newCoefficients;
 }
+
+
 
 }
 

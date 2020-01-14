@@ -1,4 +1,4 @@
-/*    Copyright (c) 2010-2017, Delft University of Technology
+/*    Copyright (c) 2010-2019, Delft University of Technology
  *    All rigths reserved
  *
  *    This file is part of the Tudat. Redistribution and use in source and
@@ -79,8 +79,8 @@ void writeErrorsToFile( std::vector< double > eccentricities, std::vector< doubl
               << "conversion of mean to eccentric anomaly has failed in one of the" << std::endl
               << "random tests. To ensure the data for which it failed is not lost," << std::endl
               << "the corresponding input variables for these cases are listed below." << std::endl
-              << "Please report a bug on the Tudat website (tudat.tudelft.nl), with"<< std::endl
-              << "these values, so that someone will look into it and the code can be"<< std::endl
+              << "Please report a bug on the Tudat website (tudat.tudelft.nl), with" << std::endl
+              << "these values, so that someone will look into it and the code can be" << std::endl
               << "improved." << std::endl << std::endl
               << "Eccentricities:           Mean anomalies:" << std::endl;
 
@@ -296,7 +296,7 @@ void testMeanToEccentricAnomalyConversions(
     ScalarType testMeanAnomaly, reverseCalculatedMeanAnomaly, eccentricAnomaly = 0.0;
 
     // Instantiate random number generator.
-    boost::mt19937 randomNumbergenerator( time( 0 ) );
+    boost::mt19937 randomNumbergenerator( 0 );
 
     // Create generator for eccentricity (only used if useConstantEccentricity is false).
     boost::random::uniform_real_distribution< > eccentricityDistribution;

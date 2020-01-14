@@ -1,4 +1,4 @@
-/*    Copyright (c) 2010-2017, Delft University of Technology
+/*    Copyright (c) 2010-2019, Delft University of Technology
  *    All rigths reserved
  *
  *    This file is part of the Tudat. Redistribution and use in source and
@@ -12,7 +12,7 @@
 #ifndef TUDAT_PARSER_H
 #define TUDAT_PARSER_H
 
-#include <boost/shared_ptr.hpp>
+#include <memory>
 
 #include "Tudat/InputOutput/parsedDataVectorUtilities.h"
 
@@ -65,7 +65,7 @@ private:
 };
 
 //! Typedef for shared-pointer to Parser object.
-typedef boost::shared_ptr< Parser > ParserPointer;
+typedef std::shared_ptr< Parser > ParserPointer;
 
 } // namespace input_output
 } // namespace tudat

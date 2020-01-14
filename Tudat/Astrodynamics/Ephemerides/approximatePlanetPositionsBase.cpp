@@ -1,4 +1,4 @@
-/*    Copyright (c) 2010-2017, Delft University of Technology
+/*    Copyright (c) 2010-2019, Delft University of Technology
  *    All rigths reserved
  *
  *    This file is part of the Tudat. Redistribution and use in source and
@@ -13,13 +13,8 @@
  *
  */
 
-#include <iostream>
-
-#include <boost/exception/all.hpp>
-#include <boost/format.hpp>
-#include <boost/throw_exception.hpp>
-
 #include "Tudat/Astrodynamics/Ephemerides/approximatePlanetPositionsBase.h"
+#include "Tudat/Astrodynamics/BasicAstrodynamics/celestialBodyConstants.h"
 #include "Tudat/InputOutput/basicInputOutput.h"
 
 namespace tudat
@@ -41,51 +36,66 @@ void ApproximatePlanetPositionsBase::setPlanet( BodiesWithEphemerisData bodyWith
     case mercury:
 
         parseEphemerisLineData_( 18 );
+        planetGravitationalParameter_ = celestial_body_constants::MERCURY_GRAVITATIONAL_PARAMETER;
         break;
 
     case venus:
 
         parseEphemerisLineData_( 20 );
+        planetGravitationalParameter_ = celestial_body_constants::VENUS_GRAVITATIONAL_PARAMETER;
         break;
 
     case earthMoonBarycenter:
 
         parseEphemerisLineData_( 22 );
+        planetGravitationalParameter_ = celestial_body_constants::EARTH_GRAVITATIONAL_PARAMETER +
+                celestial_body_constants::MOON_GRAVITATIONAL_PARAMETER;
         break;
 
     case mars:
 
         parseEphemerisLineData_( 24 );
+        planetGravitationalParameter_ = celestial_body_constants::MARS_GRAVITATIONAL_PARAMETER;
         break;
 
     case jupiter:
 
         parseEphemerisLineData_( 26 );
         parseExtraTermsEphemerisLineData_( 48 );
+        planetGravitationalParameter_ = celestial_body_constants::JUPITER_GRAVITATIONAL_PARAMETER;
+
         break;
 
     case saturn:
 
         parseEphemerisLineData_( 28 );
         parseExtraTermsEphemerisLineData_( 49 );
+        planetGravitationalParameter_ = celestial_body_constants::SATURN_GRAVITATIONAL_PARAMETER;
+
         break;
 
     case uranus:
 
         parseEphemerisLineData_( 30 );
         parseExtraTermsEphemerisLineData_( 50 );
+        planetGravitationalParameter_ = celestial_body_constants::URANUS_GRAVITATIONAL_PARAMETER;
+
         break;
 
     case neptune:
 
         parseEphemerisLineData_( 32 );
         parseExtraTermsEphemerisLineData_( 51 );
+        planetGravitationalParameter_ = celestial_body_constants::NEPTUNE_GRAVITATIONAL_PARAMETER;
+
         break;
 
     case pluto:
 
         parseEphemerisLineData_( 34 );
         parseExtraTermsEphemerisLineData_( 52 );
+        planetGravitationalParameter_ = celestial_body_constants::PLUTO_GRAVITATIONAL_PARAMETER;
+
         break;
 
     default:
@@ -133,20 +143,20 @@ void ApproximatePlanetPositionsBase::parseEphemerisLineData_( const unsigned int
     ephemerisLineData_ >> approximatePlanetPositionsDataContainer_.rateOfChangeOfInclination_;
     ephemerisLineData_ >> approximatePlanetPositionsDataContainer_.rateOfChangeOfMeanLongitude_;
     ephemerisLineData_ >> approximatePlanetPositionsDataContainer_
-                          .rateOfChangeOfLongitudeOfPerihelion_;
+            .rateOfChangeOfLongitudeOfPerihelion_;
     ephemerisLineData_ >> approximatePlanetPositionsDataContainer_
-                          .rateOfChangeOfLongitudeOfAscendingNode_;
+            .rateOfChangeOfLongitudeOfAscendingNode_;
 }
 
 //! Parse line data for extra terms for ephemeris.
 void ApproximatePlanetPositionsBase::parseExtraTermsEphemerisLineData_(
-    const unsigned int& lineNumber )
+        const unsigned int& lineNumber )
 {
     // Clear stringstream.
     ephemerisLineData_.clear( );
 
     // Read second line of data.
-    ephemerisLineData_<< containerOfDataFromEphemerisFile_[ lineNumber ];
+    ephemerisLineData_ << containerOfDataFromEphemerisFile_[ lineNumber ];
 
     ephemerisLineData_ >> approximatePlanetPositionsDataContainer_.planetName_;
     ephemerisLineData_ >> approximatePlanetPositionsDataContainer_.additionalTermB_;
@@ -166,14 +176,8 @@ void ApproximatePlanetPositionsBase::reloadData( )
     std::ifstream ephemerisFile_( filePath_.c_str( ) );
     if ( ephemerisFile_.fail( ) )
     {
-        boost::throw_exception(
-                    boost::enable_error_info(
-                        std::runtime_error(
-                            boost::str( boost::format( "Data file '%s' could not be opened." )
-                                 % filePath_.c_str( ) ) ) )
-            << boost::errinfo_file_name( filePath_.c_str( ) )
-            << boost::errinfo_file_open_mode( "std::ios::binary" )
-            << boost::errinfo_api_function( "std::ifstream::open" ) );
+        throw std::runtime_error(
+                    "Data file could not be opened:" + filePath_ );
     }
 
     // Read the file into a container.
@@ -192,5 +196,14 @@ void ApproximatePlanetPositionsBase::reloadData( )
     ephemerisFile_.close( );
 }
 
+double getApproximatePlanetGravitationalParameter( const ApproximatePlanetPositionsBase::BodiesWithEphemerisData bodyId )
+{
+    return 0.0;
+}
+
+double getApproximatePlanetGravitationalParameter( const std::string& bodyName )
+{
+    return 0.0;
+}
 } // namespace ephemerides
 } // namespace tudat

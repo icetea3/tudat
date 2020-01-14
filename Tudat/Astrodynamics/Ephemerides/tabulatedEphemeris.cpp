@@ -1,4 +1,4 @@
-/*    Copyright (c) 2010-2017, Delft University of Technology
+/*    Copyright (c) 2010-2019, Delft University of Technology
  *    All rigths reserved
  *
  *    This file is part of the Tudat. Redistribution and use in source and
@@ -20,6 +20,10 @@ template< >
 Eigen::Vector6d TabulatedCartesianEphemeris< double, double >::getCartesianState(
         const double ephemerisTime)
 {
+    if( interpolator_ == nullptr )
+    {
+        throw std::runtime_error( "Erorr when calling TabulatedCartesianEphemeris, no state interpolator defined" );
+    }
     return interpolator_->interpolate( ephemerisTime );
 }
 
@@ -28,6 +32,10 @@ template< >
 Eigen::Matrix< long double, 6, 1 > TabulatedCartesianEphemeris< double, double >::getCartesianLongState(
         const double secondsSinceEpoch )
 {
+    if( interpolator_ == nullptr )
+    {
+        throw std::runtime_error( "Erorr when calling TabulatedCartesianEphemeris, no state interpolator defined" );
+    }
     return interpolator_->interpolate( secondsSinceEpoch ).cast< long double >( );
 }
 
@@ -36,6 +44,10 @@ template< >
 Eigen::Vector6d TabulatedCartesianEphemeris< double, double >::getCartesianStateFromExtendedTime(
         const Time& time )
 {
+    if( interpolator_ == nullptr )
+    {
+        throw std::runtime_error( "Erorr when calling TabulatedCartesianEphemeris, no state interpolator defined" );
+    }
     return interpolator_->interpolate( time.getSeconds< double >( ) );
 }
 
@@ -44,6 +56,10 @@ template< >
 Eigen::Matrix< long double, 6, 1 > TabulatedCartesianEphemeris< double, double >::getCartesianLongStateFromExtendedTime(
         const Time& time )
 {
+    if( interpolator_ == nullptr )
+    {
+        throw std::runtime_error( "Erorr when calling TabulatedCartesianEphemeris, no state interpolator defined" );
+    }
     return interpolator_->interpolate( time.getSeconds< double >( ) ).cast< long double >( );
 }
 
@@ -56,6 +72,10 @@ template< >
 Eigen::Vector6d TabulatedCartesianEphemeris< long double, double >::getCartesianState(
         const double ephemerisTime )
 {
+    if( interpolator_ == nullptr )
+    {
+        throw std::runtime_error( "Erorr when calling TabulatedCartesianEphemeris, no state interpolator defined" );
+    }
     return interpolator_->interpolate( ephemerisTime ).cast< double >( );
 }
 
@@ -64,6 +84,10 @@ template< >
 Eigen::Matrix< long double, 6, 1 > TabulatedCartesianEphemeris< long double, double >::getCartesianLongState(
         const double secondsSinceEpoch )
 {
+    if( interpolator_ == nullptr )
+    {
+        throw std::runtime_error( "Erorr when calling TabulatedCartesianEphemeris, no state interpolator defined" );
+    }
     return interpolator_->interpolate( secondsSinceEpoch );
 }
 
@@ -72,6 +96,10 @@ template< >
 Eigen::Vector6d TabulatedCartesianEphemeris< long double, double >::getCartesianStateFromExtendedTime(
         const Time& time )
 {
+    if( interpolator_ == nullptr )
+    {
+        throw std::runtime_error( "Erorr when calling TabulatedCartesianEphemeris, no state interpolator defined" );
+    }
     return interpolator_->interpolate( time.getSeconds< double >( ) ).cast< double >( );
 }
 
@@ -80,11 +108,61 @@ template< >
 Eigen::Matrix< long double, 6, 1 > TabulatedCartesianEphemeris< long double, double >::getCartesianLongStateFromExtendedTime(
         const Time& time )
 {
+    if( interpolator_ == nullptr )
+    {
+        throw std::runtime_error( "Erorr when calling TabulatedCartesianEphemeris, no state interpolator defined" );
+    }
     return interpolator_->interpolate( time.getSeconds< double >( ) );
 }
 
 
+//! Get cartesian state from ephemeris (in double precision), double StateScalarType
+template< >
+Eigen::Vector6d TabulatedCartesianEphemeris< double, Time >::getCartesianState(
+        const double ephemerisTime )
+{
+    if( interpolator_ == nullptr )
+    {
+        throw std::runtime_error( "Erorr when calling TabulatedCartesianEphemeris, no state interpolator defined" );
+    }
+    return interpolator_->interpolate( Time( ephemerisTime ) );
+}
 
+//! Get cartesian state from ephemeris (in long double precision), for double StateScalarType
+template< >
+Eigen::Matrix< long double, 6, 1 > TabulatedCartesianEphemeris< double, Time >::getCartesianLongState(
+        const double secondsSinceEpoch )
+{
+    if( interpolator_ == nullptr )
+    {
+        throw std::runtime_error( "Erorr when calling TabulatedCartesianEphemeris, no state interpolator defined" );
+    }
+    return interpolator_->interpolate( Time( secondsSinceEpoch ) ).cast< long double >( );
+}
+
+//! Get cartesian state from ephemeris (in double precision from Time input).
+template< >
+Eigen::Vector6d TabulatedCartesianEphemeris< double, Time >::getCartesianStateFromExtendedTime(
+        const Time& time )
+{
+    if( interpolator_ == nullptr )
+    {
+        throw std::runtime_error( "Erorr when calling TabulatedCartesianEphemeris, no state interpolator defined" );
+    }
+    return interpolator_->interpolate( time );
+}
+
+//! Get cartesian state from ephemeris (in long double precision from Time input).
+template< >
+Eigen::Matrix< long double, 6, 1 > TabulatedCartesianEphemeris< double, Time >::getCartesianLongStateFromExtendedTime(
+        const Time& time )
+{
+    if( interpolator_ == nullptr )
+    {
+        throw std::runtime_error( "Erorr when calling TabulatedCartesianEphemeris, no state interpolator defined" );
+    }
+    return interpolator_->interpolate( time ).cast< long double >( );
+}
 
 
 
@@ -93,6 +171,10 @@ template< >
 Eigen::Vector6d TabulatedCartesianEphemeris< long double, Time >::getCartesianState(
         const double ephemerisTime )
 {
+    if( interpolator_ == nullptr )
+    {
+        throw std::runtime_error( "Erorr when calling TabulatedCartesianEphemeris, no state interpolator defined" );
+    }
     return interpolator_->interpolate( Time( ephemerisTime ) ).cast< double >( );
 }
 
@@ -101,6 +183,10 @@ template< >
 Eigen::Matrix< long double, 6, 1 > TabulatedCartesianEphemeris< long double, Time >::getCartesianLongState(
         const double secondsSinceEpoch )
 {
+    if( interpolator_ == nullptr )
+    {
+        throw std::runtime_error( "Erorr when calling TabulatedCartesianEphemeris, no state interpolator defined" );
+    }
     return interpolator_->interpolate( Time( secondsSinceEpoch ) );
 }
 
@@ -109,6 +195,10 @@ template< >
 Eigen::Vector6d TabulatedCartesianEphemeris< long double, Time >::getCartesianStateFromExtendedTime(
         const Time& time )
 {
+    if( interpolator_ == nullptr )
+    {
+        throw std::runtime_error( "Erorr when calling TabulatedCartesianEphemeris, no state interpolator defined" );
+    }
     return interpolator_->interpolate( time ).cast< double >( );
 }
 
@@ -117,24 +207,62 @@ template< >
 Eigen::Matrix< long double, 6, 1 > TabulatedCartesianEphemeris< long double, Time >::getCartesianLongStateFromExtendedTime(
         const Time& time )
 {
+    if( interpolator_ == nullptr )
+    {
+        throw std::runtime_error( "Erorr when calling TabulatedCartesianEphemeris, no state interpolator defined" );
+    }
     return interpolator_->interpolate( time );
 }
 
 
 //! Function to check whether an ephemeris is a (type of) tabulated ephemeris
-bool isTabulatedEphemeris( const boost::shared_ptr< Ephemeris > ephemeris )
+bool isTabulatedEphemeris( const std::shared_ptr< Ephemeris > ephemeris )
 {
     bool objectIsTabulated = 0;
-    if( ( boost::dynamic_pointer_cast< TabulatedCartesianEphemeris< double, double > >( ephemeris ) != NULL ) ||
-            ( boost::dynamic_pointer_cast< TabulatedCartesianEphemeris< long double, double > >( ephemeris ) != NULL ) ||
-            ( boost::dynamic_pointer_cast< TabulatedCartesianEphemeris< long double, Time > >( ephemeris ) != NULL ) ||
-            ( boost::dynamic_pointer_cast< TabulatedCartesianEphemeris< double, Time > >( ephemeris ) != NULL ) )
+    if( ( std::dynamic_pointer_cast< TabulatedCartesianEphemeris< double, double > >( ephemeris ) != nullptr ) ||
+            ( std::dynamic_pointer_cast< TabulatedCartesianEphemeris< long double, double > >( ephemeris ) != nullptr ) ||
+            ( std::dynamic_pointer_cast< TabulatedCartesianEphemeris< long double, Time > >( ephemeris ) != nullptr ) ||
+            ( std::dynamic_pointer_cast< TabulatedCartesianEphemeris< double, Time > >( ephemeris ) != nullptr ) )
     {
         objectIsTabulated = 1;
     }
     return objectIsTabulated;
 }
 
+//! Function that retrieves the time interval at which a tabulated ephemeris can be safely interrogated
+std::pair< double, double > getTabulatedEphemerisSafeInterval( const std::shared_ptr< Ephemeris > ephemeris )
+{
+    // Initialize return pair
+    std::pair< double, double > safeInterval = std::make_pair( TUDAT_NAN, TUDAT_NAN );
+
+    // Check input consistency
+    if( !isTabulatedEphemeris( ephemeris ) )
+    {
+        throw std::runtime_error( "Error wgen getting tabulated ephemeris safe interval, input is not a tabulated ephemeris" );
+    }
+    // Identify type of tabulated ephemeris, and call associated safe interval function
+    else if( std::dynamic_pointer_cast< TabulatedCartesianEphemeris< double, double > >( ephemeris ) != nullptr )
+    {
+        safeInterval = std::dynamic_pointer_cast< TabulatedCartesianEphemeris< double, double > >(
+                    ephemeris )->getSafeInterpolationInterval( );
+    }
+    else if( std::dynamic_pointer_cast< TabulatedCartesianEphemeris< long double, double > >( ephemeris ) != nullptr )
+    {
+        safeInterval = std::dynamic_pointer_cast< TabulatedCartesianEphemeris< long double, double > >(
+                    ephemeris )->getSafeInterpolationInterval( );
+    }
+    else if ( std::dynamic_pointer_cast< TabulatedCartesianEphemeris< long double, Time > >( ephemeris ) != nullptr )
+    {
+        safeInterval = std::dynamic_pointer_cast< TabulatedCartesianEphemeris< long double, Time > >(
+                    ephemeris )->getSafeInterpolationInterval( );
+    }
+    else if( std::dynamic_pointer_cast< TabulatedCartesianEphemeris< double, Time > >( ephemeris ) != nullptr )
+     {
+        safeInterval = std::dynamic_pointer_cast< TabulatedCartesianEphemeris< double, Time > >(
+                    ephemeris )->getSafeInterpolationInterval( );
+    }
+    return safeInterval;
+}
 
 
 } // namespace ephemerides

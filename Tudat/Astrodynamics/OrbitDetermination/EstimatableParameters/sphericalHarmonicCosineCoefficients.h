@@ -1,4 +1,4 @@
-/*    Copyright (c) 2010-2017, Delft University of Technology
+/*    Copyright (c) 2010-2019, Delft University of Technology
  *    All rigths reserved
  *
  *    This file is part of the Tudat. Redistribution and use in source and
@@ -13,7 +13,7 @@
 
 #include <map>
 
-#include <boost/function.hpp>
+#include <functional>
 
 #include "Tudat/Astrodynamics/OrbitDetermination/EstimatableParameters/estimatableParameter.h"
 
@@ -46,8 +46,8 @@ public:
      * \param associatedBody Name of body for which cosine coefficients are to be estimated.
      */
     SphericalHarmonicsCosineCoefficients(
-            const boost::function< Eigen::MatrixXd( ) > getCosineCoefficients,
-            const boost::function< void( Eigen::MatrixXd ) > setCosineCoefficients,
+            const std::function< Eigen::MatrixXd( ) > getCosineCoefficients,
+            const std::function< void( Eigen::MatrixXd ) > setCosineCoefficients,
             const std::vector< std::pair< int, int > > blockIndices,
             const std::string& associatedBody ):
         EstimatableParameter< Eigen::VectorXd >( spherical_harmonics_cosine_coefficient_block, associatedBody ),
@@ -93,16 +93,62 @@ public:
     std::vector< std::pair< int, int > > getBlockIndices( ){ return blockIndices_; }
 
 
+    std::string getParameterDescription( )
+    {
+        std::string parameterDescription =
+                getParameterTypeString( parameterName_.first ) + "of (" + parameterName_.second.first + "), ";
+        parameterDescription += "Minimum D/O: (" +
+                std::to_string( blockIndices_.at( 0 ).first ) + ", " +
+                std::to_string( blockIndices_.at( 0 ).second ) + "), ";
+
+        parameterDescription += "Maximum D/O: (" +
+                std::to_string( blockIndices_.at( blockIndices_.size( ) - 1 ).first ) + ", " +
+                std::to_string( blockIndices_.at( blockIndices_.size( ) - 1 ).second ) + "). ";
+        return parameterDescription;
+    }
+
+    //! Function that returns the indices for degree two coefficients (if any)
+    /*!
+     * Function that returns the indices for degree two coefficients (if any)
+     * \param c20Index Index for degree=2, order=0 entry (-1 if none; returned by reference)
+     * \param c21Index Index for degree=2, order=1 entry (-1 if none; returned by reference)
+     * \param c22Index Index for degree=2, order=2 entry (-1 if none; returned by reference)
+     */
+    void getDegreeTwoEntries(
+            int& c20Index, int& c21Index, int& c22Index )
+    {
+        c20Index = -1;
+        c21Index = -1;
+        c22Index = -1;
+
+        for( unsigned int i = 0; i < blockIndices_.size( ); i++ )
+        {
+            if( blockIndices_.at( i ).first == 2 && blockIndices_.at( i ).second == 0 )
+            {
+               c20Index = i;
+            }
+
+            if( blockIndices_.at( i ).first == 2 && blockIndices_.at( i ).second == 1 )
+            {
+               c21Index = i;
+            }
+
+            if( blockIndices_.at( i ).first == 2 && blockIndices_.at( i ).second == 2 )
+            {
+               c22Index = i;
+            }
+        }
+    }
 protected:
 
 private:
 
 
     //! Function to retrieve the full set of sine coefficients, of which a subset is to be estimated.
-    boost::function< Eigen::MatrixXd( ) > getCosineCoefficients_;
+    std::function< Eigen::MatrixXd( ) > getCosineCoefficients_;
 
     //! Function to reset the full set of sine coefficients, of which a subset is to be estimated.
-    boost::function< void( Eigen::MatrixXd ) > setCosineCoefficients_;
+    std::function< void( Eigen::MatrixXd ) > setCosineCoefficients_;
 
     //! List of cosine coefficient indices which are to be estimated
     /*!
@@ -113,6 +159,27 @@ private:
 
     int parameterSize_;
 };
+
+//! Function to get a list of Kaula constraint values for gravity field coefficients at given degrees and indices
+/*!
+ * Function to get a list of Kaula constraint values for gravity field coefficients at given degrees and indices
+ * \param blockIndices List of indices (degree and order) of coefficients for which Kaula constraint is to be given
+ * \param constraintMultiplier Multiplier A for Kaula constraint, obtained from A/l^{2}, which l the current coefficient's degree
+ * \return Vector of Kaula constraint values on gravity field coefficients
+ */
+Eigen::VectorXd getKaulaConstraintVector(
+        const std::vector< std::pair< int, int > > blockIndices,
+        const double constraintMultiplier );
+
+//! Function to get a list of Kaula constraint values for gravity field coefficients for given parameter
+/*!
+ * Function to get a list of Kaula constraint values for gravity field coefficients for given parameter
+ * \param parameter Parameter that defines the list of cosine spherical harmonic coefficients
+ * \param constraintMultiplier Multiplier A for Kaula constraint, obtained from A/l^{2}, which l the current coefficient's degree
+ * \return Vector of Kaula constraint values on gravity field coefficients
+ */
+Eigen::VectorXd getKaulaConstraintVector(const std::shared_ptr< SphericalHarmonicsCosineCoefficients > parameter,
+        const double constraintMultiplier );
 
 } // namespace estimatable_parameters
 

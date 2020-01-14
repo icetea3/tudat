@@ -1,4 +1,4 @@
-/*    Copyright (c) 2010-2017, Delft University of Technology
+/*    Copyright (c) 2010-2019, Delft University of Technology
  *    All rigths reserved
  *
  *    This file is part of the Tudat. Redistribution and use in source and
@@ -40,26 +40,6 @@ StateScalarType calculateEnckeQFunction( const StateScalarType qValue )
     return mathematical_constants::getFloatingInteger< StateScalarType >( 1 ) - 1.0 / ( powerTerm * std::sqrt( powerTerm ) );
 }
 
-//! Function to remove the central gravity acceleration from an AccelerationMap
-/*!
- * Function to remove the central gravity acceleration from an AccelerationMap. This is crucial for propagation methods in
- * which the deviation from a reference Kepler orbit is propagated. If the central gravity is a spherical harmonic
- * acceleration, the point mass term is removed by setting the C(0,0) coefficnet to 0
- *  \param bodiesToIntegrate List of names of bodies that are to be integrated numerically.
- *  \param centralBodies List of names of bodies of which the central terms are to be removed
- *  (per entry of bodiesToIntegrate)
- *  \param accelerationModelsPerBody A map containing the list of accelerations acting on each
- *  body, identifying the body being acted on and the body acted on by an acceleration. The map
- *  has as key a string denoting the name of the body the list of accelerations, provided as the
- *  value corresponding to a key, is acting on.  This map-value is again a map with string as
- *  key, denoting the body exerting the acceleration, and as value a pointer to an acceleration
- *  model.
- * \return Functions returning the gravitational parameters of the central terms that were removed.
- */
-std::vector< boost::function< double( ) > > removeCentralGravityAccelerations(
-        const std::vector< std::string >& centralBodies, const std::vector< std::string >& bodiesToIntegrate,
-        basic_astrodynamics::AccelerationMap& accelerationModelsPerBody );
-
 //! Class for computing the state derivative of translational motion of N bodies, using an Encke propagator.
 /*!
  * Class for computing the state derivative of translational motion of N bodies, using an Encke propagator.
@@ -88,7 +68,7 @@ public:
      *  \param initialTime Time at which the initialKeplerElements provide the orbital state.
      */
     NBodyEnckeStateDerivative( const basic_astrodynamics::AccelerationMap& accelerationModelsPerBody,
-                               const boost::shared_ptr< CentralBodyData< StateScalarType, TimeType > > centralBodyData,
+                               const std::shared_ptr< CentralBodyData< StateScalarType, TimeType > > centralBodyData,
                                const std::vector< std::string >& bodiesToIntegrate,
                                const std::vector< Eigen::Matrix< StateScalarType, 6, 1 > >& initialKeplerElements,
                                const TimeType& initialTime ):
@@ -110,14 +90,14 @@ public:
                     this->accelerationModelsPerBody_ );
 
         // Create root-finder for Kepler orbit propagation
-        rootFinder_ = boost::make_shared< root_finders::NewtonRaphsonCore< StateScalarType > >(
-                    boost::bind( &root_finders::termination_conditions::
+        rootFinder_ = std::make_shared< root_finders::NewtonRaphsonCore< StateScalarType > >(
+                    std::bind( &root_finders::termination_conditions::
                                  RootAbsoluteToleranceTerminationCondition< StateScalarType >::
                                  checkTerminationCondition,
-                                 boost::make_shared< root_finders::termination_conditions::
+                                 std::make_shared< root_finders::termination_conditions::
                                  RootAbsoluteToleranceTerminationCondition< StateScalarType > >(
                                      20.0 * std::numeric_limits< StateScalarType >::epsilon( ), 1000 ),
-                                 _1, _2, _3, _4, _5 ) );
+                                 std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4, std::placeholders::_5 ) );
         this->createAccelerationModelList( );
     }
 
@@ -156,7 +136,7 @@ public:
 
         // Get Cartesian state derivative for all bodies of Encke state (excluding central gravitational accelerations).
         this->sumStateDerivativeContributions(
-                    stateOfSystemToBeIntegrated, stateDerivative );
+                    stateOfSystemToBeIntegrated, stateDerivative, true );
 
         // Initialize Encke algorithm variables.
         StateScalarType qValue = 0.0;
@@ -219,8 +199,8 @@ public:
     //! Function to convert the Encke-propagator-specific form of the state to the conventional form.
     /*!
      * Function to convert the Encle-propagator-specific form of the state to the conventional form. For the Encke
-     * propagator, this transforms the Cartesian state w.r.t. the central body (conventional form) to the Cartesian deviation
-     * from the Kepler orbit w.r.t. this central body (Encke form).
+     * propagator, this transforms the Cartesian deviation from the Kepler orbit w.r.t. this central body (Encke form) to
+     * Cartesian state w.r.t. the central body (conventional form).
      * In contrast to the convertCurrentStateToGlobalRepresentation function, this
      * function does not provide the state in the inertial frame, but instead provides it in the
      * frame in which it is propagated.
@@ -293,7 +273,7 @@ private:
     }
 
     //!  Gravitational parameters of central bodies used to convert Cartesian to Keplerian orbits, and vice versa
-    std::vector< boost::function< double( ) > > centralBodyGravitationalParameters_;
+    std::vector< std::function< double( ) > > centralBodyGravitationalParameters_;
 
     //!  Kepler elements of bodiesToIntegrate, valid at initialTime_.
     std::vector< Eigen::Matrix< StateScalarType, 6, 1 > > initialKeplerElements_;
@@ -302,11 +282,11 @@ private:
     TimeType initialTime_ ;
 
     //! Central body accelerations for each propagated body, which has been removed from accelerationModelsPerBody_/
-    std::vector< boost::shared_ptr< basic_astrodynamics::AccelerationModel< Eigen::Vector3d > > >
+    std::vector< std::shared_ptr< basic_astrodynamics::AccelerationModel< Eigen::Vector3d > > >
     centralAccelerations_;
 
     //! Root finder used to propagate Kepler orbit.
-    boost::shared_ptr< root_finders::RootFinderCore< StateScalarType > > rootFinder_;
+    std::shared_ptr< root_finders::RootFinderCore< StateScalarType > > rootFinder_;
 
     //! Current Cartesian states of reference Kepler orbits, valid at currentKeplerOrbitTime_, computed by
     //! calculateKeplerTrajectoryCartesianStates
@@ -321,6 +301,13 @@ private:
 
 };
 
+extern template class NBodyEnckeStateDerivative< double, double >;
+
+#if( BUILD_WITH_EXTENDED_PRECISION_PROPAGATION_TOOLS )
+extern template class NBodyEnckeStateDerivative< long double, double >;
+extern template class NBodyEnckeStateDerivative< double, Time >;
+extern template class NBodyEnckeStateDerivative< long double, Time >;
+#endif
 
 } // namespace propagators
 

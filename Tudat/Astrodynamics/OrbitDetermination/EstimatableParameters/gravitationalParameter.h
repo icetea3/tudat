@@ -1,4 +1,4 @@
-/*    Copyright (c) 2010-2017, Delft University of Technology
+/*    Copyright (c) 2010-2019, Delft University of Technology
  *    All rigths reserved
  *
  *    This file is part of the Tudat. Redistribution and use in source and
@@ -33,7 +33,7 @@ public:
      * \param associatedBody Name of body containing the gravityFieldModel object
      */
     GravitationalParameter(
-            const boost::shared_ptr< gravitation::GravityFieldModel > gravityFieldModel, const std::string& associatedBody ):
+            const std::shared_ptr< gravitation::GravityFieldModel > gravityFieldModel, const std::string& associatedBody ):
         EstimatableParameter< double >( gravitational_parameter, associatedBody ),
         gravityFieldModel_( gravityFieldModel ){ }
 
@@ -75,7 +75,7 @@ protected:
 private:
 
     //! Gravity field object containing the gravitational parameter to be estimated.
-    boost::shared_ptr< gravitation::GravityFieldModel > gravityFieldModel_;
+    std::shared_ptr< gravitation::GravityFieldModel > gravityFieldModel_;
 
 };
 

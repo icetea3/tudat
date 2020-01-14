@@ -1,4 +1,4 @@
-/*    Copyright (c) 2010-2017, Delft University of Technology
+/*    Copyright (c) 2010-2019, Delft University of Technology
  *    All rigths reserved
  *
  *    This file is part of the Tudat. Redistribution and use in source and
@@ -12,8 +12,8 @@
 #ifndef TUDAT_ROOT_FINDER_H
 #define TUDAT_ROOT_FINDER_H
 
-#include <boost/function.hpp>
-#include <boost/shared_ptr.hpp>
+#include <functional>
+#include <memory>
 
 #include "Tudat/Mathematics/BasicMathematics/mathematicalConstants.h"
 
@@ -22,6 +22,7 @@
 
 namespace tudat
 {
+
 namespace root_finders
 {
 
@@ -37,12 +38,12 @@ class RootFinderCore
 public:
 
     //! Typedef of the function whose root we have to determine.
-    typedef boost::shared_ptr< basic_mathematics::Function< DataType, DataType > > FunctionPointer;
+    typedef std::shared_ptr< basic_mathematics::Function< DataType, DataType > > FunctionPointer;
 
     //! Typedef of the function determining whether to terminate the root finding (i.e convergence)
-    typedef boost::function< bool( DataType, DataType,
+    typedef std::function< bool( DataType, DataType,
                                    DataType, DataType, unsigned int ) > TerminationFunction;
-	
+        
     //! Constructor taking custom termination function.
     /*!
      *  Constructor taking custom termination function.
@@ -88,7 +89,7 @@ protected:
      * The root-finder tries to find a root of this function.
      */
     FunctionPointer rootFunction;
-	
+    
     //! Function specifying the termination conditions.
     /*!
      * The rootfinder will continue improving the solution of the root until the termination
@@ -99,15 +100,17 @@ protected:
     TerminationFunction terminationFunction;
 
 private:
+
 };
 
 //! Typedef for a root-finder with double data type.
 typedef RootFinderCore< > RootFinder;
 
 //! Typedef for a shared-pointer to a root-finder with double data type.
-typedef boost::shared_ptr< RootFinder > RootFinderPointer;
+typedef std::shared_ptr< RootFinder > RootFinderPointer;
 
 } // namespace root_finders
+
 } // namespace tudat
 
 #endif // TUDAT_ROOT_FINDER_H

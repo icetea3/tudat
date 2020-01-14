@@ -1,4 +1,4 @@
-/*    Copyright (c) 2010-2017, Delft University of Technology
+/*    Copyright (c) 2010-2019, Delft University of Technology
  *    All rigths reserved
  *
  *    This file is part of the Tudat. Redistribution and use in source and
@@ -105,8 +105,8 @@ BOOST_AUTO_TEST_CASE( test_SphericalHarmonics_PotentialGradient )
                                                      -2.717133139910520
                                                      ).finished( );
 
-    boost::shared_ptr< basic_mathematics::SphericalHarmonicsCache > sphericalHarmonicsCache =
-            boost::make_shared< basic_mathematics::SphericalHarmonicsCache >( 4, 4 );
+    std::shared_ptr< basic_mathematics::SphericalHarmonicsCache > sphericalHarmonicsCache =
+            std::make_shared< basic_mathematics::SphericalHarmonicsCache >( 4, 4 );
     sphericalHarmonicsCache->update(
                 sphericalPosition( 0 ), std::sin( sphericalPosition( 1 ) ), sphericalPosition( 2 ), referenceRadius );
 

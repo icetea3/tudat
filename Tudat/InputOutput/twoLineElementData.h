@@ -1,4 +1,4 @@
-/*    Copyright (c) 2010-2017, Delft University of Technology
+/*    Copyright (c) 2010-2019, Delft University of Technology
  *    All rigths reserved
  *
  *    This file is part of the Tudat. Redistribution and use in source and
@@ -25,12 +25,10 @@
 #ifndef TUDAT_TWO_LINE_ELEMENT_DATA_H
 #define TUDAT_TWO_LINE_ELEMENT_DATA_H
 
-#include <cstdlib>
-#include <iostream>
 #include <string>
 #include <vector>
 
-#include <boost/shared_ptr.hpp>
+#include <memory>
 
 #include <Eigen/Core>
 
@@ -291,7 +289,7 @@ public:
      * \param twoLineElementData TLE data to print.
      * \return Stream handler.
      */
-    friend std::ostream& operator<<( std::ostream& stream,
+    friend std::ostream& operator << ( std::ostream& stream,
                                      TwoLineElementData& twoLineElementData );
 
 protected:
@@ -300,7 +298,7 @@ private:
 };
 
 //! Typedef for shared-pointer to TwoLineElementData object.
-typedef boost::shared_ptr< TwoLineElementData > TwoLineElementDataPointer;
+typedef std::shared_ptr< TwoLineElementData > TwoLineElementDataPointer;
 
 } // namespace input_output
 } // namespace tudat

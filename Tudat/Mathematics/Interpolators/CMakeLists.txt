@@ -1,4 +1,4 @@
- #    Copyright (c) 2010-2017, Delft University of Technology
+ #    Copyright (c) 2010-2019, Delft University of Technology
  #    All rigths reserved
  #
  #    This file is part of the Tudat. Redistribution and use in source and
@@ -10,7 +10,11 @@
 
 # Add source files.
 set(INTERPOLATORS_SOURCES
+  "${SRCROOT}${MATHEMATICSDIR}/Interpolators/cubicSplineInterpolator.cpp"
   "${SRCROOT}${MATHEMATICSDIR}/Interpolators/linearInterpolator.cpp"
+  "${SRCROOT}${MATHEMATICSDIR}/Interpolators/lagrangeInterpolator.cpp"
+  "${SRCROOT}${MATHEMATICSDIR}/Interpolators/interpolator.cpp"
+  "${SRCROOT}${MATHEMATICSDIR}/Interpolators/multiLinearInterpolator.cpp"
 )
 
 # Add header files.
@@ -21,8 +25,11 @@ set(INTERPOLATORS_HEADERS
   "${SRCROOT}${MATHEMATICSDIR}/Interpolators/lagrangeInterpolator.h"
   "${SRCROOT}${MATHEMATICSDIR}/Interpolators/interpolator.h"
   "${SRCROOT}${MATHEMATICSDIR}/Interpolators/lookupScheme.h"
+  "${SRCROOT}${MATHEMATICSDIR}/Interpolators/multiDimensionalInterpolator.h"
   "${SRCROOT}${MATHEMATICSDIR}/Interpolators/oneDimensionalInterpolator.h"
   "${SRCROOT}${MATHEMATICSDIR}/Interpolators/multiLinearInterpolator.h"
+  "${SRCROOT}${MATHEMATICSDIR}/Interpolators/piecewiseConstantInterpolator.h"
+  "${SRCROOT}${MATHEMATICSDIR}/Interpolators/jumpDataLinearInterpolator.h"
   "${SRCROOT}${MATHEMATICSDIR}/Interpolators/createInterpolator.h"
 )
 

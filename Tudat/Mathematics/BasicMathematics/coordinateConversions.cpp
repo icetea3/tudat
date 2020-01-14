@@ -1,4 +1,4 @@
-/*    Copyright (c) 2010-2017, Delft University of Technology
+/*    Copyright (c) 2010-2019, Delft University of Technology
  *    All rigths reserved
  *
  *    This file is part of the Tudat. Redistribution and use in source and
@@ -32,30 +32,6 @@ namespace tudat
 namespace coordinate_conversions
 {
 
-
-//! Convert spherical (radius_, zenith, azimuth) to Cartesian (x,y,z) coordinates.
-Eigen::Vector3d convertSphericalToCartesian( const Eigen::Vector3d& sphericalCoordinates )
-{
-    // Create local variables.
-    double radius_ = sphericalCoordinates( 0 );
-    double zenithAngle_ = sphericalCoordinates( 1 );
-    double azimuthAngle_ = sphericalCoordinates( 2 );
-
-    // Declaring sine which has multiple usages to save computation time.
-    double sineOfZenithAngle_ = std::sin( sphericalCoordinates( 1 ) );
-
-    // Create output Vector3d.
-    Eigen::Vector3d convertedCartesianCoordinates_ = Eigen::Vector3d::Zero( 3 );
-
-    // Perform transformation.
-    convertedCartesianCoordinates_( 0 ) = radius_ * std::cos( azimuthAngle_ ) * sineOfZenithAngle_;
-    convertedCartesianCoordinates_( 1 ) = radius_ * std::sin( azimuthAngle_ ) * sineOfZenithAngle_;
-    convertedCartesianCoordinates_( 2 ) = radius_ * std::cos( zenithAngle_ );
-
-    return convertedCartesianCoordinates_;
-}
-
-
 //! Convert cylindrical to Cartesian coordinates.
 Eigen::Vector3d convertCylindricalToCartesian( const double radius,
                                                const double azimuthAngle, const double z )
@@ -66,7 +42,7 @@ Eigen::Vector3d convertCylindricalToCartesian( const double radius,
     // If radius < 0, then give warning.
     if ( radius < 0.0 )
     {
-        std::cerr << "Warning: cylindrical radial coordinate is negative!, This could give incorrect results!"<<std::endl;
+        std::cerr << "Warning: cylindrical radial coordinate is negative!, This could give incorrect results!" << std::endl;
     }
 
     // Compute and set Cartesian coordinates.
@@ -86,7 +62,7 @@ Eigen::Vector3d convertCylindricalToCartesian( const Eigen::Vector3d& cylindrica
     // If radius < 0, then give warning.
     if ( cylindricalCoordinates( 0 ) < 0.0 )
     {
-        std::cerr << "Warning: cylindrical radial coordinate is negative!, This could give incorrect results!"<<std::endl;
+        std::cerr << "Warning: cylindrical radial coordinate is negative!, This could give incorrect results!" << std::endl;
     }
 
     // Compute and set Cartesian coordinates.
@@ -118,7 +94,7 @@ Eigen::Vector6d convertCylindricalToCartesianState(
     if ( std::fabs(cylindricalState( 0 )) <= std::numeric_limits< double >::epsilon( )
          && std::fabs(cylindricalState( 4 )) > std::numeric_limits< double >::epsilon( ) )
     {
-        std::cerr << "Warning: cylindrical velocity Vtheta (r*thetadot) does not equal zero while the radius (r) is zero! Vtheta is taken equal to zero!"<<std::endl;
+        std::cerr << "Warning: cylindrical velocity Vtheta (r*thetadot) does not equal zero while the radius (r) is zero! Vtheta is taken equal to zero!" << std::endl;
 
         // Compute and set Cartesian velocities.
         cartesianState.tail( 3 )
@@ -354,7 +330,7 @@ Eigen::Matrix3d getDerivativeOfSphericalToCartesianGradient( const Eigen::Vector
 Eigen::Matrix3d getDerivativeOfSphericalToCartesianGradient( const Eigen::Vector3d& sphericalGradient,
                                                              const Eigen::Vector3d& cartesianCoordinates )
 {
-    static  std::vector< Eigen::Matrix3d > subMatrices( 3 );
+    static std::vector< Eigen::Matrix3d > subMatrices( 3 );
     return getDerivativeOfSphericalToCartesianGradient(
                 sphericalGradient, cartesianCoordinates, subMatrices );
 }

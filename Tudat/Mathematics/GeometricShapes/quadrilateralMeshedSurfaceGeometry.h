@@ -1,4 +1,4 @@
-/*    Copyright (c) 2010-2017, Delft University of Technology
+/*    Copyright (c) 2010-2019, Delft University of Technology
  *    All rigths reserved
  *
  *    This file is part of the Tudat. Redistribution and use in source and
@@ -150,9 +150,32 @@ public:
       *         geometry.
       * \return Stream object.
       */
-     friend std::ostream& operator<<( std::ostream& stream,
+     friend std::ostream& operator << ( std::ostream& stream,
                                       QuadrilateralMeshedSurfaceGeometry&
                                       quadrilateralMeshedSurfaceGeometry );
+
+     boost::multi_array< Eigen::Vector3d, 2 > getMeshPoints( )
+     {
+         return meshPoints_;
+     }
+
+     //! Panel centroids.
+     /*!
+      * 2-Dimensional array containing panel centroid locations.
+      */
+     boost::multi_array< Eigen::Vector3d, 2 > getPanelCentroids( )
+     {
+         return panelCentroids_;
+     }
+
+     //! Panel centroids.
+     /*!
+      * 2-Dimensional array containing panel centroid locations.
+      */
+     boost::multi_array< Eigen::Vector3d, 2 > getPanelSurfaceNormals( )
+     {
+         return panelSurfaceNormals_;
+     }
 
 protected:
 
@@ -215,7 +238,7 @@ private:
 };
 
 //! Typedef for shared-pointer to QuadrilateralMeshedSurfaceGeometry object.
-typedef boost::shared_ptr< QuadrilateralMeshedSurfaceGeometry >
+typedef std::shared_ptr< QuadrilateralMeshedSurfaceGeometry >
 QuadrilateralMeshedSurfaceGeometryPointer;
 
 } // namespace geometric_shapes

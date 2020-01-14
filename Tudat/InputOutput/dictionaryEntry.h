@@ -1,4 +1,4 @@
-/*    Copyright (c) 2010-2017, Delft University of Technology
+/*    Copyright (c) 2010-2019, Delft University of Technology
  *    All rigths reserved
  *
  *    This file is part of the Tudat. Redistribution and use in source and
@@ -15,7 +15,7 @@
 #include <set>
 #include <string>
 
-#include <boost/shared_ptr.hpp>
+#include <memory>
 
 namespace tudat
 {
@@ -109,7 +109,7 @@ public:
 };
 
 //! Typedef for shared-pointer to dictionary entry.
-typedef boost::shared_ptr< DictionaryEntry > DictionaryEntryPointer;
+typedef std::shared_ptr< DictionaryEntry > DictionaryEntryPointer;
 
 } // namespace dictionary
 } // namespace input_output

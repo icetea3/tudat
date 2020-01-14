@@ -1,4 +1,4 @@
-/*    Copyright (c) 2010-2017, Delft University of Technology
+/*    Copyright (c) 2010-2019, Delft University of Technology
  *    All rigths reserved
  *
  *    This file is part of the Tudat. Redistribution and use in source and
@@ -12,7 +12,7 @@
 #ifndef TUDAT_STANDARD_ATMOSPHERE_H
 #define TUDAT_STANDARD_ATMOSPHERE_H
 
-#include <boost/shared_ptr.hpp>
+#include <memory>
 
 #include "Tudat/Astrodynamics/Aerodynamics/atmosphereModel.h"
 
@@ -78,10 +78,11 @@ public:
     */
     virtual double getSpeedOfSound( const double altitude, const double longitude = 0.0,
                                     const double latitude = 0.0, const double time = 0.0 ) = 0;
+
 };
 
 //! Typedef for shared-pointer to StandardAtmosphere object.
-typedef boost::shared_ptr< StandardAtmosphere > StandardAtmospherePointer;
+typedef std::shared_ptr< StandardAtmosphere > StandardAtmospherePointer;
 
 } // namespace aerodynamics
 } // namespace tudat

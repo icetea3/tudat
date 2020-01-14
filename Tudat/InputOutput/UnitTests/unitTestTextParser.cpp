@@ -1,4 +1,4 @@
-/*    Copyright (c) 2010-2017, Delft University of Technology
+/*    Copyright (c) 2010-2019, Delft University of Technology
  *    All rigths reserved
  *
  *    This file is part of the Tudat. Redistribution and use in source and
@@ -14,8 +14,6 @@
  */
 
 #define BOOST_TEST_MAIN
-
-#include <iostream>
 
 #include <boost/make_shared.hpp>
 #include <boost/test/unit_test.hpp>
@@ -48,7 +46,7 @@ protected:
 
         // Create a new pointer to map of line data.
         parsed_data_vector_utilities::ParsedDataLineMapPtr currentLineData
-                = boost::make_shared< parsed_data_vector_utilities::ParsedDataLineMap >(
+                = std::make_shared< parsed_data_vector_utilities::ParsedDataLineMap >(
                     std::map< FieldType, parsed_data_vector_utilities::FieldValuePtr >( ) );
 
         // Register the data line with the global current parsed data vector.

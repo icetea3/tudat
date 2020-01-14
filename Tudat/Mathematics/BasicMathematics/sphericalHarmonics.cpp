@@ -1,4 +1,4 @@
-/*    Copyright (c) 2010-2017, Delft University of Technology
+/*    Copyright (c) 2010-2019, Delft University of Technology
  *    All rigths reserved
  *
  *    This file is part of the Tudat. Redistribution and use in source and
@@ -102,7 +102,7 @@ Eigen::Vector3d computePotentialGradient( const Eigen::Vector3d& sphericalPositi
                                           const double sineHarmonicCoefficient,
                                           const double legendrePolynomial,
                                           const double legendrePolynomialDerivative,
-                                          const boost::shared_ptr< SphericalHarmonicsCache > sphericalHarmonicsCache )
+                                          const std::shared_ptr< SphericalHarmonicsCache > sphericalHarmonicsCache )
 {
     return computePotentialGradient(
                 sphericalPosition( radiusIndex ),

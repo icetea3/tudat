@@ -1,4 +1,4 @@
-/*    Copyright (c) 2010-2017, Delft University of Technology
+/*    Copyright (c) 2010-2019, Delft University of Technology
  *    All rigths reserved
  *
  *    This file is part of the Tudat. Redistribution and use in source and
@@ -17,7 +17,7 @@
 
 #include <cmath>
 
-#include <boost/shared_ptr.hpp>
+#include <memory>
 
 #include <Eigen/Core>
 
@@ -28,8 +28,7 @@
 
 namespace tudat
 {
-namespace gravitation
-{
+
 namespace circular_restricted_three_body_problem
 {
 
@@ -217,10 +216,9 @@ private:
 };
 
 // Typedef for shared-pointer to LibrationPoint object.
-typedef boost::shared_ptr< LibrationPoint > LibrationPointPointer;
+typedef std::shared_ptr< LibrationPoint > LibrationPointPointer;
 
 } // namespace circular_restricted_three_body_problem
-} // namespace gravitation
 } // namespace tudat
 
 #endif // TUDAT_LIBRATION_POINT_H

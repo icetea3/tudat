@@ -1,4 +1,4 @@
-/*    Copyright (c) 2010-2017, Delft University of Technology
+/*    Copyright (c) 2010-2019, Delft University of Technology
  *    All rigths reserved
  *
  *    This file is part of the Tudat. Redistribution and use in source and
@@ -10,7 +10,6 @@
 
 #define BOOST_TEST_MAIN
 
-#include <boost/format.hpp>
 #include <boost/test/unit_test.hpp>
 
 #include "Tudat/Astrodynamics/BasicAstrodynamics/unitConversions.h"
@@ -52,8 +51,8 @@ BOOST_AUTO_TEST_CASE( testGeneralCoordinateConversions )
     const double equatorialRadius = 6378137.0;
 
     // Create shape model
-    boost::shared_ptr< basic_astrodynamics::OblateSpheroidBodyShapeModel > oblateSpheroidModel =
-            boost::make_shared< basic_astrodynamics::OblateSpheroidBodyShapeModel >(
+    std::shared_ptr< basic_astrodynamics::OblateSpheroidBodyShapeModel > oblateSpheroidModel =
+            std::make_shared< basic_astrodynamics::OblateSpheroidBodyShapeModel >(
                 equatorialRadius, flattening );
 
     // Declare variables for computation

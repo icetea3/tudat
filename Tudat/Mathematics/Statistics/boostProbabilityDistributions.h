@@ -1,4 +1,4 @@
-/*    Copyright (c) 2010-2017, Delft University of Technology
+/*    Copyright (c) 2010-2019, Delft University of Technology
  *    All rigths reserved
  *
  *    This file is part of the Tudat. Redistribution and use in source and
@@ -102,7 +102,7 @@ private:
  *  distribution, see  implementation for order of parameter, if relevant)
  *  \return Random variable class of BoostContinuousProbabilityDistribution type
  */
-boost::shared_ptr< InvertibleContinuousProbabilityDistribution< double > > createBoostRandomVariable(
+std::shared_ptr< InvertibleContinuousProbabilityDistribution< double > > createBoostRandomVariable(
         const ContinuousBoostStatisticalDistributions boostDistribution, const std::vector< double >& parameters );
 
 } // namespace statistics

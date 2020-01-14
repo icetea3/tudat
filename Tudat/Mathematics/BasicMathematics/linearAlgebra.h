@@ -1,4 +1,4 @@
-/*    Copyright (c) 2010-2017, Delft University of Technology
+/*    Copyright (c) 2010-2019, Delft University of Technology
  *    All rigths reserved
  *
  *    This file is part of the Tudat. Redistribution and use in source and
@@ -7,20 +7,61 @@
  *    a copy of the license with this file. If not, please or visit:
  *    http://tudat.tudelft.nl/LICENSE.
  *
+ *    References:
+ *      Ogata, K., Discrete-Time Control Systems, 2nd ed. Pearson Education Asia, 2002.
  */
 
 #ifndef TUDAT_LINEAR_ALGEBRA_H
 #define TUDAT_LINEAR_ALGEBRA_H
 
-#include <boost/function.hpp>
+#include <map>
+
+#include <functional>
+#include <vector>
 
 #include <Eigen/Core>
+#include <Eigen/SVD>
+#include <Eigen/Geometry>
+
+#include "Tudat/Basics/basicTypedefs.h"
 
 namespace tudat
 {
 
 namespace linear_algebra
 {
+
+//! Function to put a quaternion in 'vector format', e.g. a Vector4d with entries (w,x,y,z) of the quaternion.
+/*!
+ * Function to put a quaternion in 'vector format', e.g. a Vector4d with entries (w,x,y,z) of the quaternion.
+ * \param quaternion Quaternion that is to be put into vector format.
+ * \return Vector format of input quaternion.
+ */
+Eigen::Vector4d convertQuaternionToVectorFormat( const Eigen::Quaterniond& quaternion );
+
+//! Function to put a vector in 'quaternion format', i.e. a Quaterniond.
+/*!
+ * Function to put a vector in 'quaternion format', i.e. a Quaterniond.
+ * \param vector Vector format of input quaternion.
+ * \return Quaternion that is to be put into vector format.
+ */
+Eigen::Quaterniond convertVectorToQuaternionFormat( const Eigen::Vector4d& vector );
+
+//! Function to take the product of two quaternions.
+/*!
+ *  Function to take the product of two quaternions, both expressed as vectors.
+ *  \param firstQuaternion First quaternion expressed as vector.
+ *  \param secondQuaternion Second quaternion expressed as vector.
+ *  \return Product of the two quaternions.
+ */
+Eigen::Vector4d quaternionProduct( const Eigen::Vector4d& firstQuaternion, const Eigen::Vector4d& secondQuaternion );
+
+//! Function to invert a quaternion.
+/*!
+ *  Function to invert a quaternion.
+ *  \param quaternionVector Quaternion expressed as vector.
+ */
+void invertQuaternion( Eigen::Vector4d& quaternionVector );
 
 //! Function that returns that 'cross-product matrix'
 /*!
@@ -59,8 +100,13 @@ double computeAngleBetweenVectors( const Eigen::VectorXd& vector0,
  * \param vector1 Second vector.
  * \return Difference between vectors
  */
-Eigen::Vector3d computeVectorDifference( const Eigen::Vector3d& vector0,
-                                         const Eigen::Vector3d& vector1 );
+template< int VectorSize >
+Eigen::Matrix< double, VectorSize, 1 > computeVectorDifference(
+        const Eigen::Matrix< double, VectorSize, 1 >& vector0,
+        const Eigen::Matrix< double, VectorSize, 1 >& vector1 )
+{
+    return ( vector0 - vector1 );
+}
 
 //! Computes norm of the the difference between two 3d vectors.
 /*!
@@ -86,7 +132,7 @@ double getVectorNorm( const Eigen::Vector3d& vector );
  * \param vectorFunction Function returning the vector for which the norm is to be computed
  * \return Vector norm
  */
-double getVectorNormFromFunction( const boost::function< Eigen::Vector3d( ) > vectorFunction );
+double getVectorNormFromFunction( const std::function< Eigen::Vector3d( ) > vectorFunction );
 
 //! Flip matrix rows.
 /*!
@@ -110,8 +156,68 @@ static inline void flipMatrixRows( Eigen::MatrixXd& matrixToFlip )
     }
 }
 
+Eigen::Vector3d evaluateSecondBlockInStateVector(
+        const std::function< Eigen::Vector6d( const double ) > stateFunction,
+        const double time );
+
 double computeNormOfVectorDifference( const Eigen::Vector3d& vector0,
                                       const Eigen::Vector3d& vector1 );
+
+//! Function to calculate the jacobian of a normalized vector, from the jacobian of the unnormalized vector.
+/*!
+ *  Function to calculate the jacobian (partial matrix) of a normalized vector, from the jacobian
+ *  (partial matrix) of the unnormalized vector and the unnormalized vector itself, i.e. d/dp(x/|x|) from d/dp(x) and x, with p and x
+ *  3d vectors.
+ *  \param partialOfUnnormalizedVector The jacobian of the unnormalized vector
+ *  \param unnormalizedVector Unnormalized vector wrt which partialOfUnnormalizedVector is taken
+ *  \return The jacobian of the normalized vector.
+ */
+Eigen::Matrix3d calculatePartialOfNormalizedVector(
+        const Eigen::Matrix3d& partialOfUnnormalizedVector,
+        const Eigen::Vector3d& unnormalizedVector );
+
+//! Function to check whether an Eigen Matrix has any NaN entries
+/*!
+ *  Function to check whether an Eigen Matrix has any NaN entries
+ *  \param matrixToCheck Eigen Matrix to check for any NaN entries
+ *  \return True if matrix has NaN entries, false otherwise
+ */
+template< typename StateScalarType, int NumberOfRows, int NumberOfColumns >
+bool doesMatrixHaveNanEntries( const Eigen::Matrix< StateScalarType, NumberOfRows, NumberOfColumns > matrixToCheck )
+{
+    bool areNanEntriesPresent = false;
+    for( int i = 0; i < matrixToCheck.rows( ); i++ )
+    {
+        for( int j = 0; j < matrixToCheck.cols( ); j++ )
+        {
+            if( !( matrixToCheck( i, j ) == matrixToCheck( i, j ) ) )
+            {
+                areNanEntriesPresent = true;
+            }
+        }
+    }
+    return areNanEntriesPresent;
+}
+
+//! Function to compute the root mean square value of the entries in an Eigen vector
+/*!
+ *  Function to compute the root mean square (RMS) value of the entries in an Eigen vector
+ * \param inputVector Vector for which the RMS is to be computed
+ * \return RMS of input vector
+ */
+double getVectorEntryRootMeanSquare( const Eigen::VectorXd& inputVector );
+
+//! Function to compute the partial derivative of a rotation matrix w.r.t. its associated quaterion elements
+/*!
+ * Function to compute the partial derivative of a rotation matrix w.r.t. its associated quaterion elements
+ * \param quaternionVector Rotation quaternion in vector format
+ * \param partialDerivatives List of required partial derivatives (returned by reference)
+ */
+void computePartialDerivativeOfRotationMatrixWrtQuaternion(
+        const Eigen::Vector4d quaternionVector,
+        std::vector< Eigen::Matrix3d >& partialDerivatives );
+
+
 } // namespace linear_algebra
 
 } // namespace tudat

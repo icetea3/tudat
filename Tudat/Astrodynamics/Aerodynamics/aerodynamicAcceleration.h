@@ -1,4 +1,4 @@
-/*    Copyright (c) 2010-2017, Delft University of Technology
+/*    Copyright (c) 2010-2019, Delft University of Technology
  *    All rigths reserved
  *
  *    This file is part of the Tudat. Redistribution and use in source and
@@ -12,11 +12,8 @@
 #ifndef TUDAT_AERODYNAMIC_ACCELERATION_H
 #define TUDAT_AERODYNAMIC_ACCELERATION_H
 
-#include <iostream>
-
-#include <boost/function.hpp>
-#include <boost/lambda/lambda.hpp>
-#include <boost/shared_ptr.hpp>
+#include <functional>
+#include <memory>
 
 #include <Eigen/Core>
 
@@ -74,10 +71,10 @@ class AerodynamicAcceleration : public basic_astrodynamics::AccelerationModel< E
 private:
 
     //! Typedef for double-returning function.
-    typedef boost::function< double ( ) > DoubleReturningFunction;
+    typedef std::function< double ( ) > DoubleReturningFunction;
 
     //! Typedef for coefficient-returning function.
-    typedef boost::function< Eigen::Vector3d( ) > CoefficientReturningFunction;
+    typedef std::function< Eigen::Vector3d( ) > CoefficientReturningFunction;
 
 public:
 
@@ -105,8 +102,8 @@ public:
         coefficientFunction_( coefficientFunction ),
         densityFunction_( densityFunction ),
         airSpeedFunction_( airSpeedFunction ),
-        massFunction_( boost::lambda::constant( constantMass ) ),
-        referenceAreaFunction_( boost::lambda::constant( constantReferenceArea ) )
+        massFunction_( [ = ]( ){ return constantMass; } ),
+        referenceAreaFunction_( [ = ]( ){ return constantReferenceArea; } )
     {
         coefficientMultiplier_ = areCoefficientsInNegativeDirection == true ? -1.0 : 1.0;
     }
@@ -138,8 +135,11 @@ public:
         massFunction_( massFunction ),
         referenceAreaFunction_( referenceAreaFunction )
     {
-        coefficientMultiplier_ = areCoefficientsInNegativeDirection == true ? -1.0 : 1.0;
+        coefficientMultiplier_ = areCoefficientsInNegativeDirection ? -1.0 : 1.0;
     }
+
+    //! Destructor
+    ~AerodynamicAcceleration( ){ }
 
     //! Get acceleration.
     /*!
@@ -175,8 +175,21 @@ public:
             currentMass_ = this->massFunction_( );
             currentAirspeed_ = this->airSpeedFunction_( );
             currentReferenceArea_ = this->referenceAreaFunction_( );
+
+            currentTime_ = currentTime;
         }
     }
+
+    //! Function to return current mass of body undergoing acceleration
+    /*!
+     * Function to return current mass of body undergoing acceleration as set from massFunction_ by updateMembers
+     * \return Current mass of body undergoing acceleration
+     */
+    double getCurrentMass( )
+    {
+        return currentMass_;
+    }
+
 
 private:
 
@@ -215,7 +228,7 @@ private:
 };
 
 //! Typedef for shared-pointer to AerodynamicAcceleration object.
-typedef boost::shared_ptr< AerodynamicAcceleration > AerodynamicAccelerationPointer;
+typedef std::shared_ptr< AerodynamicAcceleration > AerodynamicAccelerationPointer;
 
 } // namespace aerodynamics
 } // namespace tudat

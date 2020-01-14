@@ -1,4 +1,4 @@
-/*    Copyright (c) 2010-2017, Delft University of Technology
+/*    Copyright (c) 2010-2019, Delft University of Technology
  *    All rigths reserved
  *
  *    This file is part of the Tudat. Redistribution and use in source and
@@ -28,8 +28,7 @@ double calculateRadiationPressure( const double sourcePower, const double distan
                            distanceFromSource * physical_constants::SPEED_OF_LIGHT );
 }
 
-//! Function to update the current value of the radiation pressure
-void RadiationPressureInterface::updateInterface(
+void RadiationPressureInterface::updateInterfaceBase(
         const double currentTime )
 {
     currentTime_ = currentTime;
@@ -59,6 +58,14 @@ void RadiationPressureInterface::updateInterface(
     }
 
     currentRadiationPressure_ *= shadowFunction;
+}
+
+//! Function to update the current value of the radiation pressure
+void RadiationPressureInterface::updateInterface(
+        const double currentTime )
+{   
+    updateInterfaceBase( currentTime );
+    radiationPressureCoefficient_ = radiationPressureCoefficientFunction_( currentTime );
 }
 
 } // namespace electro_magnetism

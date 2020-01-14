@@ -1,4 +1,4 @@
-/*    Copyright (c) 2010-2017, Delft University of Technology
+/*    Copyright (c) 2010-2019, Delft University of Technology
  *    All rigths reserved
  *
  *    This file is part of the Tudat. Redistribution and use in source and
@@ -11,11 +11,8 @@
 #define BOOST_TEST_MAIN
 
 #include <limits>
-#include <iostream>
-
 #include <boost/test/floating_point_comparison.hpp>
 #include <boost/test/unit_test.hpp>
-#include <boost/assign/list_of.hpp>
 #include <boost/bind.hpp>
 
 #include <Eigen/Core>
@@ -54,8 +51,8 @@ void getNominalJupiterGravityField(
     double jupiterc22 = -0.03E-6;
     double jupiters22 = -0.007E-6;
 
-    cosineCoefficients.setZero( 5, 5 );
-    sineCoefficients.setZero( 5, 5 );
+    cosineCoefficients.setZero( 6, 6 );
+    sineCoefficients.setZero( 6, 6 );
 
     // Normalize coefficients and set in matrices.
     cosineCoefficients( 0, 0 ) = 1.0;
@@ -123,7 +120,7 @@ void getTabulatedGravityFieldVariationValues(
  * for test purposes) using getTabulatedGravityFieldVariationValues function
  * \return Predefined tabulated gravity field variations.
  */
-boost::shared_ptr< TabulatedGravityFieldVariations > getTabulatedGravityFieldVariations( )
+std::shared_ptr< TabulatedGravityFieldVariations > getTabulatedGravityFieldVariations( )
 {
     // Get coefficient tables.
     std::map< double, Eigen::MatrixXd > cosineCoefficientCorrections;
@@ -132,7 +129,7 @@ boost::shared_ptr< TabulatedGravityFieldVariations > getTabulatedGravityFieldVar
                 cosineCoefficientCorrections, sineCoefficientCorrections );
 
     // Create correction object.
-    return boost::make_shared< TabulatedGravityFieldVariations >(
+    return std::make_shared< TabulatedGravityFieldVariations >(
                 cosineCoefficientCorrections, sineCoefficientCorrections, 1, 0 );
 }
 
@@ -142,7 +139,7 @@ boost::shared_ptr< TabulatedGravityFieldVariations > getTabulatedGravityFieldVar
  *  variations from getTabulatedGravityFieldVariationValues and degree 2 tidal variations.
  * \return Predefined gravity field variations object.
  */
-boost::shared_ptr< GravityFieldVariationsSet > getTestGravityFieldVariations( )
+std::shared_ptr< GravityFieldVariationsSet > getTestGravityFieldVariations( )
 {
     // Define bodies raising rides.
     std::vector< std::string > deformingBodies;
@@ -150,17 +147,17 @@ boost::shared_ptr< GravityFieldVariationsSet > getTestGravityFieldVariations( )
     deformingBodies.push_back( "Europa" );
 
     // Retrieve required data of bodies raising tides.
-    std::vector< boost::function< Eigen::Vector6d( const double ) > >
+    std::vector< std::function< Eigen::Vector6d( const double ) > >
             deformingBodyStateFunctions;
-    std::vector< boost::function< double( ) > > deformingBodyMasses;
+    std::vector< std::function< double( ) > > deformingBodyMasses;
     for( unsigned int i = 0; i < deformingBodies.size( ); i++ )
     {
         deformingBodyStateFunctions.push_back(
-                    boost::bind( &getBodyCartesianStateAtEpoch,
+                    std::bind( &getBodyCartesianStateAtEpoch,
                                  deformingBodies.at( i ), "SSB", "J2000",
-                                 "None", _1 ) );
+                                 "None", std::placeholders::_1 ) );
         deformingBodyMasses.push_back(
-                    boost::bind( &getBodyGravitationalParameter,
+                    std::bind( &getBodyGravitationalParameter,
                                  deformingBodies.at( i ) ) );
     }
 
@@ -171,38 +168,32 @@ boost::shared_ptr< GravityFieldVariationsSet > getTestGravityFieldVariations( )
         loveNumbers( 1, constantSingleDegreeLoveNumber );
 
     // Set up gravity field variation of Jupiter due to Galilean moons.
-    boost::shared_ptr< GravityFieldVariations > solidBodyGravityFieldVariations =
-            boost::make_shared< BasicSolidBodyTideGravityFieldVariations >(
-                boost::bind( &getBodyCartesianStateAtEpoch,
-                             "Jupiter", "SSB", "J2000", "None", _1 ),
-                boost::bind( &computeRotationQuaternionBetweenFrames,
-                             "J2000", "IAU_Jupiter", _1 ),
+    std::shared_ptr< GravityFieldVariations > solidBodyGravityFieldVariations =
+            std::make_shared< BasicSolidBodyTideGravityFieldVariations >(
+                std::bind( &getBodyCartesianStateAtEpoch,
+                             "Jupiter", "SSB", "J2000", "None", std::placeholders::_1 ),
+                std::bind( &computeRotationQuaternionBetweenFrames,
+                             "J2000", "IAU_Jupiter", std::placeholders::_1 ),
                 deformingBodyStateFunctions,
                 getAverageRadius( "Jupiter" ),
-                boost::bind( &getBodyGravitationalParameter, "Jupiter" ),
+                std::bind( &getBodyGravitationalParameter, "Jupiter" ),
                 deformingBodyMasses, loveNumbers, deformingBodies );
 
     // Get tabulated gravity field variations.
-    boost::shared_ptr< GravityFieldVariations > tabulatedGravityFieldVariations =
+    std::shared_ptr< GravityFieldVariations > tabulatedGravityFieldVariations =
             getTabulatedGravityFieldVariations( );
 
     // Create and return full gravity field variations object.
-    return boost::make_shared< GravityFieldVariationsSet >(
-                boost::assign::list_of( solidBodyGravityFieldVariations )
-                ( tabulatedGravityFieldVariations ),
-                boost::assign::list_of( basic_solid_body )( tabulated_variation ),
-                boost::assign::list_of( "BasicTidal" )( "Tabulated" ) );
+    return std::make_shared< GravityFieldVariationsSet >(
+                std::vector< std::shared_ptr< GravityFieldVariations > >{ solidBodyGravityFieldVariations, tabulatedGravityFieldVariations },
+                std::vector< BodyDeformationTypes >{ basic_solid_body, tabulated_variation },
+                std::vector< std::string >{ "BasicTidal", "Tabulated" } );
 }
 
 BOOST_AUTO_TEST_CASE( testGravityFieldVariations )
 {
-    const std::string kernelsPath = input_output::getSpiceKernelPath( );
-
     // Load spice kernels.
-    loadSpiceKernelInTudat( kernelsPath + "pck00009.tpc" );
-    loadSpiceKernelInTudat( kernelsPath + "gm_de431.tpc" );
-    loadSpiceKernelInTudat( kernelsPath + "jup310_small.bsp" );
-    loadSpiceKernelInTudat( kernelsPath + "de421.bsp" );
+    spice_interface::loadStandardSpiceKernels( );
 
     // Define properties of nominal field
     double gravitationalParameter = getBodyGravitationalParameter( "Jupiter" );
@@ -212,7 +203,7 @@ BOOST_AUTO_TEST_CASE( testGravityFieldVariations )
     getNominalJupiterGravityField( nominalCosineCoefficients, nominalSineCoefficients );
 
     // Create gravity field corrections object and retrieve corrections
-    std::vector< boost::shared_ptr< GravityFieldVariations > > gravityFieldVariationsList =
+    std::vector< std::shared_ptr< GravityFieldVariations > > gravityFieldVariationsList =
             getTestGravityFieldVariations( )->getVariationObjects( );
 
     // Define data structures for storing expected gravity field variations.
@@ -245,8 +236,8 @@ BOOST_AUTO_TEST_CASE( testGravityFieldVariations )
     }
 
     // Create time-varying gravity field.
-    boost::shared_ptr< TimeDependentSphericalHarmonicsGravityField > timeDependentGravityField =
-            boost::make_shared< TimeDependentSphericalHarmonicsGravityField >(
+    std::shared_ptr< TimeDependentSphericalHarmonicsGravityField > timeDependentGravityField =
+            std::make_shared< TimeDependentSphericalHarmonicsGravityField >(
                 gravitationalParameter, referenceRadius, nominalCosineCoefficients,
                 nominalSineCoefficients, getTestGravityFieldVariations( ) );
     timeDependentGravityField->update( 2.0 * testTime );
@@ -313,9 +304,9 @@ BOOST_AUTO_TEST_CASE( testGravityFieldVariations )
         for( unsigned int i = 0; i < 3; i++ )
         {
             BOOST_CHECK_SMALL( directCosineCorrections( 2, i )
-                               - tidalCorrectionsFromObject.first( 0, i ), 1.0E-20 );
+                               - tidalCorrectionsFromObject.first( 0, i ), 1.0E-19 );
             BOOST_CHECK_SMALL( directSineCorrections( 2, i )
-                               - tidalCorrectionsFromObject.second( 0, i ), 1.0E-20 );
+                               - tidalCorrectionsFromObject.second( 0, i ), 1.0E-19 );
         }
     }
 }

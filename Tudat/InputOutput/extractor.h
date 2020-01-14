@@ -1,4 +1,4 @@
-/*    Copyright (c) 2010-2017, Delft University of Technology
+/*    Copyright (c) 2010-2019, Delft University of Technology
  *    All rigths reserved
  *
  *    This file is part of the Tudat. Redistribution and use in source and
@@ -12,12 +12,9 @@
 #ifndef TUDAT_EXTRACTOR_H
 #define TUDAT_EXTRACTOR_H
 
-#include <boost/exception/all.hpp>
-#include <boost/shared_ptr.hpp>
-#include <boost/lexical_cast.hpp>
-
+#include <memory>
 #include <map>
-#include <stdarg.h>
+#include <cstdarg>
 
 #include "Tudat/InputOutput/parsedDataVectorUtilities.h"
 
@@ -34,7 +31,7 @@ namespace input_output
  * \tparam T Generic-type returned by extract() function.
  * \sa ParsedDataLineMapPtr, Parser
  */
-template < class T >
+template< class T >
 class Extractor
 {
 public:
@@ -48,7 +45,7 @@ public:
      * \param data Raw (parsed) data to extract values from.
      * \return Extracted value.
      */
-    virtual boost::shared_ptr< T > extract(
+    virtual std::shared_ptr< T > extract(
         parsed_data_vector_utilities::ParsedDataLineMapPtr data ) = 0;
 
 protected:
@@ -135,9 +132,8 @@ protected:
                 va_end( listOfArguments );
 
                 // Not found in map, throw exception.
-                boost::throw_exception( boost::enable_error_info( std::runtime_error(
-                    "One of the types required for extracting this dataLineMap type is not present"
-                                                                      ) ) );
+                throw std::runtime_error(
+                    "One of the types required for extracting this dataLineMap type is not present" );
             }
         }
 

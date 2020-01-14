@@ -1,4 +1,4 @@
-/*    Copyright (c) 2010-2017, Delft University of Technology
+/*    Copyright (c) 2010-2019, Delft University of Technology
  *    All rigths reserved
  *
  *    This file is part of the Tudat. Redistribution and use in source and
@@ -13,10 +13,8 @@
 #define TUDAT_NEWTON_RAPHSON_H
 
 #include <boost/bind.hpp>
-#include <boost/exception/all.hpp>
-#include <boost/format.hpp>
 #include <boost/make_shared.hpp>
-#include <boost/shared_ptr.hpp>
+#include <memory>
 
 #include "Tudat/Mathematics/RootFinders/rootFinder.h"
 #include "Tudat/Mathematics/RootFinders/terminationConditions.h"
@@ -48,10 +46,10 @@ class NewtonRaphsonCore : public RootFinderCore< DataType >
 {
 public:
 
-    //! Usefull type definition for the function pointer (from base class)
+    //! Useful type definition for the function pointer (from base class)
     typedef typename RootFinderCore< DataType >::FunctionPointer FunctionPointer;
 
-    //! Usefull type definition for the termination function (from base class)
+    //! Useful type definition for the termination function (from base class)
     typedef typename RootFinderCore< DataType >::TerminationFunction TerminationFunction;
 
     //! This is the constructor taking the general termination function
@@ -76,11 +74,11 @@ public:
      */
     NewtonRaphsonCore( const DataType relativeXTolerance, const unsigned int maxIterations )
         : RootFinderCore< DataType >(
-              boost::bind(
+              std::bind(
                   &termination_conditions::RootRelativeToleranceTerminationCondition< DataType >::
-                  checkTerminationCondition, boost::make_shared<
+                  checkTerminationCondition, std::make_shared<
                   termination_conditions::RootRelativeToleranceTerminationCondition< DataType > >(
-                      relativeXTolerance, maxIterations ), _1, _2, _3, _4, _5 ) )
+                      relativeXTolerance, maxIterations ), std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4, std::placeholders::_5 ) )
     {}
 
     //! Default destructor.
@@ -146,7 +144,7 @@ private:
 
 // Some handy typedefs.
 typedef NewtonRaphsonCore< > NewtonRaphson;
-typedef boost::shared_ptr< NewtonRaphson > NewtonRaphsonPointer;
+typedef std::shared_ptr< NewtonRaphson > NewtonRaphsonPointer;
 
 } // namespace root_finders
 } // namespace tudat

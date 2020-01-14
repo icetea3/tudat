@@ -1,4 +1,4 @@
-/*    Copyright (c) 2010-2017, Delft University of Technology
+/*    Copyright (c) 2010-2019, Delft University of Technology
  *    All rigths reserved
  *
  *    This file is part of the Tudat. Redistribution and use in source and
@@ -12,7 +12,6 @@
 #ifndef TUDAT_FIELD_VALUE_H
 #define TUDAT_FIELD_VALUE_H
 
-#include <iostream>
 #include <string>
 
 #include <boost/lexical_cast.hpp>
@@ -40,8 +39,8 @@ public:
      * \param transformer Transformation to apply to field data.
      */
     FieldValue( const FieldType& type, const std::string& field,
-                const boost::shared_ptr< FieldTransform > transformer
-                = boost::shared_ptr< FieldTransform >( ) );
+                const std::shared_ptr< FieldTransform > transformer
+                = std::shared_ptr< FieldTransform >( ) );
 
     //! FieldType of the FieldValue.
     const FieldType type;
@@ -56,10 +55,10 @@ public:
 
     //! Get a shared pointer to the value of field content in SI units.
     template< typename T >
-    boost::shared_ptr< T > getPointer( )
+    std::shared_ptr< T > getPointer( )
     {
         loadTransformation( );
-        return boost::make_shared< T >( boost::lexical_cast<T>( transformedField ) );
+        return std::make_shared< T >( boost::lexical_cast<T>( transformedField ) );
     }
 
     //! Get transformed field content.
@@ -95,7 +94,7 @@ private:
 };
 
 //! Typedef for shared-pointer to FieldValue object.
-typedef boost::shared_ptr< FieldValue > FieldValuePointer;
+typedef std::shared_ptr< FieldValue > FieldValuePointer;
 
 } // namespace input_output
 } // namespace tudat

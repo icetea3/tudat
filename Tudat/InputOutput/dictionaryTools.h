@@ -1,4 +1,4 @@
-/*    Copyright (c) 2010-2017, Delft University of Technology
+/*    Copyright (c) 2010-2019, Delft University of Technology
  *    All rigths reserved
  *
  *    This file is part of the Tudat. Redistribution and use in source and
@@ -16,9 +16,8 @@
 #include <set>
 #include <stdexcept>
 
-#include <boost/exception/all.hpp>
-#include <boost/function.hpp>
-#include <boost/shared_ptr.hpp>
+#include <functional>
+#include <memory>
 
 #include "Tudat/InputOutput/dictionaryComparer.h"
 #include "Tudat/InputOutput/dictionaryEntry.h"
@@ -37,7 +36,7 @@ typedef std::set< DictionaryEntryPointer, DictionaryComparer > Dictionary;
 typedef Dictionary::const_iterator DictionaryIterator;
 
 //! Typedef for pointer to dictionary containing dictionary entries.
-typedef boost::shared_ptr< Dictionary > DictionaryPointer;
+typedef std::shared_ptr< Dictionary > DictionaryPointer;
 
 //! Typedef for list of required parameters.
 typedef std::set< DictionaryEntryPointer, DictionaryComparer > RequiredParametersList;
@@ -118,7 +117,7 @@ DataType extractParameterValue( const DataLineIterator& firstDataLine,
                                 const DataLineIterator& lastDataLine,
                                 const DictionaryIterator& dictionaryEntry,
                                 const DataType& defaultValue = DataType( ),
-                                const boost::function< DataType( DataType ) >& convert
+                                const std::function< DataType( DataType ) >& convert
                                 = &convertDummy< DataType > )
 {
     // Attempt to match dictionary entry with any data lines.
@@ -133,11 +132,9 @@ DataType extractParameterValue( const DataLineIterator& firstDataLine,
         // in the input stream.
         if ( ( *dictionaryEntry )->isRequired )
         {
-            boost::throw_exception(
-                        boost::enable_error_info(
-                            std::runtime_error(
-                                "Required parameter \"" + ( *dictionaryEntry )->parameterName
-                                + "\" not found in input stream! " ) ) );
+           throw std::runtime_error(
+                                "Required parameter " + ( *dictionaryEntry )->parameterName
+                                + " not found in input stream! "  );
         }
 
         // Else, return the default value specified.

@@ -1,4 +1,4 @@
-/*    Copyright (c) 2010-2017, Delft University of Technology
+/*    Copyright (c) 2010-2019, Delft University of Technology
  *    All rigths reserved
  *
  *    This file is part of the Tudat. Redistribution and use in source and
@@ -13,9 +13,10 @@
 
 #include <map>
 
-#include <boost/function.hpp>
+#include <functional>
 
 #include "Tudat/Astrodynamics/OrbitDetermination/EstimatableParameters/estimatableParameter.h"
+#include "Tudat/Astrodynamics/OrbitDetermination/EstimatableParameters/sphericalHarmonicCosineCoefficients.h"
 
 namespace tudat
 {
@@ -46,8 +47,8 @@ public:
      * \param associatedBody Name of body for which sine coefficients are to be estimated.
      */
     SphericalHarmonicsSineCoefficients(
-            const boost::function< Eigen::MatrixXd( ) > getSineCoefficients,
-            const boost::function< void( Eigen::MatrixXd ) > setSineCoefficients,
+            const std::function< Eigen::MatrixXd( ) > getSineCoefficients,
+            const std::function< void( Eigen::MatrixXd ) > setSineCoefficients,
             const std::vector< std::pair< int, int > >& blockIndices,
             const std::string& associatedBody ):
         EstimatableParameter< Eigen::VectorXd >( spherical_harmonics_sine_coefficient_block, associatedBody ),
@@ -95,16 +96,56 @@ public:
         return blockIndices_;
     }
 
+    std::string getParameterDescription( )
+    {
+        std::string parameterDescription =
+                getParameterTypeString( parameterName_.first ) + "of (" + parameterName_.second.first + ")";
+        parameterDescription += ", Minimum D/O: (" +
+                std::to_string( blockIndices_.at( 0 ).first ) + ", " +
+                std::to_string( blockIndices_.at( 0 ).second ) + "), ";
+
+        parameterDescription += "Maximum D/O: (" +
+                std::to_string( blockIndices_.at( blockIndices_.size( ) - 1 ).first ) + ", " +
+                std::to_string( blockIndices_.at( blockIndices_.size( ) - 1 ).second ) + "). ";
+        return parameterDescription;
+    }
+
+    //! Function that returns the indices for degree two coefficients (if any)
+    /*!
+     * Function that returns the indices for degree two coefficients (if any)
+     * \param s21Index Index for degree=2, order=1 entry (-1 if none; returned by reference)
+     * \param s22Index Index for degree=2, order=2 entry (-1 if none; returned by reference)
+     */
+    void getDegreeTwoEntries(
+            int& s21Index, int& s22Index )
+    {
+        s21Index = -1;
+        s22Index = -1;
+
+        for( unsigned int i = 0; i < blockIndices_.size( ); i++ )
+        {
+
+            if( blockIndices_.at( i ).first == 2 && blockIndices_.at( i ).second == 1 )
+            {
+               s21Index = i;
+            }
+
+            if( blockIndices_.at( i ).first == 2 && blockIndices_.at( i ).second == 2 )
+            {
+               s22Index = i;
+            }
+        }
+    }
 
 protected:
 
 private:
 
     //! Function to retrieve the full set of sine coefficients, of which a subset is to be estimated.
-    boost::function< Eigen::MatrixXd( ) > getSineCoefficients_;
+    std::function< Eigen::MatrixXd( ) > getSineCoefficients_;
 
     //! Function to reset the full set of sine coefficients, of which a subset is to be estimated.
-    boost::function< void( Eigen::MatrixXd ) > setSineCoefficients_;
+    std::function< void( Eigen::MatrixXd ) > setSineCoefficients_;
 
     //! List of sine coefficient indices which are to be estimated
     /*!
@@ -116,6 +157,17 @@ private:
     //! Number of coefficients that are to be estimated (i.e. length of blockIndices_ vector).
     int parameterSize_;
 };
+
+//! Function to get a list of Kaula constraint values for gravity field coefficients for given parameter
+/*!
+ * Function to get a list of Kaula constraint values for gravity field coefficients for given parameter
+ * \param parameter Parameter that defines the list of sine spherical harmonic coefficients
+ * \param constraintMultiplier Multiplier A for Kaula constraint, obtained from A/l^{2}, which l the current coefficient's degree
+ * \return Vector of Kaula constraint values on gravity field coefficients
+ */
+Eigen::VectorXd getKaulaConstraintVector(
+        const std::shared_ptr< SphericalHarmonicsSineCoefficients > parameter,
+        const double constraintMultiplier );
 
 } // namespace estimatable_parameters
 

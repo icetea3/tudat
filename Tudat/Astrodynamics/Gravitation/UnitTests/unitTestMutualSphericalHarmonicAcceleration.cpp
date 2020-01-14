@@ -1,4 +1,4 @@
-/*    Copyright (c) 2010-2017, Delft University of Technology
+/*    Copyright (c) 2010-2019, Delft University of Technology
  *    All rigths reserved
  *
  *    This file is part of the Tudat. Redistribution and use in source and
@@ -71,10 +71,10 @@ std::pair< Eigen::MatrixXd, Eigen::MatrixXd > generateCosineSineCoefficients(
 }
 
 //! Generate gravity field object (with severely exagerated magnitude).
-boost::shared_ptr< tudat::simulation_setup::GravityFieldSettings > getDummyJovianSystemGravityField(
+std::shared_ptr< tudat::simulation_setup::GravityFieldSettings > getDummyJovianSystemGravityField(
         const std::string& bodyName )
 {
-    boost::shared_ptr< GravityFieldSettings > gravityFieldSettings;
+    std::shared_ptr< GravityFieldSettings > gravityFieldSettings;
 
     std::vector< double > randomNumberSettings;
     randomNumberSettings.push_back( 0.0 );
@@ -86,7 +86,7 @@ boost::shared_ptr< tudat::simulation_setup::GravityFieldSettings > getDummyJovia
     {
         coefficients = generateCosineSineCoefficients( 10, 10, 0 );
 
-        gravityFieldSettings = boost::make_shared< SphericalHarmonicsGravityFieldSettings >
+        gravityFieldSettings = std::make_shared< SphericalHarmonicsGravityFieldSettings >
                 ( getBodyGravitationalParameter( "Jupiter" ), getAverageRadius( "Jupiter" ),
                   coefficients.first, coefficients.second, "IAU_Jupiter" );
     }
@@ -94,7 +94,7 @@ boost::shared_ptr< tudat::simulation_setup::GravityFieldSettings > getDummyJovia
     {
         coefficients = generateCosineSineCoefficients( 10, 10, 1 );
 
-        gravityFieldSettings = boost::make_shared< SphericalHarmonicsGravityFieldSettings >
+        gravityFieldSettings = std::make_shared< SphericalHarmonicsGravityFieldSettings >
                 ( 5.959916033410404E012, 200.0 * getAverageRadius( "Io" ),
                   coefficients.first, coefficients.second, "IAU_Io" );
     }
@@ -102,7 +102,7 @@ boost::shared_ptr< tudat::simulation_setup::GravityFieldSettings > getDummyJovia
     {
         coefficients = generateCosineSineCoefficients( 10, 10, 2 );
 
-        gravityFieldSettings = boost::make_shared< SphericalHarmonicsGravityFieldSettings >
+        gravityFieldSettings = std::make_shared< SphericalHarmonicsGravityFieldSettings >
                 ( 3.202738774922892E12, 200.0 * getAverageRadius( "Europa" ),
                   coefficients.first, coefficients.second, "IAU_Europa" );
     }
@@ -121,12 +121,7 @@ BOOST_AUTO_TEST_SUITE( test_mutual_spherical_harmonic_gravity )
 BOOST_AUTO_TEST_CASE( testMutualSphericalHarmonicGravity )
 {
     // Load spice kernels.
-    std::string kernelsPath = input_output::getSpiceKernelPath( );
-    spice_interface::loadSpiceKernelInTudat( kernelsPath + "de-403-masses.tpc");
-    spice_interface::loadSpiceKernelInTudat( kernelsPath + "naif0009.tls");
-    spice_interface::loadSpiceKernelInTudat( kernelsPath + "pck00009.tpc");
-    //spice_interface::loadSpiceKernelInTudat( kernelsPath + "jup230l.bsp");
-    spice_interface::loadSpiceKernelInTudat( kernelsPath + "de421.bsp");
+    spice_interface::loadStandardSpiceKernels( );
 
     // Create list of bodies to create.
     std::vector< std::string > bodyNames;
@@ -140,20 +135,20 @@ BOOST_AUTO_TEST_CASE( testMutualSphericalHarmonicGravity )
     double finalTime = 1.2E7;
 
     // Get body settings.
-    std::map< std::string, boost::shared_ptr< BodySettings > > bodySettings =
+    std::map< std::string, std::shared_ptr< BodySettings > > bodySettings =
             getDefaultBodySettings( bodyNames, initialTime, finalTime );
     bodySettings[ "Jupiter" ]->gravityFieldSettings = getDummyJovianSystemGravityField( "Jupiter" );
     bodySettings[ "Io" ]->gravityFieldSettings = getDummyJovianSystemGravityField( "Io" );
     bodySettings[ "Europa" ]->gravityFieldSettings = getDummyJovianSystemGravityField( "Europa" );
 
-    bodySettings[ "Jupiter" ]->ephemerisSettings = boost::make_shared< KeplerEphemerisSettings >(
-                ( Eigen::Vector6d( )<< 778.57E9, 0.0489, 1.3 / 60.0, 0.0, 0.0, 0.0 ).finished( ), 0.0,
+    bodySettings[ "Jupiter" ]->ephemerisSettings = std::make_shared< KeplerEphemerisSettings >(
+                ( Eigen::Vector6d( ) << 778.57E9, 0.0489, 1.3 / 60.0, 0.0, 0.0, 0.0 ).finished( ), 0.0,
                   getBodyGravitationalParameter( "Sun" ), "Sun", "ECLIPJ2000" );
-    bodySettings[ "Io" ]->ephemerisSettings = boost::make_shared< KeplerEphemerisSettings >(
-                ( Eigen::Vector6d( )<< 421.8E6, 0.004, 0.04 / 60.0, 0.0, 0.0, 0.0 ).finished( ), 0.0,
+    bodySettings[ "Io" ]->ephemerisSettings = std::make_shared< KeplerEphemerisSettings >(
+                ( Eigen::Vector6d( ) << 421.8E6, 0.004, 0.04 / 60.0, 0.0, 0.0, 0.0 ).finished( ), 0.0,
                   getBodyGravitationalParameter( "Jupiter" ), "Sun", "ECLIPJ2000" );
-    bodySettings[ "Europa" ]->ephemerisSettings = boost::make_shared< KeplerEphemerisSettings >(
-                ( Eigen::Vector6d( )<< 671.1E6, 0.009, 0.47 / 60.0, 0.0, 0.0, 0.0 ).finished( ), 0.0,
+    bodySettings[ "Europa" ]->ephemerisSettings = std::make_shared< KeplerEphemerisSettings >(
+                ( Eigen::Vector6d( ) << 671.1E6, 0.009, 0.47 / 60.0, 0.0, 0.0, 0.0 ).finished( ), 0.0,
                   getBodyGravitationalParameter( "Jupiter" ), "Sun", "ECLIPJ2000" );
 
 
@@ -171,17 +166,17 @@ BOOST_AUTO_TEST_CASE( testMutualSphericalHarmonicGravity )
     bodyMap[ "Europa" ]->setStateFromEphemeris( currentTime );
 
     // Retrieve gravity fields.
-    boost::shared_ptr< SphericalHarmonicsGravityField > jupiterGravityField = boost::dynamic_pointer_cast< SphericalHarmonicsGravityField >(
+    std::shared_ptr< SphericalHarmonicsGravityField > jupiterGravityField = std::dynamic_pointer_cast< SphericalHarmonicsGravityField >(
                 ( bodyMap.at( "Jupiter" ) )->getGravityFieldModel( ) );
-    boost::shared_ptr< SphericalHarmonicsGravityField > ioGravityField = boost::dynamic_pointer_cast< SphericalHarmonicsGravityField >(
+    std::shared_ptr< SphericalHarmonicsGravityField > ioGravityField = std::dynamic_pointer_cast< SphericalHarmonicsGravityField >(
                 ( bodyMap.at( "Io" ) )->getGravityFieldModel( ) );
-    boost::shared_ptr< SphericalHarmonicsGravityField > europaGravityField = boost::dynamic_pointer_cast< SphericalHarmonicsGravityField >(
+    std::shared_ptr< SphericalHarmonicsGravityField > europaGravityField = std::dynamic_pointer_cast< SphericalHarmonicsGravityField >(
                 ( bodyMap.at( "Europa" ) )->getGravityFieldModel( ) );
 
     // Create central gravity acceleration (mu = Io + Jupiter)
-    boost::shared_ptr< AccelerationSettings > centralGravitySettings = boost::make_shared< AccelerationSettings >( central_gravity );
-    boost::shared_ptr< CentralGravitationalAccelerationModel3d > centralGravity =
-            boost::dynamic_pointer_cast< CentralGravitationalAccelerationModel3d >(
+    std::shared_ptr< AccelerationSettings > centralGravitySettings = std::make_shared< AccelerationSettings >( central_gravity );
+    std::shared_ptr< CentralGravitationalAccelerationModel3d > centralGravity =
+            std::dynamic_pointer_cast< CentralGravitationalAccelerationModel3d >(
                 createAccelerationModel( bodyMap.at( "Io" ), bodyMap.at( "Jupiter" ), centralGravitySettings, "Io", "Jupiter",
                                          bodyMap.at( "Jupiter" ), "Jupiter" ) );
 
@@ -190,10 +185,10 @@ BOOST_AUTO_TEST_CASE( testMutualSphericalHarmonicGravity )
     Eigen::Vector3d centralGravityAcceleration = centralGravity->getAcceleration( );
 
     // Create spherical harmonic gravity of Jupiter on Io, Jupiter-fixed (mu = Io + Jupiter)
-    boost::shared_ptr< AccelerationSettings > sphericalHarmonicGravityOnIoFromJupiterSettings =
-            boost::make_shared< SphericalHarmonicAccelerationSettings >( 7, 7 );
-    boost::shared_ptr< SphericalHarmonicsGravitationalAccelerationModel > sphericalHarmonicGravityOnIoFromJupiter =
-            boost::dynamic_pointer_cast< SphericalHarmonicsGravitationalAccelerationModel >(
+    std::shared_ptr< AccelerationSettings > sphericalHarmonicGravityOnIoFromJupiterSettings =
+            std::make_shared< SphericalHarmonicAccelerationSettings >( 7, 7 );
+    std::shared_ptr< SphericalHarmonicsGravitationalAccelerationModel > sphericalHarmonicGravityOnIoFromJupiter =
+            std::dynamic_pointer_cast< SphericalHarmonicsGravitationalAccelerationModel >(
                 createAccelerationModel(  bodyMap.at( "Io" ), bodyMap.at( "Jupiter" ), sphericalHarmonicGravityOnIoFromJupiterSettings,
                                           "Io", "Jupiter", bodyMap.at( "Jupiter" ), "Jupiter" ) );
 
@@ -202,10 +197,10 @@ BOOST_AUTO_TEST_CASE( testMutualSphericalHarmonicGravity )
     Eigen::Vector3d sphericalHarmonicGravityOnIoFromJupiterAcceleration = sphericalHarmonicGravityOnIoFromJupiter->getAcceleration( );
 
     // Create spherical harmonic gravity of Io on Jupiter, Io-fixed (mu = Io + Jupiter)
-    boost::shared_ptr< AccelerationSettings > sphericalHarmonicGravityOnJupiterFromIoSettings =
-            boost::make_shared< SphericalHarmonicAccelerationSettings >( 2, 2 );
-    boost::shared_ptr< SphericalHarmonicsGravitationalAccelerationModel > sphericalHarmonicGravityOnJupiterFromIo =
-            boost::dynamic_pointer_cast< SphericalHarmonicsGravitationalAccelerationModel >(
+    std::shared_ptr< AccelerationSettings > sphericalHarmonicGravityOnJupiterFromIoSettings =
+            std::make_shared< SphericalHarmonicAccelerationSettings >( 2, 2 );
+    std::shared_ptr< SphericalHarmonicsGravitationalAccelerationModel > sphericalHarmonicGravityOnJupiterFromIo =
+            std::dynamic_pointer_cast< SphericalHarmonicsGravitationalAccelerationModel >(
                 createAccelerationModel( bodyMap.at( "Jupiter" ), bodyMap.at( "Io" ), sphericalHarmonicGravityOnJupiterFromIoSettings,
                                          "Jupiter", "Io", bodyMap.at( "Io" ), "Io" ) );
 
@@ -214,10 +209,10 @@ BOOST_AUTO_TEST_CASE( testMutualSphericalHarmonicGravity )
     Eigen::Vector3d sphericalHarmonicGravityOnJupiterFromIoAcceleration = sphericalHarmonicGravityOnJupiterFromIo->getAcceleration( );
 
     // Create mutual spherical harmonic gravity between Io and Jupiter on Io, Jupiter fixed (mu = Io + Jupiter)
-    boost::shared_ptr< AccelerationSettings > mutualDirectJupiterIoShGravitySettings =
-            boost::make_shared< MutualSphericalHarmonicAccelerationSettings >( 7, 7, 2, 2 );
-    boost::shared_ptr< MutualSphericalHarmonicsGravitationalAccelerationModel > mutualDirectJupiterIoShGravity =
-            boost::dynamic_pointer_cast< MutualSphericalHarmonicsGravitationalAccelerationModel >(
+    std::shared_ptr< AccelerationSettings > mutualDirectJupiterIoShGravitySettings =
+            std::make_shared< MutualSphericalHarmonicAccelerationSettings >( 7, 7, 2, 2 );
+    std::shared_ptr< MutualSphericalHarmonicsGravitationalAccelerationModel > mutualDirectJupiterIoShGravity =
+            std::dynamic_pointer_cast< MutualSphericalHarmonicsGravitationalAccelerationModel >(
                 createAccelerationModel( bodyMap.at( "Io" ), bodyMap.at( "Jupiter" ), mutualDirectJupiterIoShGravitySettings,
                                          "Io", "Jupiter", bodyMap.at( "Jupiter" ), "Jupiter" ) );
 
@@ -233,14 +228,14 @@ BOOST_AUTO_TEST_CASE( testMutualSphericalHarmonicGravity )
     for( unsigned int i = 0; i < 3; i++ )
     {
         BOOST_CHECK_SMALL( std::fabs( expectedAcceleration( i ) - mutualDirectJupiterIoShGravityAcceleration( i ) ),
-                           10.0 * std::numeric_limits< double >::epsilon( ) * expectedAcceleration.norm( ) );
+                           15.0 * std::numeric_limits< double >::epsilon( ) * expectedAcceleration.norm( ) );
     }
 
     // Create mutual spherical harmonic gravity between Io and Jupiter on Jupiter, Io fixed (mu = Io + Jupiter)
-    boost::shared_ptr< AccelerationSettings > mutualDirectJupiterIoShGravitySettings2 =
-            boost::make_shared< MutualSphericalHarmonicAccelerationSettings >( 2, 2, 7, 7 );
-    boost::shared_ptr< MutualSphericalHarmonicsGravitationalAccelerationModel > mutualDirectJupiterIoShGravity2 =
-            boost::dynamic_pointer_cast< MutualSphericalHarmonicsGravitationalAccelerationModel >(
+    std::shared_ptr< AccelerationSettings > mutualDirectJupiterIoShGravitySettings2 =
+            std::make_shared< MutualSphericalHarmonicAccelerationSettings >( 2, 2, 7, 7 );
+    std::shared_ptr< MutualSphericalHarmonicsGravitationalAccelerationModel > mutualDirectJupiterIoShGravity2 =
+            std::dynamic_pointer_cast< MutualSphericalHarmonicsGravitationalAccelerationModel >(
                 createAccelerationModel( bodyMap.at( "Jupiter" ), bodyMap.at( "Io" ), mutualDirectJupiterIoShGravitySettings2,
                                          "Jupiter", "Io", bodyMap.at( "Io" ), "Io" ) );
 
@@ -255,22 +250,22 @@ BOOST_AUTO_TEST_CASE( testMutualSphericalHarmonicGravity )
     for( unsigned int i = 0; i < 3; i++ )
     {
         BOOST_CHECK_SMALL( std::fabs( expectedAcceleration( i ) - mutualDirectJupiterIoShGravityAcceleration2( i ) ),
-                           10.0 * ( std::numeric_limits< double >::epsilon( ) * expectedAcceleration.norm( ) ) );
+                           12.0 * std::numeric_limits< double >::epsilon( ) * expectedAcceleration.norm( ) );
     }
 
     // Test against directly calculated mutual spherical harmonic gravity.
     for( unsigned int i = 0; i < 3; i++ )
     {
         BOOST_CHECK_SMALL( std::fabs( mutualDirectJupiterIoShGravityAcceleration( i ) + mutualDirectJupiterIoShGravityAcceleration2( i ) ),
-                           10.0 * std::numeric_limits< double >::epsilon( ) * mutualDirectJupiterIoShGravityAcceleration.norm( ) );
+                           12.0 * std::numeric_limits< double >::epsilon( ) * mutualDirectJupiterIoShGravityAcceleration.norm( ) );
     }
 
 
     // Create 3rd body mutual spherical harmonics between Io and Europa on Europa, Jupiter fixed (mu = Io)
-    boost::shared_ptr< AccelerationSettings > mutualThirdBodyIoOnEuropaShGravitySettings =
-            boost::make_shared< MutualSphericalHarmonicAccelerationSettings >( 2, 2, 4, 4, 7, 7 );
-    boost::shared_ptr< ThirdBodyMutualSphericalHarmonicsGravitationalAccelerationModel > mutualThirdBodyIoOnEuropaShGravity =
-            boost::dynamic_pointer_cast< ThirdBodyMutualSphericalHarmonicsGravitationalAccelerationModel >(
+    std::shared_ptr< AccelerationSettings > mutualThirdBodyIoOnEuropaShGravitySettings =
+            std::make_shared< MutualSphericalHarmonicAccelerationSettings >( 2, 2, 4, 4, 7, 7 );
+    std::shared_ptr< ThirdBodyMutualSphericalHarmonicsGravitationalAccelerationModel > mutualThirdBodyIoOnEuropaShGravity =
+            std::dynamic_pointer_cast< ThirdBodyMutualSphericalHarmonicsGravitationalAccelerationModel >(
                 createAccelerationModel( bodyMap.at( "Europa" ), bodyMap.at( "Io" ), mutualThirdBodyIoOnEuropaShGravitySettings,
                                          "Europa", "Io", bodyMap.at( "Jupiter" ), "Jupiter" ) );
 
@@ -280,8 +275,8 @@ BOOST_AUTO_TEST_CASE( testMutualSphericalHarmonicGravity )
 
 
     // Create mutual spherical harmonics between Io and Europa on Europa, Io fixed (mu = Io + Europa)
-    boost::shared_ptr< MutualSphericalHarmonicsGravitationalAccelerationModel > mutualDirectIoOnEuropaShGravity =
-            boost::dynamic_pointer_cast< MutualSphericalHarmonicsGravitationalAccelerationModel >(
+    std::shared_ptr< MutualSphericalHarmonicsGravitationalAccelerationModel > mutualDirectIoOnEuropaShGravity =
+            std::dynamic_pointer_cast< MutualSphericalHarmonicsGravitationalAccelerationModel >(
                 createAccelerationModel( bodyMap.at( "Europa" ), bodyMap.at( "Io" ), mutualThirdBodyIoOnEuropaShGravitySettings,
                                          "Europa", "Io", bodyMap.at( "Io" ), "Io" ) );
     mutualDirectIoOnEuropaShGravity->updateMembers( );
@@ -299,14 +294,14 @@ BOOST_AUTO_TEST_CASE( testMutualSphericalHarmonicGravity )
                       ( ioGravityField->getGravitationalParameter( ) /
                         ( ioGravityField->getGravitationalParameter( ) + europaGravityField->getGravitationalParameter( ) ) *
                         mutualDirectIoOnEuropaShGravityAcceleration( i ) ) ),
-                    ( 10.0 * std::numeric_limits< double >::epsilon( ) * directAccelerationFromThirdBodyModel.norm( ) ) );
+                    ( 12.0 * std::numeric_limits< double >::epsilon( ) * directAccelerationFromThirdBodyModel.norm( ) ) );
 
         BOOST_CHECK_SMALL(
                     centralBodyAccelerationFromThirdBodyModel( i ) -
                     ( ioGravityField->getGravitationalParameter( ) /
                       ( ioGravityField->getGravitationalParameter( ) + jupiterGravityField->getGravitationalParameter( ) ) *
                       mutualDirectJupiterIoShGravityAcceleration2( i ) ),
-                    ( 10.0 * std::numeric_limits< double >::epsilon( ) * centralBodyAccelerationFromThirdBodyModel.norm( ) ) );
+                    ( 12.0 * std::numeric_limits< double >::epsilon( ) * centralBodyAccelerationFromThirdBodyModel.norm( ) ) );
 
         BOOST_CHECK_SMALL(
                     mutualThirdBodyIoOnEuropaShGravityAcceleration( i ) -

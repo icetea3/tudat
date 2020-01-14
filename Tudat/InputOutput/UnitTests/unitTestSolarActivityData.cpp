@@ -1,4 +1,4 @@
-/*    Copyright (c) 2010-2017, Delft University of Technology
+/*    Copyright (c) 2010-2019, Delft University of Technology
  *    All rigths reserved
  *
  *    This file is part of the Tudat. Redistribution and use in source and
@@ -20,7 +20,7 @@
 #include <vector>
 #include <map>
 
-#include <boost/shared_ptr.hpp>
+#include <memory>
 #include <boost/test/unit_test.hpp>
 
 #include <Eigen/Core>
@@ -62,7 +62,7 @@ BOOST_AUTO_TEST_CASE( test_parsing_and_extraction )
     dataFile.close( );
 
     // Extract data to object of solarActivityData class
-    std::vector< boost::shared_ptr< tudat::input_output::solar_activity::SolarActivityData > >
+    std::vector< std::shared_ptr< tudat::input_output::solar_activity::SolarActivityData > >
             solarActivityData( 6 );
     solarActivityData[ 0 ] = solarActivityExtractor.extract( parsedDataVectorPtr->at( 0 ) );
     solarActivityData[ 1 ] = solarActivityExtractor.extract( parsedDataVectorPtr->at( 3 ) );
@@ -170,8 +170,8 @@ BOOST_AUTO_TEST_CASE( test_function_readSolarActivityData )
     BOOST_CHECK_EQUAL( solarActivityIterator->second->centered81DaySolarRadioFlux107Observed , 104.0 );
     BOOST_CHECK_EQUAL( solarActivityIterator->second->last81DaySolarRadioFlux107Observed , 99.0 );
 
-    Eigen::VectorXd expectedPlanetaryRangeIndices = ( Eigen::VectorXd( 8 )<< 33, 23, 20, 13, 17, 13, 17, 7 ).finished( );
-    Eigen::VectorXd expectedPlanetaryEquivalentAmplitudes = ( Eigen::VectorXd( 8 )<< 18, 9, 7, 5, 6, 5, 6, 3 ).finished( );
+    Eigen::VectorXd expectedPlanetaryRangeIndices = ( Eigen::VectorXd( 8 ) << 33, 23, 20, 13, 17, 13, 17, 7 ).finished( );
+    Eigen::VectorXd expectedPlanetaryEquivalentAmplitudes = ( Eigen::VectorXd( 8 ) << 18, 9, 7, 5, 6, 5, 6, 3 ).finished( );
 
     for( unsigned int i = 0; i < 8; i++ )
     {

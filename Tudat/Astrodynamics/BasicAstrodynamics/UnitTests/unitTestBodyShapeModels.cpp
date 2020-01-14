@@ -1,4 +1,4 @@
-/*    Copyright (c) 2010-2017, Delft University of Technology
+/*    Copyright (c) 2010-2019, Delft University of Technology
  *    All rigths reserved
  *
  *    This file is part of the Tudat. Redistribution and use in source and
@@ -14,8 +14,10 @@
 
 #define BOOST_TEST_MAIN
 
-#include <boost/format.hpp>
+#include <boost/make_shared.hpp>
+#include <boost/lambda/lambda.hpp>
 #include <boost/test/unit_test.hpp>
+
 
 #include "Tudat/Basics/testMacros.h"
 #include "Tudat/Astrodynamics/BasicAstrodynamics/unitConversions.h"
@@ -88,12 +90,12 @@ BOOST_AUTO_TEST_CASE( testShapeModels )
 
     // Test free function altitude calculations
     {
-        boost::shared_ptr< OblateSpheroidBodyShapeModel > shapeModel =
-                boost::make_shared< OblateSpheroidBodyShapeModel >(
+        std::shared_ptr< OblateSpheroidBodyShapeModel > shapeModel =
+                std::make_shared< OblateSpheroidBodyShapeModel >(
                     equatorialRadius, flattening );
 
         Eigen::Vector3d bodyPosition =
-                ( Eigen::Vector3d( )<<
+                ( Eigen::Vector3d( ) <<
                   ASTRONOMICAL_UNIT / sqrt( 2.0 ),
                   ASTRONOMICAL_UNIT / sqrt( 2.0 ),
                   ASTRONOMICAL_UNIT * 0.01 ).finished( );
@@ -122,9 +124,9 @@ BOOST_AUTO_TEST_CASE( testShapeModels )
 
         calculatedAltitute = getAltitudeFromNonBodyFixedPositionFunctions(
                     shapeModel, dummyTestRotation * inertialTestCartesianPosition,
-                    boost::lambda::constant(
-                        Eigen::Vector3d( dummyTestRotation * bodyPosition ) ),
-                    boost::lambda::constant( dummyTestRotation.inverse( ) ) );
+                    [ & ]( ){ return
+                        Eigen::Vector3d( dummyTestRotation * bodyPosition ); },
+                    [ & ]( ){ return dummyTestRotation.inverse( ); } );
         BOOST_CHECK_SMALL( calculatedAltitute - testGeodeticPosition.x( ), 1.0E-4 );
 
     }

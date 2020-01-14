@@ -1,4 +1,4 @@
-/*    Copyright (c) 2010-2017, Delft University of Technology
+/*    Copyright (c) 2010-2019, Delft University of Technology
  *    All rigths reserved
  *
  *    This file is part of the Tudat. Redistribution and use in source and
@@ -29,9 +29,9 @@
 
 #include "Tudat/SimulationSetup/EnvironmentSetup/defaultBodies.h"
 #include "Tudat/SimulationSetup/EnvironmentSetup/createBodies.h"
-#include "Tudat/SimulationSetup/PropagationSetup/createNumericalSimulator.h"
+#include "Tudat/SimulationSetup/EstimationSetup/createNumericalSimulator.h"
 #include "Tudat/SimulationSetup/EstimationSetup/createEstimatableParameters.h"
-#include "Tudat/SimulationSetup/PropagationSetup/variationalEquationsSolver.h"
+#include "Tudat/SimulationSetup/EstimationSetup/variationalEquationsSolver.h"
 
 namespace tudat
 {
@@ -54,16 +54,11 @@ using namespace tudat::propagators;
 BOOST_AUTO_TEST_SUITE( test_sequential_variational_equation_integration )
 
 
-std::pair< boost::shared_ptr< CombinedStateTransitionAndSensitivityMatrixInterface >, boost::shared_ptr< Ephemeris > >
+std::pair< std::shared_ptr< CombinedStateTransitionAndSensitivityMatrixInterface >, std::shared_ptr< Ephemeris > >
 integrateEquations( const bool performIntegrationsSequentially )
 {
-    std::string kernelsPath = input_output::getSpiceKernelPath( );
-
     //Load spice kernels.
-    spice_interface::loadSpiceKernelInTudat( kernelsPath + "naif0009.tls");
-    spice_interface::loadSpiceKernelInTudat( kernelsPath + "pck00009.tpc");
-    spice_interface::loadSpiceKernelInTudat( kernelsPath + "de-403-masses.tpc");
-    spice_interface::loadSpiceKernelInTudat( kernelsPath + "de421.bsp");
+    spice_interface::loadStandardSpiceKernels( );
 
     std::vector< std::string > bodyNames;
     bodyNames.push_back( "Earth" );
@@ -79,11 +74,11 @@ integrateEquations( const bool performIntegrationsSequentially )
     double buffer = numberOfTimeStepBuffer * maximumTimeStep;
 
     // Create bodies needed in simulation
-    std::map< std::string, boost::shared_ptr< BodySettings > > bodySettings =
+    std::map< std::string, std::shared_ptr< BodySettings > > bodySettings =
             getDefaultBodySettings( bodyNames, initialEphemerisTime - buffer, finalEphemerisTime + buffer );
     NamedBodyMap bodyMap =
             createBodies( bodySettings );
-    boost::shared_ptr< Body > lageos = boost::make_shared< Body >( );
+    std::shared_ptr< Body > lageos = std::make_shared< Body >( );
     bodyMap[ "LAGEOS" ] = lageos;
 
     // Create  body initial state
@@ -97,19 +92,19 @@ integrateEquations( const bool performIntegrationsSequentially )
     Eigen::Vector6d lageosState = convertKeplerianToCartesianElements(
                 lageosKeplerianElements, getBodyGravitationalParameter("Earth" ) );
 
-    lageos->setEphemeris( boost::make_shared< TabulatedCartesianEphemeris< double, double > >(
-                              boost::shared_ptr< interpolators::OneDimensionalInterpolator<
+    lageos->setEphemeris( std::make_shared< TabulatedCartesianEphemeris< double, double > >(
+                              std::shared_ptr< interpolators::OneDimensionalInterpolator<
                               double, Eigen::Vector6d > >( ), "Earth" ) );
     setGlobalFrameBodyEphemerides( bodyMap, "SSB", "ECLIPJ2000" );
 
     // Set accelerations between bodies that are to be taken into account.
     SelectedAccelerationMap accelerationMap;
 
-    std::map< std::string, std::vector< boost::shared_ptr< AccelerationSettings > > > accelerationsOfLageos;
-    //accelerationsOfLageos[ "Sun" ].push_back( boost::make_shared< AccelerationSettings >( central_gravity ) );
-    //accelerationsOfLageos[ "Earth" ].push_back( boost::make_shared< RelativisticCorrectionSettings >( ) );
-    //accelerationsOfLageos[ "Earth" ].push_back( boost::make_shared< SphericalHarmonicAccelerationSettings >( 8, 8 ) );
-    accelerationsOfLageos[ "Earth" ].push_back( boost::make_shared< AccelerationSettings >( central_gravity ) );
+    std::map< std::string, std::vector< std::shared_ptr< AccelerationSettings > > > accelerationsOfLageos;
+    //accelerationsOfLageos[ "Sun" ].push_back( std::make_shared< AccelerationSettings >( central_gravity ) );
+    //accelerationsOfLageos[ "Earth" ].push_back( std::make_shared< RelativisticCorrectionSettings >( ) );
+    //accelerationsOfLageos[ "Earth" ].push_back( std::make_shared< SphericalHarmonicAccelerationSettings >( 8, 8 ) );
+    accelerationsOfLageos[ "Earth" ].push_back( std::make_shared< AccelerationSettings >( central_gravity ) );
     accelerationMap[ "LAGEOS" ] = accelerationsOfLageos;
 
     // Set bodies for which initial state is to be estimated and integrated.
@@ -129,42 +124,52 @@ integrateEquations( const bool performIntegrationsSequentially )
     AccelerationMap accelerationModelMap = createAccelerationModelsMap(
                 bodyMap, accelerationMap, centralBodyMap );
 
-    // Set parameters that are to be included.
-    std::vector< boost::shared_ptr< EstimatableParameterSettings > > parameterNames;
-    parameterNames.push_back( boost::make_shared< InitialTranslationalStateEstimatableParameterSettings< double > >(
-                                  "LAGEOS", lageosState, "Earth" ) );
-    parameterNames.push_back( boost::make_shared< EstimatableParameterSettings >
-                              ( "Earth", gravitational_parameter ) );
-    parameterNames.push_back( boost::make_shared< EstimatableParameterSettings >
-                              ( "Moon", gravitational_parameter ) );
-    boost::shared_ptr< estimatable_parameters::EstimatableParameterSet< double > > parametersToEstimate =
-            createParametersToEstimate( parameterNames, bodyMap, accelerationModelMap );
-
-    // Define integrator settings.
-    boost::shared_ptr< IntegratorSettings< > > integratorSettings =
-            boost::make_shared< RungeKuttaVariableStepSizeSettings< > >
-            ( rungeKuttaVariableStepSize, initialEphemerisTime, 10.0,
-              RungeKuttaCoefficients::rungeKuttaFehlberg45, 0.01, 10.0, 1.0E-6, 1.0E-6 );
-
     // Define propagator settings.
-    boost::shared_ptr< TranslationalStatePropagatorSettings< double > > propagatorSettings =
-            boost::make_shared< TranslationalStatePropagatorSettings< double > >
+    std::shared_ptr< TranslationalStatePropagatorSettings< double > > propagatorSettings =
+            std::make_shared< TranslationalStatePropagatorSettings< double > >
             ( centralBodies, accelerationModelMap, bodiesToIntegrate, lageosState, finalEphemerisTime );
 
+    // Set parameters that are to be included.
+    std::vector< std::shared_ptr< EstimatableParameterSettings > > parameterNames;
+    parameterNames.push_back( std::make_shared< InitialTranslationalStateEstimatableParameterSettings< double > >(
+                                  "LAGEOS", lageosState, "Earth" ) );
+    parameterNames.push_back( std::make_shared< EstimatableParameterSettings >
+                              ( "Earth", gravitational_parameter ) );
+    parameterNames.push_back( std::make_shared< EstimatableParameterSettings >
+                              ( "Moon", gravitational_parameter ) );
+    std::shared_ptr< estimatable_parameters::EstimatableParameterSet< double > > parametersToEstimate =
+            createParametersToEstimate< double >( parameterNames, bodyMap, propagatorSettings );
+
+    // Define integrator settings.
+    std::shared_ptr< IntegratorSettings< > > matrixTypeIntegratorSettings =
+            std::make_shared< RungeKuttaVariableStepSizeSettings< > >
+            ( initialEphemerisTime, 10.0,
+              RungeKuttaCoefficients::rungeKuttaFehlberg45, 0.01, 10.0, 1.0E-6, 1.0E-6 );
+
+
+
     // Perform requested propagation
-    boost::shared_ptr< SingleArcVariationalEquationsSolver< double, double, double > > variationalEquationSolver;
+    std::shared_ptr< SingleArcVariationalEquationsSolver< double, double> > variationalEquationSolver;
     if( !performIntegrationsSequentially )
     {
-        variationalEquationSolver = boost::make_shared< SingleArcVariationalEquationsSolver< double, double, double > >(
-                    bodyMap, integratorSettings,
+        // Propagate
+        variationalEquationSolver = std::make_shared< SingleArcVariationalEquationsSolver< double, double> >(
+                    bodyMap, matrixTypeIntegratorSettings,
                     propagatorSettings, parametersToEstimate );
     }
     else
     {
-        variationalEquationSolver = boost::make_shared< SingleArcVariationalEquationsSolver< double, double, double > >(
-                    bodyMap, integratorSettings,
+
+        // Define integrator settings for vector type.
+        std::shared_ptr< IntegratorSettings< > > vectorTypeIntegratorSettings =
+                std::make_shared< RungeKuttaVariableStepSizeSettings< > >
+                ( initialEphemerisTime, 10.0, RungeKuttaCoefficients::rungeKuttaFehlberg45, 0.01, 10.0, 1.0E-6, 1.0E-6 );
+
+        // Propagate
+        variationalEquationSolver = std::make_shared< SingleArcVariationalEquationsSolver< double, double > >(
+                    bodyMap, vectorTypeIntegratorSettings,
                     propagatorSettings, parametersToEstimate, 0,
-                    integratorSettings );
+                    matrixTypeIntegratorSettings );
     }
 
     return std::make_pair( variationalEquationSolver->getStateTransitionMatrixInterface( ),
@@ -175,11 +180,11 @@ integrateEquations( const bool performIntegrationsSequentially )
 BOOST_AUTO_TEST_CASE( testSequentialVariationalEquationIntegration )
 {
     // Propagate concurrently.
-    std::pair< boost::shared_ptr< CombinedStateTransitionAndSensitivityMatrixInterface >, boost::shared_ptr< Ephemeris > >
+    std::pair< std::shared_ptr< CombinedStateTransitionAndSensitivityMatrixInterface >, std::shared_ptr< Ephemeris > >
             concurrentResult = integrateEquations( 0 );
 
     // Propagate sequentially.
-    std::pair< boost::shared_ptr< CombinedStateTransitionAndSensitivityMatrixInterface >, boost::shared_ptr< Ephemeris > >
+    std::pair< std::shared_ptr< CombinedStateTransitionAndSensitivityMatrixInterface >, std::shared_ptr< Ephemeris > >
             sequentialResult = integrateEquations( 1 );
 
     // Test variational equations solution.
@@ -192,7 +197,6 @@ BOOST_AUTO_TEST_CASE( testSequentialVariationalEquationIntegration )
                 concurrentResult.second->getCartesianState( 1.0E7 + 14.0 * 80000.0 ),
                 sequentialResult.second->getCartesianState( 1.0E7 + 14.0 * 80000.0 ),
                 std::numeric_limits< double >::epsilon( ) );
-
 }
 
 BOOST_AUTO_TEST_SUITE_END( )
@@ -200,6 +204,3 @@ BOOST_AUTO_TEST_SUITE_END( )
 }
 
 }
-
-
-

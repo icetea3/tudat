@@ -1,4 +1,4 @@
-/*    Copyright (c) 2010-2017, Delft University of Technology
+/*    Copyright (c) 2010-2019, Delft University of Technology
  *    All rigths reserved
  *
  *    This file is part of the Tudat. Redistribution and use in source and
@@ -11,7 +11,7 @@
 #ifndef TUDAT_SPHERICALHARMONICPARTIALFUNCTIONS_H
 #define TUDAT_SPHERICALHARMONICPARTIALFUNCTIONS_H
 
-#include <boost/shared_ptr.hpp>
+#include <memory>
 
 #include <Eigen/Core>
 
@@ -120,7 +120,7 @@ void computePotentialSphericalHessian(
         const int order,
         const double cosineHarmonicCoefficient,
         const double sineHarmonicCoefficient,
-        const boost::shared_ptr< basic_mathematics::SphericalHarmonicsCache > sphericalHarmonicsCache,
+        const std::shared_ptr< basic_mathematics::SphericalHarmonicsCache > sphericalHarmonicsCache,
         Eigen::Matrix3d& sphericalHessian );
 
 //! Function to compute the spherical Hessian of a full spherical harmonic potential
@@ -143,7 +143,7 @@ Eigen::Matrix3d computeCumulativeSphericalHessian(
         const double gravitionalParameter,
         const Eigen::MatrixXd cosineHarmonicCoefficients,
         const Eigen::MatrixXd sineHarmonicCoefficients,
-        const boost::shared_ptr< basic_mathematics::SphericalHarmonicsCache > sphericalHarmonicsCache );
+        const std::shared_ptr< basic_mathematics::SphericalHarmonicsCache > sphericalHarmonicsCache );
 
 //! Calculate partial of spherical harmonic acceleration w.r.t. position of body undergoing acceleration
 //! (in the body-fixed frame)
@@ -172,7 +172,7 @@ Eigen::Matrix3d computePartialDerivativeOfBodyFixedSphericalHarmonicAcceleration
         const double gravitionalParameter,
         const Eigen::MatrixXd cosineHarmonicCoefficients,
         const Eigen::MatrixXd sineHarmonicCoefficients,
-        const boost::shared_ptr< basic_mathematics::SphericalHarmonicsCache > sphericalHarmonicsCache,
+        const std::shared_ptr< basic_mathematics::SphericalHarmonicsCache > sphericalHarmonicsCache,
         const Eigen::Vector3d& sphericalPotentialGradient,
         const Eigen::Matrix3d& sphericalToCartesianGradientMatrix );
 
@@ -197,7 +197,7 @@ Eigen::Matrix3d computePartialDerivativeOfBodyFixedSphericalHarmonicAcceleration
         const double gravitionalParameter,
         const Eigen::MatrixXd cosineHarmonicCoefficients,
         const Eigen::MatrixXd sineHarmonicCoefficients,
-        const boost::shared_ptr< basic_mathematics::SphericalHarmonicsCache > sphericalHarmonicsCache );
+        const std::shared_ptr< basic_mathematics::SphericalHarmonicsCache > sphericalHarmonicsCache );
 
 //! Calculate partial of spherical harmonic acceleration w.r.t. a set of cosine coefficients
 /*!
@@ -214,16 +214,20 @@ Eigen::Matrix3d computePartialDerivativeOfBodyFixedSphericalHarmonicAcceleration
  *  \param bodyFixedToIntegrationFrame Matrix to rotate from body-fixed to integration frame.
  *  \param partialsMatrix Partials of spherical harmonic acceleration w.r.t. to requested set of cosine coefficients
  *  (returned by reference).
+ *  \param maximumAccelerationDegree Maximum degree of acceleration for which partial is to be computed
+ *  \param maximumAccelerationOrder Maximum degree of acceleration for which partial is to be computed
  */
 void calculateSphericalHarmonicGravityWrtCCoefficients(
         const Eigen::Vector3d& sphericalPosition,
         const double referenceRadius,
         const double gravitionalParameter,
-        const boost::shared_ptr< basic_mathematics::SphericalHarmonicsCache > sphericalHarmonicsCache,
+        const std::shared_ptr< basic_mathematics::SphericalHarmonicsCache > sphericalHarmonicsCache,
         const std::vector< std::pair< int, int > >& blockIndices,
         const Eigen::Matrix3d& sphericalToCartesianGradientMatrix,
         const Eigen::Matrix3d& bodyFixedToIntegrationFrame,
-        Eigen::MatrixXd& partialsMatrix );
+        Eigen::MatrixXd& partialsMatrix,
+        const int maximumAccelerationDegree,
+        const int maximumAccelerationOrder );
 
 //! Calculate partial of spherical harmonic acceleration w.r.t. a set of sine coefficients
 /*!
@@ -240,16 +244,20 @@ void calculateSphericalHarmonicGravityWrtCCoefficients(
  *  \param bodyFixedToIntegrationFrame Matrix to rotate from body-fixed to integration frame.
  *  \param partialsMatrix Partials of spherical harmonic acceleration w.r.t. to requested set of sine coefficients
  *  (returned by reference).
+ *  \param maximumAccelerationDegree Maximum degree of acceleration for which partial is to be computed
+ *  \param maximumAccelerationOrder Maximum degree of acceleration for which partial is to be computed
  */
 void calculateSphericalHarmonicGravityWrtSCoefficients(
         const Eigen::Vector3d& sphericalPosition,
         const double referenceRadius,
         const double gravitionalParameter,
-        const boost::shared_ptr< basic_mathematics::SphericalHarmonicsCache > sphericalHarmonicsCache,
+        const std::shared_ptr< basic_mathematics::SphericalHarmonicsCache > sphericalHarmonicsCache,
         const std::vector< std::pair< int, int > >& blockIndices,
         const Eigen::Matrix3d& sphericalToCartesianGradientMatrix,
         const Eigen::Matrix3d& bodyFixedToIntegrationFrame,
-        Eigen::MatrixXd& partialsMatrix  );
+        Eigen::MatrixXd& partialsMatrix,
+        const int maximumAccelerationDegree,
+        const int maximumAccelerationOrder  );
 
 } // namespace acceleration_partials
 

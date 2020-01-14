@@ -1,4 +1,4 @@
-/*    Copyright (c) 2010-2017, Delft University of Technology
+/*    Copyright (c) 2010-2019, Delft University of Technology
  *    All rigths reserved
  *
  *    This file is part of the Tudat. Redistribution and use in source and
@@ -12,7 +12,7 @@
 #ifndef TUDAT_KEPLER_STATE_EXTRACTOR_H
 #define TUDAT_KEPLER_STATE_EXTRACTOR_H
 
-#include <boost/shared_ptr.hpp>
+#include <memory>
 
 #include <Eigen/Core>
 
@@ -45,7 +45,7 @@ public:
      * \param dataLineMap Data map corresponding to a parsed line.
      * \return A KeplerianElements object containing the orbital parameters found in the data map.
      */
-    boost::shared_ptr< Eigen::Vector6d > extract( ParsedDataLineMapPtr dataLineMap );
+    std::shared_ptr< Eigen::Vector6d > extract( ParsedDataLineMapPtr dataLineMap );
 
 protected:
 
@@ -53,7 +53,7 @@ private:
 };
 
 //! Typedef for shared-pointer to KeplerStateExtractor object.
-typedef boost::shared_ptr< KeplerStateExtractor > KeplerStateExtractorPointer;
+typedef std::shared_ptr< KeplerStateExtractor > KeplerStateExtractorPointer;
 
 } // namespace ephemerides
 } // namespace tudat

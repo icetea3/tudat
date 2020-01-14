@@ -1,4 +1,4 @@
-/*    Copyright (c) 2010-2017, Delft University of Technology
+/*    Copyright (c) 2010-2019, Delft University of Technology
  *    All rigths reserved
  *
  *    This file is part of the Tudat. Redistribution and use in source and
@@ -11,15 +11,17 @@
 #ifndef TUDAT_ACCELERATIONSETTINGS_H
 #define TUDAT_ACCELERATIONSETTINGS_H
 
+#include <functional>
+#include <memory>
 #include "Tudat/Astrodynamics/ElectroMagnetism/cannonBallRadiationPressureAcceleration.h"
+#include "Tudat/Astrodynamics/ElectroMagnetism/solarSailAcceleration.h"
 #include "Tudat/Astrodynamics/Gravitation/centralGravityModel.h"
 #include "Tudat/Astrodynamics/Gravitation/sphericalHarmonicsGravityModel.h"
 #include "Tudat/Astrodynamics/Gravitation/thirdBodyPerturbation.h"
 #include "Tudat/Astrodynamics/Aerodynamics/aerodynamicAcceleration.h"
 #include "Tudat/Astrodynamics/BasicAstrodynamics/accelerationModelTypes.h"
 #include "Tudat/SimulationSetup/PropagationSetup/createThrustModelGuidance.h"
-
-
+// #include "Tudat/Mathematics/Interpolators/createInterpolator.h"
 
 namespace tudat
 {
@@ -42,6 +44,7 @@ namespace simulation_setup
 class AccelerationSettings
 {
 public:
+
     //! Constructor, sets type of acceleration.
     /*!
      *  Constructor, sets type of acceleration.
@@ -102,8 +105,8 @@ public:
      * \param maximumOrderOfBodyExertingAcceleration Maximum order of body exerting acceleration.
      * \param maximumDegreeOfBodyUndergoingAcceleration Maximum degree of body undergoing acceleration.
      * \param maximumOrderOfBodyUndergoingAcceleration Maximum order of body undergoing acceleration.
-     * \param maximumDegreeOfCentralBody Maximum degree of central body (only releveant for 3rd body acceleration).
-     * \param maximumOrderOfCentralBody Maximum order of central body (only releveant for 3rd body acceleration).
+     * \param maximumDegreeOfCentralBody Maximum degree of central body (only relevant for 3rd body acceleration).
+     * \param maximumOrderOfCentralBody Maximum order of central body (only relevant for 3rd body acceleration).
      */
     MutualSphericalHarmonicAccelerationSettings( const int maximumDegreeOfBodyExertingAcceleration,
                                                  const int maximumOrderOfBodyExertingAcceleration,
@@ -135,6 +138,96 @@ public:
 
     //! Maximum order of central body (only releveant for 3rd body acceleration).
     int maximumOrderOfCentralBody_;
+
+};
+
+//! Class to proivide settings for typical relativistic corrections to the dynamics of an orbiter.
+/*!
+ *  Class to proivide settings for typical relativistic corrections to the dynamics of an orbiter: the
+ *  Schwarzschild, Lense-Thirring and de Sitter terms. An excellent introduction to
+ *  these models is given in 'General Relativity and Space Geodesy' by L. Combrinck (2012).
+ */
+class RelativisticAccelerationCorrectionSettings: public AccelerationSettings
+{
+public:
+
+    //! Constructor
+    /*!
+     * Constructor
+     * \param calculateSchwarzschildCorrection Boolean denoting whether the Schwarzschild term is used.
+     * \param calculateLenseThirringCorrection Boolean denoting whether the Lense-Thirring term is used.
+     * \param calculateDeSitterCorrection Boolean denoting whether the de Sitter term is used.
+     * \param primaryBody Name of primary body (e.g. Sun for acceleration acting on an Earth-orbiting satellite)
+     * \param centralBodyAngularMomentum Constant angular momentum of central body. NOTE: Passing angular momentum through this
+     * function is temporary: in the future this will be done consistently with rotation/gravity field.
+     */
+    RelativisticAccelerationCorrectionSettings(
+            const bool calculateSchwarzschildCorrection = true,
+            const bool calculateLenseThirringCorrection = false,
+            const bool calculateDeSitterCorrection = false,
+            const std::string primaryBody = "",
+            const Eigen::Vector3d centralBodyAngularMomentum = Eigen::Vector3d::Zero( ) ):
+        AccelerationSettings(  basic_astrodynamics::relativistic_correction_acceleration ),
+        calculateSchwarzschildCorrection_( calculateSchwarzschildCorrection ),
+        calculateLenseThirringCorrection_( calculateLenseThirringCorrection ),
+        calculateDeSitterCorrection_( calculateDeSitterCorrection ),
+        primaryBody_( primaryBody ),
+        centralBodyAngularMomentum_( centralBodyAngularMomentum )
+    {
+        if( calculateDeSitterCorrection_ && primaryBody_ == "" )
+        {
+            throw std::runtime_error(
+                        "Error when making relativistic acceleration correction, deSitter acceleration requested without primary body" );
+        }
+    }
+
+    //! Boolean denoting wheter the Schwarzschild term is used.
+    bool calculateSchwarzschildCorrection_;
+
+    //! Boolean denoting wheter the Lense-Thirring term is used.
+    bool calculateLenseThirringCorrection_;
+
+    //! Boolean denoting wheter the de Sitter term is used.
+    bool calculateDeSitterCorrection_;
+
+    //! Name of primary body (e.g. Sun for acceleration acting on an Earth-orbiting satellite)
+    std::string primaryBody_;
+
+    //! Constant angular momentum of central body
+    Eigen::Vector3d centralBodyAngularMomentum_;
+
+};
+
+//! Class to define settings for empirical accelerations
+class EmpiricalAccelerationSettings: public AccelerationSettings
+{
+public:
+
+    //! Constructor
+    /*!
+     * Constructor
+     * \param constantAcceleration Acceleration (in RSW frame) that is constant
+     * \param sineAcceleration Acceleration (in RSW frame) that scales with sine of true anomaly
+     * \param cosineAcceleration Acceleration (in RSW frame) that scales with cosine of true anomaly
+     */
+    EmpiricalAccelerationSettings(
+            const Eigen::Vector3d& constantAcceleration = Eigen::Vector3d::Zero( ),
+            const Eigen::Vector3d& sineAcceleration = Eigen::Vector3d::Zero( ),
+            const Eigen::Vector3d& cosineAcceleration = Eigen::Vector3d::Zero( ) ):
+        AccelerationSettings( basic_astrodynamics::empirical_acceleration ),
+        constantAcceleration_( constantAcceleration ),
+        sineAcceleration_( sineAcceleration ),
+        cosineAcceleration_( cosineAcceleration ){ }
+
+    //! Acceleration (in RSW frame) that is constant
+    Eigen::Vector3d constantAcceleration_;
+
+    //! Acceleration (in RSW frame) that scales with sine of true anomaly
+    Eigen::Vector3d sineAcceleration_;
+
+    //! Acceleration (in RSW frame) that scales with cosine of true anomaly
+    Eigen::Vector3d cosineAcceleration_;
+
 };
 
 //! Interface class that allows single interpolator to be used for thrust direction and magnitude (which are separated in
@@ -147,14 +240,14 @@ public:
     /*!
      * Constructor
      * \param thrustInterpolator Object that returns the total thrust vector, expressed in some reference frame B
-     * \param rotationFunction Function that returns the rotation matrix from the frame B to teh frame in which the
+     * \param rotationFunction Function that returns the rotation matrix from the frame B to the frame in which the
      * propagation is performed.
      */
     FullThrustInterpolationInterface(
-            const boost::shared_ptr< interpolators::OneDimensionalInterpolator<
+            const std::shared_ptr< interpolators::OneDimensionalInterpolator<
             double, Eigen::Vector3d > > thrustInterpolator,
-            const boost::function< Eigen::Matrix3d( ) > rotationFunction =
-            boost::lambda::constant( Eigen::Matrix3d::Identity( ) ) ):
+            const std::function< Eigen::Matrix3d( ) > rotationFunction =
+            [ ]( ){ return Eigen::Matrix3d::Identity( ); } ):
         thrustInterpolator_( thrustInterpolator ), rotationFunction_( rotationFunction ),
         currentThrust_( Eigen::Vector3d::Constant( TUDAT_NAN ) ), currentTime_( TUDAT_NAN ){ }
 
@@ -187,10 +280,10 @@ public:
     //! Function to reset the function to rotate to propation frame
     /*!
      *  Function to reset the function to rotate to propation frame
-     *  \param rotationFunction New function that returns the rotation matrix from the frame B to teh frame in which the
+     *  \param rotationFunction New function that returns the rotation matrix from the frame B to the frame in which the
      *  propagation is performed.
      */
-    void resetRotationFunction( const boost::function< Eigen::Matrix3d( ) > rotationFunction )
+    void resetRotationFunction( const std::function< Eigen::Matrix3d( ) > rotationFunction )
     {
         rotationFunction_ = rotationFunction;
     }
@@ -198,6 +291,15 @@ public:
     void resetTime( const double currentTime = TUDAT_NAN )
     {
         currentTime_ = currentTime;
+    }
+
+    //! Function to retrieve the thrust interpolator.
+    /*!
+     * Function to retrieve the thrust interpolator.
+     */
+    std::shared_ptr< interpolators::OneDimensionalInterpolator< double, Eigen::Vector3d > > getThrustInterpolator( )
+    {
+        return thrustInterpolator_;
     }
 
 private:
@@ -217,16 +319,17 @@ private:
     }
 
     //! Object that returns the total thrust vector, expressed in some reference frame B
-    boost::shared_ptr< interpolators::OneDimensionalInterpolator< double, Eigen::Vector3d > > thrustInterpolator_;
+    std::shared_ptr< interpolators::OneDimensionalInterpolator< double, Eigen::Vector3d > > thrustInterpolator_;
 
-    //! Function that returns the rotation matrix from the frame B to teh frame in which the propagation is performed.
-    boost::function< Eigen::Matrix3d( ) > rotationFunction_;
+    //! Function that returns the rotation matrix from the frame B to the frame in which the propagation is performed.
+    std::function< Eigen::Matrix3d( ) > rotationFunction_;
 
     //! Total thrust vector (in propagation frame) computed by last call to updateThrust function.
     Eigen::Vector3d currentThrust_;
 
     //! Time at which the last call to updateThrust was made (e.g. time associated with current thrust).
     double currentTime_;
+
 };
 
 
@@ -254,51 +357,84 @@ public:
      * \param thrustMagnitudeSettings Settings for the magnitude of the thrust
      */
     ThrustAccelerationSettings(
-            const boost::shared_ptr< ThrustDirectionGuidanceSettings > thrustDirectionGuidanceSettings,
-            const boost::shared_ptr< ThrustEngineSettings > thrustMagnitudeSettings ):
+            const std::shared_ptr< ThrustDirectionGuidanceSettings > thrustDirectionGuidanceSettings,
+            const std::shared_ptr< ThrustMagnitudeSettings > thrustMagnitudeSettings ):
         AccelerationSettings( basic_astrodynamics::thrust_acceleration ),
         thrustDirectionGuidanceSettings_( thrustDirectionGuidanceSettings ),
         thrustMagnitudeSettings_( thrustMagnitudeSettings ),
         thrustFrame_( unspecified_thurst_frame ){ }
 
-    //! Constructor used for defining total thrust vector (in local or inertial frame) from interpolator
+    //! Constructor used for defining total thrust vector (in local or inertial frame) from interpolator using
+    //! variable specific impulse
     /*!
-     * Constructor used for defining total thrust vector (in local or inertial frame) from interpolator
-     * \param fullThrustInterpolator Interpolator that returns the thrust as a function of time in
-     * frame defined by thrustFrame
+     * Constructor used for defining total thrust vector (in local or inertial frame) from interpolator using
+     * variable specific impulse
+     * \param dataInterpolationSettings Settings to create the interpolator that returns the thrust as a function of
+     * time in frame defined by thrustFrame
      * \param specificImpulseFunction Function returning the specific impulse as a function of time
      * \param thrustFrame Identifier of frame in which thrust returned by fullThrustInterpolator is expressed
      * \param centralBody Central body identifier for thrustFrame (if needed; empty by default).
      */
     ThrustAccelerationSettings(
-            const boost::shared_ptr< interpolators::OneDimensionalInterpolator< double, Eigen::Vector3d > >
-            fullThrustInterpolator,
-            const boost::function< double( const double ) > specificImpulseFunction,
+            const std::shared_ptr< interpolators::DataInterpolationSettings< double, Eigen::Vector3d > >&
+            dataInterpolationSettings,
+            const std::function< double( const double ) > specificImpulseFunction,
             const ThrustFrames thrustFrame = unspecified_thurst_frame,
             const std::string centralBody = "" ):
-        AccelerationSettings( basic_astrodynamics::thrust_acceleration ), thrustFrame_( thrustFrame ),
-        centralBody_( centralBody )
+        AccelerationSettings( basic_astrodynamics::thrust_acceleration ),
+        constantSpecificImpulse_( TUDAT_NAN ), thrustFrame_( thrustFrame ),
+        centralBody_( centralBody ), dataInterpolationSettings_( dataInterpolationSettings )
     {
-        interpolatorInterface_ =
-                boost::make_shared< FullThrustInterpolationInterface >( fullThrustInterpolator );
-        thrustDirectionGuidanceSettings_ = boost::make_shared< CustomThrustDirectionSettings >(
-                    boost::bind( &FullThrustInterpolationInterface::getThrustDirection, interpolatorInterface_, _1 ) );
-        thrustMagnitudeSettings_ =  boost::make_shared< FromFunctionThrustEngineSettings >(
-                    boost::bind( &FullThrustInterpolationInterface::getThrustMagnitude, interpolatorInterface_, _1 ),
-                    specificImpulseFunction, boost::lambda::constant( true ),
-                    Eigen::Vector3d::UnitX( ),
-                    boost::bind( &FullThrustInterpolationInterface::resetTime, interpolatorInterface_, _1 ) );
+        interpolatorInterface_ = std::make_shared< FullThrustInterpolationInterface >(
+                    interpolators::createOneDimensionalInterpolator( dataInterpolationSettings ) );
+        thrustDirectionGuidanceSettings_ = std::make_shared< CustomThrustDirectionSettings >(
+                    std::bind( &FullThrustInterpolationInterface::getThrustDirection, interpolatorInterface_, std::placeholders::_1 ) );
+        thrustMagnitudeSettings_ =  std::make_shared< FromFunctionThrustMagnitudeSettings >(
+                    std::bind( &FullThrustInterpolationInterface::getThrustMagnitude, interpolatorInterface_, std::placeholders::_1 ),
+                    specificImpulseFunction, [ ]( const double ){ return true; },
+        [ ]( ){ return  Eigen::Vector3d::UnitX( ); },
+        std::bind( &FullThrustInterpolationInterface::resetTime, interpolatorInterface_, std::placeholders::_1 ) );
     }
+
+    //! Constructor used for defining total thrust vector (in local or inertial frame) from interpolator using constant
+    //! specific impulse
+    /*!
+     * Constructor used for defining total thrust vector (in local or inertial frame) from interpolator using constant
+     * specific impulse
+     * \param dataInterpolationSettings Settings to create the interpolator that returns the thrust as a function of
+     * time in frame defined by thrustFrame
+     * \param constantSpecificImpulse Constant specific impulse
+     * \param thrustFrame Identifier of frame in which thrust returned by fullThrustInterpolator is expressed
+     * \param centralBody Central body identifier for thrustFrame (if needed; empty by default).
+     */
+    ThrustAccelerationSettings(
+            const std::shared_ptr< interpolators::DataInterpolationSettings< double, Eigen::Vector3d > >&
+            dataInterpolationSettings,
+            const double constantSpecificImpulse,
+            const ThrustFrames thrustFrame = unspecified_thurst_frame,
+            const std::string centralBody = "" ):
+        ThrustAccelerationSettings( dataInterpolationSettings,
+                                    [ = ]( const double ){ return constantSpecificImpulse; },
+    thrustFrame,
+    centralBody )
+    {
+        constantSpecificImpulse_ = constantSpecificImpulse;
+    }
+
 
     //! Destructor.
     ~ThrustAccelerationSettings( ){ }
 
 
     //! Settings for the direction of the thrust
-    boost::shared_ptr< ThrustDirectionGuidanceSettings > thrustDirectionGuidanceSettings_;
+    std::shared_ptr< ThrustDirectionGuidanceSettings > thrustDirectionGuidanceSettings_;
 
     //! Settings for the magnitude of the thrust
-    boost::shared_ptr< ThrustEngineSettings > thrustMagnitudeSettings_;
+    std::shared_ptr< ThrustMagnitudeSettings > thrustMagnitudeSettings_;
+
+    //! Constant specific impulse used when determining the direction and magnitude of thrust from an interpolator.
+    //! NaN if the specific impulse is not constant (i.e. is defined using a std::function).
+    double constantSpecificImpulse_ = TUDAT_NAN;
 
     //! Identifier of frame in which thrust returned by fullThrustInterpolator is expressed.
     /*!
@@ -314,17 +450,101 @@ public:
      */
     std::string centralBody_;
 
+    //! Settings to create the interpolator interface
+    std::shared_ptr< interpolators::DataInterpolationSettings< double, Eigen::Vector3d > > dataInterpolationSettings_;
+
     //! Interface object used when full thrust (direction and magnitude) are defined by a single user-supplied interpolation.
-    boost::shared_ptr< FullThrustInterpolationInterface > interpolatorInterface_;
+    std::shared_ptr< FullThrustInterpolationInterface > interpolatorInterface_;
+
+};
+
+//! Class for providing settings for a direct tidal acceleration model, with approach of Lainey et al. (2007, 2009, ..)
+/*!
+ *  Class for providing settings for a direct tidal acceleration model, with approach of Lainey et al. (2007, 2009, ..).
+ *  Using this approach does includes the effect of tides raised by/on a planetary satelltie on the orbit of the satellite by
+ *  a dedicated acceleration model, instead of modifying the gravity field coefficients of the satellite/host planet/
+ */
+class DirectTidalDissipationAccelerationSettings: public AccelerationSettings
+{
+public:
+
+    //! Constructor
+    /*!
+     * Constructor
+     * \param k2LoveNumber Static k2 Love number of the satellite
+     * \param timeLag Time lag of tidal bulge on satellite
+     * \param includeDirectRadialComponent  True if term independent of time lag is to be included, false otherwise
+     * \param useTideRaisedOnPlanet True if acceleration model is to model tide raised on planet by satellite, false if vice
+     * versa
+     */
+    DirectTidalDissipationAccelerationSettings( const double k2LoveNumber, const double timeLag,
+                                                const bool includeDirectRadialComponent = true,
+                                                const bool useTideRaisedOnPlanet = true ):
+        AccelerationSettings(
+            ( useTideRaisedOnPlanet ? basic_astrodynamics::direct_tidal_dissipation_in_central_body_acceleration :
+                                      basic_astrodynamics::direct_tidal_dissipation_in_orbiting_body_acceleration ) ),
+        k2LoveNumber_( k2LoveNumber ), timeLag_( timeLag ), includeDirectRadialComponent_( includeDirectRadialComponent ),
+        useTideRaisedOnPlanet_( useTideRaisedOnPlanet ){ }
+
+    //! Static k2 Love number of the satellite
+    double k2LoveNumber_;
+
+    //! Time lag of tidal bulge on satellite
+    double timeLag_;
+
+    //! True if term independent of time lag is to be included, false otherwise
+    bool includeDirectRadialComponent_;
+
+    //! True if acceleration model is to model tide raised on planet by satellite, false if vice versa
+    bool useTideRaisedOnPlanet_;
+};
+
+
+//! Class for providing acceleration settings for a momentum wheel desaturation acceleration model.
+/*!
+ *  Class for providing acceleration settings for a momentum wheel desaturation acceleration model.
+ *  The deltaV values for each of the desaturation maneuvers are provided by the user.
+ */
+class MomentumWheelDesaturationAccelerationSettings: public AccelerationSettings
+{
+public:
+
+    //! Constructor.
+    /*!
+     * Constructor.
+     * \param thrustMidTimes Vector containing the midtime of each desaturation maneuver.
+     * \param deltaVValues Vector containing the deltaV values of the desaturation maneuvers.
+     * \param totalManeuverTime Total duration of the desaturation maneuvers.
+     * \param maneuverRiseTime Rise time of the desaturation maneuvers.
+     */
+    MomentumWheelDesaturationAccelerationSettings(
+            const std::vector< double > thrustMidTimes,
+            const std::vector< Eigen::Vector3d > deltaVValues,
+            const double totalManeuverTime,
+            const double maneuverRiseTime ): AccelerationSettings( basic_astrodynamics::momentum_wheel_desaturation_acceleration ),
+        thrustMidTimes_( thrustMidTimes ), deltaVValues_( deltaVValues ),
+        totalManeuverTime_( totalManeuverTime ), maneuverRiseTime_( maneuverRiseTime ){ }
+
+    //! Vector containing the midtime of each desaturation maneuver.
+    std::vector< double > thrustMidTimes_;
+
+    //! Vector containing the deltaV values of the momentum wheel desaturation maneuvers.
+    std::vector< Eigen::Vector3d > deltaVValues_;
+
+    //! Total desaturation maneuver time.
+    double totalManeuverTime_;
+
+    //! Desaturation maneuvers rise time.
+    double maneuverRiseTime_;
 
 };
 
 //! Typedef defining a list of acceleration settings, set up in the same manner as the
 //! AccelerationMap typedef.
-typedef std::map< std::string, std::map< std::string, std::vector< boost::shared_ptr< AccelerationSettings > > > >
+typedef std::map< std::string, std::map< std::string, std::vector< std::shared_ptr< AccelerationSettings > > > >
 SelectedAccelerationMap;
 
-typedef std::map< std::string, std::vector< std::pair< std::string, boost::shared_ptr< AccelerationSettings > > > >
+typedef std::map< std::string, std::vector< std::pair< std::string, std::shared_ptr< AccelerationSettings > > > >
 SelectedAccelerationList;
 
 } // namespace simulation_setup

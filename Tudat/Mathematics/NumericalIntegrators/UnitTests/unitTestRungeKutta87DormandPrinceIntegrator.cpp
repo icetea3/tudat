@@ -1,4 +1,4 @@
-/*    Copyright (c) 2010-2017, Delft University of Technology
+/*    Copyright (c) 2010-2019, Delft University of Technology
  *    All rigths reserved
  *
  *    This file is part of the Tudat. Redistribution and use in source and
@@ -99,7 +99,7 @@ BOOST_AUTO_TEST_CASE( testRungeKutta87DormandAndPrinceIntegratorUsingMatlabData 
     {
         // Declare integrator with all necessary settings.
         NumericalIntegratorXdPointer integrator
-                = boost::make_shared< RungeKuttaVariableStepSizeIntegratorXd >(
+                = std::make_shared< RungeKuttaVariableStepSizeIntegratorXd >(
                     RungeKuttaCoefficients::get( RungeKuttaCoefficients::rungeKutta87DormandPrince ),
                     &computeNonAutonomousModelStateDerivative,
                     matlabForwardIntegrationData( FIRST_ROW, TIME_COLUMN_INDEX ),
@@ -119,7 +119,7 @@ BOOST_AUTO_TEST_CASE( testRungeKutta87DormandAndPrinceIntegratorUsingMatlabData 
     {
         // Declare integrator with all necessary settings.
         NumericalIntegratorXdPointer integrator
-                = boost::make_shared< RungeKuttaVariableStepSizeIntegratorXd >(
+                = std::make_shared< RungeKuttaVariableStepSizeIntegratorXd >(
                     RungeKuttaCoefficients::get( RungeKuttaCoefficients::rungeKutta87DormandPrince ),
                     &computeNonAutonomousModelStateDerivative,
                     matlabForwardIntegrationData( FIRST_ROW, TIME_COLUMN_INDEX ),
@@ -140,7 +140,7 @@ BOOST_AUTO_TEST_CASE( testRungeKutta87DormandAndPrinceIntegratorUsingMatlabData 
     {
         // Declare integrator with all necessary settings.
         NumericalIntegratorXdPointer integrator
-                = boost::make_shared< RungeKuttaVariableStepSizeIntegratorXd >(
+                = std::make_shared< RungeKuttaVariableStepSizeIntegratorXd >(
                     RungeKuttaCoefficients::get( RungeKuttaCoefficients::rungeKutta87DormandPrince ),
                     &computeNonAutonomousModelStateDerivative,
                     matlabBackwardIntegrationData( FIRST_ROW, TIME_COLUMN_INDEX ),
@@ -167,7 +167,7 @@ BOOST_AUTO_TEST_CASE( testRungeKutta87DormandAndPrinceIntegratorUsingMatlabData 
 
         // Declare integrator with all necessary settings.
         NumericalIntegratorXdPointer integrator
-                = boost::make_shared< RungeKuttaVariableStepSizeIntegratorXd >(
+                = std::make_shared< RungeKuttaVariableStepSizeIntegratorXd >(
                     RungeKuttaCoefficients::get( RungeKuttaCoefficients::rungeKutta87DormandPrince ),
                     &computeNonAutonomousModelStateDerivative,
                     matlabForwardIntegrationData( FIRST_ROW, TIME_COLUMN_INDEX ),
@@ -190,7 +190,7 @@ BOOST_AUTO_TEST_CASE( testRungeKutta87DormandAndPrinceIntegratorUsingMatlabData 
     {
         // Declare integrator with all necessary settings.
         ReinitializableNumericalIntegratorXdPointer integrator
-                = boost::make_shared< RungeKuttaVariableStepSizeIntegratorXd >(
+                = std::make_shared< RungeKuttaVariableStepSizeIntegratorXd >(
                     RungeKuttaCoefficients::get( RungeKuttaCoefficients::rungeKutta87DormandPrince ),
                     &computeNonAutonomousModelStateDerivative,
                     matlabForwardIntegrationData( FIRST_ROW, TIME_COLUMN_INDEX ),

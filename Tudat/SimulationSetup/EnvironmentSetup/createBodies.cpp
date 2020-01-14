@@ -1,4 +1,4 @@
-/*    Copyright (c) 2010-2017, Delft University of Technology
+/*    Copyright (c) 2010-2019, Delft University of Technology
  *    All rigths reserved
  *
  *    This file is part of the Tudat. Redistribution and use in source and
@@ -8,9 +8,10 @@
  *    http://tudat.tudelft.nl/LICENSE.
  */
 
+#include <iostream>
+
 #include <boost/make_shared.hpp>
 #include <boost/lambda/lambda.hpp>
-#include <boost/assign/list_of.hpp>
 
 #include "Tudat/Mathematics/BasicMathematics/coordinateConversions.h"
 #include "Tudat/Astrodynamics/BasicAstrodynamics/physicalConstants.h"
@@ -27,96 +28,54 @@ namespace simulation_setup
 using namespace ephemerides;
 using namespace gravitation;
 
-std::vector< std::pair< std::string, boost::shared_ptr< BodySettings > > > determineBodyCreationOrder(
-        const std::map< std::string, boost::shared_ptr< BodySettings > >& bodySettings )
+//! Function that determines the order in which bodies are to be created
+std::vector< std::pair< std::string, std::shared_ptr< BodySettings > > > determineBodyCreationOrder(
+        const std::map< std::string, std::shared_ptr< BodySettings > >& bodySettings )
 {
-    std::vector< std::pair< std::string, boost::shared_ptr< BodySettings > > > outputVector;
+    std::vector< std::pair< std::string, std::shared_ptr< BodySettings > > > outputVector;
 
-    std::map< std::string, std::vector< boost::shared_ptr< GravityFieldVariationSettings > > >
-            gravityFieldVariationSettingsList;
-
-    for( std::map< std::string, boost::shared_ptr< BodySettings > >::const_iterator bodyIterator
-                 = bodySettings.begin( );
+    // Create vector of pairs (body name and body settings) that is to be created.
+    for( std::map< std::string, std::shared_ptr< BodySettings > >::const_iterator bodyIterator
+         = bodySettings.begin( );
          bodyIterator != bodySettings.end( ); bodyIterator ++ )
     {
-        if( bodyIterator->second->gravityFieldVariationSettings.size( ) != 0 )
-        {
-            gravityFieldVariationSettingsList[ bodyIterator->first ] =
-                    bodyIterator->second->gravityFieldVariationSettings;
-        }
         outputVector.push_back( std::make_pair( bodyIterator->first, bodyIterator->second ) );
     }
 
-    if( gravityFieldVariationSettingsList.size( ) != 0 )
-    {
-        for( std::map< std::string,
-                     std::vector< boost::shared_ptr< GravityFieldVariationSettings > > >::iterator
-                     variationIterator = gravityFieldVariationSettingsList.begin( );
-             variationIterator != gravityFieldVariationSettingsList.end( ); variationIterator++ )
-        {
-            unsigned int currentBodyIndex = -1;
-
-            for( unsigned int k = 0; k < variationIterator->second.size( ); k++ )
-            {
-                boost::shared_ptr< BasicSolidBodyGravityFieldVariationSettings > variationSettings1
-                        = boost::dynamic_pointer_cast<
-                    BasicSolidBodyGravityFieldVariationSettings >( variationIterator->second[ k ] );
-
-                if( variationSettings1 != NULL )
-                {
-
-                    for( unsigned int i = 0; i < outputVector.size( ); i++ )
-                    {
-                        if( outputVector[ i ].first == variationIterator->first )
-                        {
-                            currentBodyIndex = i;
-                        }
-                    }
-
-                    std::vector< std::string > deformingBodies
-                            = variationSettings1->getDeformingBodies( );
-                    for( unsigned int i = 0; i < deformingBodies.size( ); i++ )
-                    {
-                        for( unsigned int j = 0; j < outputVector.size( ); j++ )
-                        {
-                            if( deformingBodies[ i ] == outputVector[ j ].first
-                                && j > currentBodyIndex )
-                            {
-                                std::pair< std::string, boost::shared_ptr< BodySettings > >
-                                        entryToMove = outputVector[ j ];
-                                outputVector.erase( outputVector.begin( ) + j );
-                                outputVector.insert( outputVector.begin( ) + i, entryToMove );
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
     return outputVector;
 }
 
 
 //! Function to create a map of bodies objects.
 NamedBodyMap createBodies(
-        const std::map< std::string, boost::shared_ptr< BodySettings > >& bodySettings )
+        const std::map< std::string, std::shared_ptr< BodySettings > >& bodySettings )
 {
-    std::vector< std::pair< std::string, boost::shared_ptr< BodySettings > > > orderedBodySettings
-           = determineBodyCreationOrder( bodySettings );
+    std::vector< std::pair< std::string, std::shared_ptr< BodySettings > > > orderedBodySettings
+            = determineBodyCreationOrder( bodySettings );
 
     // Declare map of bodies that is to be returned.
     NamedBodyMap bodyMap;
 
     // Create empty body objects.
-    for( unsigned int i = 0; i < orderedBodySettings.size( ); i++ )         
+    for( unsigned int i = 0; i < orderedBodySettings.size( ); i++ )
     {
-        bodyMap[ orderedBodySettings.at( i ).first ] = boost::make_shared< Body >( );
+        bodyMap[ orderedBodySettings.at( i ).first ] = std::make_shared< Body >( );
+    }
+
+    // Define constant mass for each body (if required).
+    for( unsigned int i = 0; i < orderedBodySettings.size( ); i++ )
+    {
+        const double constantMass = orderedBodySettings.at( i ).second->constantMass;
+        if ( constantMass == constantMass )
+        {
+            bodyMap[ orderedBodySettings.at( i ).first ]->setConstantBodyMass( constantMass );
+        }
     }
 
     // Create ephemeris objects for each body (if required).
-    for( unsigned int i = 0; i < orderedBodySettings.size( ); i++ )         
+    for( unsigned int i = 0; i < orderedBodySettings.size( ); i++ )
     {
-        if( orderedBodySettings.at( i ).second->ephemerisSettings != NULL )
+        if( orderedBodySettings.at( i ).second->ephemerisSettings != nullptr )
         {
             bodyMap[ orderedBodySettings.at( i ).first ]->setEphemeris(
                         createBodyEphemeris( orderedBodySettings.at( i ).second->ephemerisSettings,
@@ -125,9 +84,9 @@ NamedBodyMap createBodies(
     }
 
     // Create atmosphere model objects for each body (if required).
-    for( unsigned int i = 0; i < orderedBodySettings.size( ); i++ )         
+    for( unsigned int i = 0; i < orderedBodySettings.size( ); i++ )
     {
-        if( orderedBodySettings.at( i ).second->atmosphereSettings != NULL )
+        if( orderedBodySettings.at( i ).second->atmosphereSettings != nullptr )
         {
             bodyMap[ orderedBodySettings.at( i ).first ]->setAtmosphereModel(
                         createAtmosphereModel( orderedBodySettings.at( i ).second->atmosphereSettings,
@@ -136,9 +95,9 @@ NamedBodyMap createBodies(
     }
 
     // Create body shape model objects for each body (if required).
-    for( unsigned int i = 0; i < orderedBodySettings.size( ); i++ )         
+    for( unsigned int i = 0; i < orderedBodySettings.size( ); i++ )
     {
-        if( orderedBodySettings.at( i ).second->shapeModelSettings != NULL )
+        if( orderedBodySettings.at( i ).second->shapeModelSettings != nullptr )
         {
             bodyMap[ orderedBodySettings.at( i ).first ]->setShapeModel(
                         createBodyShapeModel( orderedBodySettings.at( i ).second->shapeModelSettings,
@@ -147,20 +106,20 @@ NamedBodyMap createBodies(
     }
 
     // Create rotation model objects for each body (if required).
-    for( unsigned int i = 0; i < orderedBodySettings.size( ); i++ )         
+    for( unsigned int i = 0; i < orderedBodySettings.size( ); i++ )
     {
-        if( orderedBodySettings.at( i ).second->rotationModelSettings != NULL )
+        if( orderedBodySettings.at( i ).second->rotationModelSettings != nullptr )
         {
             bodyMap[ orderedBodySettings.at( i ).first ]->setRotationalEphemeris(
                         createRotationModel( orderedBodySettings.at( i ).second->rotationModelSettings,
-                                             orderedBodySettings.at( i ).first ) );
+                                             orderedBodySettings.at( i ).first, bodyMap ) );
         }
     }
 
     // Create gravity field model objects for each body (if required).
-    for( unsigned int i = 0; i < orderedBodySettings.size( ); i++ )         
+    for( unsigned int i = 0; i < orderedBodySettings.size( ); i++ )
     {
-        if( orderedBodySettings.at( i ).second->gravityFieldSettings != NULL )
+        if( orderedBodySettings.at( i ).second->gravityFieldSettings != nullptr )
         {
             bodyMap[ orderedBodySettings.at( i ).first ]->setGravityFieldModel(
                         createGravityFieldModel( orderedBodySettings.at( i ).second->gravityFieldSettings,
@@ -169,7 +128,7 @@ NamedBodyMap createBodies(
         }
     }
 
-    for( unsigned int i = 0; i < orderedBodySettings.size( ); i++ )         
+    for( unsigned int i = 0; i < orderedBodySettings.size( ); i++ )
     {
         if( orderedBodySettings.at( i ).second->gravityFieldVariationSettings.size( ) > 0 )
         {
@@ -181,9 +140,9 @@ NamedBodyMap createBodies(
     }
 
     // Create aerodynamic coefficient interface objects for each body (if required).
-    for( unsigned int i = 0; i < orderedBodySettings.size( ); i++ )         
+    for( unsigned int i = 0; i < orderedBodySettings.size( ); i++ )
     {
-        if( orderedBodySettings.at( i ).second->aerodynamicCoefficientSettings != NULL )
+        if( orderedBodySettings.at( i ).second->aerodynamicCoefficientSettings != nullptr )
         {
             bodyMap[ orderedBodySettings.at( i ).first ]->setAerodynamicCoefficientInterface(
                         createAerodynamicCoefficientInterface(
@@ -194,12 +153,12 @@ NamedBodyMap createBodies(
 
 
     // Create radiation pressure coefficient objects for each body (if required).
-    for( unsigned int i = 0; i < orderedBodySettings.size( ); i++ )         
+    for( unsigned int i = 0; i < orderedBodySettings.size( ); i++ )
     {
-        std::map< std::string, boost::shared_ptr< RadiationPressureInterfaceSettings > >
+        std::map< std::string, std::shared_ptr< RadiationPressureInterfaceSettings > >
                 radiationPressureSettings
                 = orderedBodySettings.at( i ).second->radiationPressureSettings;
-        for( std::map< std::string, boost::shared_ptr< RadiationPressureInterfaceSettings > >::iterator
+        for( std::map< std::string, std::shared_ptr< RadiationPressureInterfaceSettings > >::iterator
              radiationPressureSettingsIterator = radiationPressureSettings.begin( );
              radiationPressureSettingsIterator != radiationPressureSettings.end( );
              radiationPressureSettingsIterator++ )
@@ -211,6 +170,15 @@ NamedBodyMap createBodies(
                             orderedBodySettings.at( i ).first, bodyMap ) );
         }
 
+    }
+
+    for( unsigned int i = 0; i < orderedBodySettings.size( ); i++ )
+    {
+        for( unsigned int j = 0; j < orderedBodySettings.at( i ).second->groundStationSettings.size( ); j++ )
+        {
+            createGroundStation( bodyMap.at( orderedBodySettings.at( i ).first ), orderedBodySettings.at( i ).first,
+                     orderedBodySettings.at( i ).second->groundStationSettings.at( j ) );
+        }
     }
     return bodyMap;
 

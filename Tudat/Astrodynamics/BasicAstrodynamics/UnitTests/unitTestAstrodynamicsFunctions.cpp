@@ -1,4 +1,4 @@
-/*    Copyright (c) 2010-2017, Delft University of Technology
+/*    Copyright (c) 2010-2019, Delft University of Technology
  *    All rigths reserved
  *
  *    This file is part of the Tudat. Redistribution and use in source and
@@ -61,6 +61,28 @@ BOOST_AUTO_TEST_CASE( testKeplerOrbitalPeriod )
     BOOST_CHECK_CLOSE_FRACTION( orbitalPeriod, expectedOrbitalPeriod, 1.0e-5 );
 }
 
+//! Test if the orbital distance of a Kepler orbit is computed correctly.
+BOOST_AUTO_TEST_CASE( testKeplerRadialDistance )
+{
+    // Declare and set Keplerian elements.
+    Eigen::Vector6d keplerianElements = Eigen::Vector6d::Constant( TUDAT_NAN );
+    keplerianElements[ 0 ] = 25999.683025291e3;
+    keplerianElements[ 1 ] = 0.864564003552322;
+    keplerianElements[ 5 ] = 0.757654217738482;
+
+    // Compute radial distance of the satellite.
+    double radialDistance1 = basic_astrodynamics::computeKeplerRadialDistance(
+                keplerianElements[ 0 ], keplerianElements[ 1 ], keplerianElements[ 5 ] );
+    double radialDistance2 = basic_astrodynamics::computeKeplerRadialDistance( keplerianElements );
+
+    // Declare and set expected radial distance [m].
+    double expectedRadialDistance = 4032815.56442827;
+
+    // Check if computed distance matches expected distance.
+    BOOST_CHECK_CLOSE_FRACTION( radialDistance1, expectedRadialDistance, 1.0e-5 );
+    BOOST_CHECK_CLOSE_FRACTION( radialDistance2, expectedRadialDistance, 1.0e-5 );
+}
+
 //! Test if the orbital angular momentum of a kepler orbit is computed correctly.
 BOOST_AUTO_TEST_CASE( testKeplerAngularMomentum )
 {
@@ -93,6 +115,32 @@ BOOST_AUTO_TEST_CASE( testKeplerAngularMomentum )
     // Check if computed angular momentum matches expected angular momentum.
     BOOST_CHECK_CLOSE_FRACTION( angularMomentum, expectedAngularMomentum,
                                 std::numeric_limits< double >::epsilon( ) );
+}
+
+//! Test if the orbital velocity of a Kepler orbit is computed correctly.
+BOOST_AUTO_TEST_CASE( testKeplerOrbitalVelocity )
+{
+    // Declare and set Keplerian elements.
+    Eigen::Vector6d keplerianElements = Eigen::Vector6d::Constant( TUDAT_NAN );
+    keplerianElements[ 0 ] = 25999.683025291e3;
+    keplerianElements[ 1 ] = 0.864564003552322;
+    keplerianElements[ 5 ] = 0.757654217738482;
+
+    // Declare and set gravitational parameter of Earth [m^3 s^-2].
+    double earthGravitationalParameter = physical_constants::GRAVITATIONAL_CONSTANT * 5.9736e24;
+
+    // Compute radial distance of the satellite.
+    double orbitalVelocity1 = basic_astrodynamics::computeKeplerOrbitalVelocity(
+                keplerianElements[ 0 ], keplerianElements[ 1 ], keplerianElements[ 5 ], earthGravitationalParameter );
+    double orbitalVelocity2 = basic_astrodynamics::computeKeplerOrbitalVelocity(
+                keplerianElements, earthGravitationalParameter );
+
+    // Declare and set expected orbital velocity [m/s].
+    double expectedOrbitalVelocity = 13503.4992923871;
+
+    // Check if computed distance matches expected distance.
+    BOOST_CHECK_CLOSE_FRACTION( orbitalVelocity1, expectedOrbitalVelocity, 1.0e-5 );
+    BOOST_CHECK_CLOSE_FRACTION( orbitalVelocity2, expectedOrbitalVelocity, 1.0e-5 );
 }
 
 //! Test if the mean motion of a kepler orbit is computed correctly.
@@ -161,6 +209,43 @@ BOOST_AUTO_TEST_CASE( testSynodicPeriod )
 
     // Check if computed synodic period matches expected synodic period.
     BOOST_CHECK_CLOSE_FRACTION( synodicPeriod, expectedSynodicPeriod,
+                                std::numeric_limits< double >::epsilon( ) );
+}
+
+//! Test if the periapsis altitude is computed correctly.
+BOOST_AUTO_TEST_CASE( testPeriapsisAltitude )
+{
+    // Keplerian state
+    Eigen::Vector6d keplerianState;
+    keplerianState << 10000.0, 0.4, 0.0, 0.0, 0.0, 3.0;
+
+    // Cartesian state, equivalent to keplerianState
+    Eigen::Vector6d cartesianState;
+    cartesianState << -1.376803915331821e4, 1.962586386216818e3, 0.0, -3.074098913804636e4, -1.285214845072070e5, 0.0;
+
+    // Body radius
+    const double centralBodyRadius = 1000.0;
+
+    // Body gravitational parameter
+    const double centralBodyGravitationalParameter = 3.9860044189e14;
+
+    // Declare and set expected periapsis altitude.
+    const double expectedPeriapsisAltitude = 5000.0;
+
+    // Compute periapsis altitude from Keplerian state.
+    const double periapsisAltitudeFromKeplerian = basic_astrodynamics::computePeriapsisAltitudeFromKeplerianState(
+                keplerianState, centralBodyRadius );
+
+    // Compute periapsis altitude from Cartesian state.
+    const double periapsisAltitudeFromCartesian = basic_astrodynamics::computePeriapsisAltitudeFromCartesianState(
+                cartesianState, centralBodyGravitationalParameter, centralBodyRadius );
+
+    // Check if computed periapsis altitude from Keplerian is right.
+    BOOST_CHECK_CLOSE_FRACTION( periapsisAltitudeFromKeplerian, expectedPeriapsisAltitude,
+                                std::numeric_limits< double >::epsilon( ) );
+
+    // Check if computed periapsis altitude from Cartesian is right.
+    BOOST_CHECK_CLOSE_FRACTION( periapsisAltitudeFromCartesian, expectedPeriapsisAltitude,
                                 std::numeric_limits< double >::epsilon( ) );
 }
 

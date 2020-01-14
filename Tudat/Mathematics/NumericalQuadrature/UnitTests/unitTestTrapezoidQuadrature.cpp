@@ -1,4 +1,4 @@
-/*    Copyright (c) 2010-2017, Delft University of Technology
+/*    Copyright (c) 2010-2019, Delft University of Technology
  *    All rigths reserved
  *
  *    This file is part of the Tudat. Redistribution and use in source and
@@ -10,7 +10,6 @@
 
 #define BOOST_TEST_MAIN
 
-#include <iostream>
 #include <limits>
 
 #include <boost/test/floating_point_comparison.hpp>
@@ -60,7 +59,7 @@ BOOST_AUTO_TEST_CASE( testIntegralSineFunction )
         int numberOfSamples = numberOfSamplesList.at( test );
 
         std::vector< double > bounds( 2 );
-        bounds[ 0 ] = 0.0 ;
+        bounds[ 0 ] = 0.0;
         bounds[ 1 ] = mathematical_constants::PI;
         std::vector< double > independentVariables = linspace( bounds[ 0 ], bounds[ 1 ], numberOfSamples );
 
@@ -74,12 +73,15 @@ BOOST_AUTO_TEST_CASE( testIntegralSineFunction )
                     independentVariables, dependentVariables );
 
         double expectedIntegral = 2.0;
-        double computedIntegral = integrator.getQuadrature();
+        double computedIntegralTrapezoid = integrator.getQuadrature( );
+        double computedIntegralSimpson = tudat::numerical_quadrature::performExtendedSimpsonsQuadrature(
+                    independentVariables.at( 1 ) - independentVariables.at( 0 ), dependentVariables );
 
-        // Check if computed sample mean matches expected value.
-        BOOST_CHECK_CLOSE_FRACTION( computedIntegral, expectedIntegral, tolerances.at( test ) );
+        // Check if computed integral matches expected value.
+        BOOST_CHECK_CLOSE_FRACTION( computedIntegralTrapezoid, expectedIntegral, tolerances.at( test ) );
+        BOOST_CHECK_CLOSE_FRACTION( computedIntegralSimpson, expectedIntegral, tolerances.at( test ) );
 
-        currentError = std::fabs( computedIntegral - expectedIntegral );
+        currentError = std::fabs( computedIntegralTrapezoid - expectedIntegral );
 
         // Test order of quadrature
         if( test > 0 )
@@ -102,8 +104,8 @@ BOOST_AUTO_TEST_CASE( testIntegralSineFunction )
         // Error should be close to zero, as integration (and its errors) are symmetrical
         integrator.resetData( independentVariables, dependentVariables );
         expectedIntegral = 0.0;
-        computedIntegral = integrator.getQuadrature( );
-        BOOST_CHECK_SMALL( computedIntegral - expectedIntegral, std::max( 5.0E-6, numberOfSamples * 5.0E-20 ) );
+        computedIntegralTrapezoid = integrator.getQuadrature( );
+        BOOST_CHECK_SMALL( computedIntegralTrapezoid - expectedIntegral, std::max( 5.0E-6, numberOfSamples * 5.0E-20 ) );
     }
 }
 
@@ -119,7 +121,7 @@ BOOST_AUTO_TEST_CASE( testIntegralExpFunction )
     bounds[ 1 ] = 2.0;
     std::vector< double > independentVariables = linspace( bounds[ 0 ], bounds[ 1 ], numberOfSamples );
 
-    std::vector< double > dependentVariables(0);
+    std::vector< double > dependentVariables( 0 );
     for( unsigned int i = 0 ; i < independentVariables.size() ; i++ )
     {
         dependentVariables.push_back( std::exp( independentVariables[ i ] ) );
@@ -130,10 +132,13 @@ BOOST_AUTO_TEST_CASE( testIntegralExpFunction )
                 independentVariables, dependentVariables );
 
     double expectedIntegral = std::exp( 2.0 ) - std::exp( 0.0 );
-    double computedIntegral = integrator.getQuadrature( );
+    double computedIntegralTrapezoid = integrator.getQuadrature( );
+    double computedIntegralSimpson = tudat::numerical_quadrature::performExtendedSimpsonsQuadrature(
+                independentVariables.at( 1 ) - independentVariables.at( 0 ), dependentVariables );
 
     // Check if computed sample mean matches expected value.
-    BOOST_CHECK_CLOSE_FRACTION( computedIntegral, expectedIntegral, 1E-8 );
+    BOOST_CHECK_CLOSE_FRACTION( computedIntegralTrapezoid, expectedIntegral, 1E-8 );
+    BOOST_CHECK_CLOSE_FRACTION( computedIntegralSimpson, expectedIntegral, 1E-8 );
 }
 
 BOOST_AUTO_TEST_SUITE_END( )

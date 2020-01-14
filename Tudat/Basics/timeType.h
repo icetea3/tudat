@@ -1,4 +1,4 @@
-/*    Copyright (c) 2010-2017, Delft University of Technology
+/*    Copyright (c) 2010-2019, Delft University of Technology
  *    All rigths reserved
  *
  *    This file is part of the Tudat. Redistribution and use in source and
@@ -54,9 +54,9 @@ public:
         normalizeMembers( );
     }
 
-    //! Constructor, sets number of seconds sicne epoch (with long double representation as input)
+    //! Constructor, sets number of seconds since epoch (with long double representation as input)
     /*!
-     * Constructor, sets number of seconds sicne epoch (with long double representation as input)
+     * Constructor, sets number of seconds since epoch (with long double representation as input)
      * \param numberOfSeconds Number of seconds since epoch.
      */
     Time( const long double numberOfSeconds ):
@@ -65,9 +65,9 @@ public:
         normalizeMembers( );
     }
 
-    //! Constructor, sets number of seconds sicne epoch (with double representation as input)
+    //! Constructor, sets number of seconds since epoch (with double representation as input)
     /*!
-     * Constructor, sets number of seconds sicne epoch (with double representation as input)
+     * Constructor, sets number of seconds since epoch (with double representation as input)
      * \param secondsIntoFullPeriod Number of seconds since epoch.
      */
     Time( const double secondsIntoFullPeriod ):
@@ -76,9 +76,9 @@ public:
         normalizeMembers( );
     }
 
-    //! Constructor, sets number of seconds sicne epoch (with int representation as input)
+    //! Constructor, sets number of seconds since epoch (with int representation as input)
     /*!
-     * Constructor, sets number of seconds sicne epoch (with int representation as input)
+     * Constructor, sets number of seconds since epoch (with int representation as input)
      * \param secondsIntoFullPeriod Number of seconds since epoch.
      */
     Time( const int secondsIntoFullPeriod ):
@@ -152,7 +152,7 @@ public:
      * \param timeToAdd2 Second time that is to be added (as a Time object).
      * \return Input arguments, added together as Time object.
      */
-    friend  Time operator+( const long double& timeToAdd1, const Time& timeToAdd2 )
+    friend Time operator+( const long double& timeToAdd1, const Time& timeToAdd2 )
     {
         return Time( timeToAdd2.fullPeriods_, timeToAdd2.secondsIntoFullPeriod_ + timeToAdd1 );
     }
@@ -176,7 +176,7 @@ public:
      * \param timeToAdd2 Second time that is to be added (as a long double).
      * \return Input arguments, added together as Time object.
      */
-    friend  Time operator+( const Time& timeToAdd2, const long double& timeToAdd1 )
+    friend Time operator+( const Time& timeToAdd2, const long double& timeToAdd1 )
     {
         return timeToAdd1 + timeToAdd2;
     }
@@ -518,7 +518,20 @@ public:
         return !operator==( timeToCompare1, timeToCompare2 );
     }
 
-    //! Equality operator for a Time object with a double
+    //! Equality operator for a Time object with an integer.
+    /*!
+     *  Equality operator for a Time object with an integer. Comparison is performed at double precision (i.e. integer is
+     *  cast to double and compared).
+     *  \param timeToCompare1 First time to compare
+     *  \param timeToCompare2 Second time to compare (in integer precision)
+     *  \return True if two times are fully equal; false if not.
+     */
+    friend bool operator==( const Time& timeToCompare1, const int timeToCompare2 )
+    {
+        return ( timeToCompare1.getSeconds< double >( ) == static_cast< double >( timeToCompare2 ) );
+    }
+
+    //! Equality operator for a Time object with a double.
     /*!
      *  Equality operator for a Time object with a double. Comparison is performed at double precision (i.e. Time is
      *  cast to double and compared)
@@ -660,7 +673,7 @@ public:
             return true;
         }
         else if( ( timeToCompare1.getFullPeriods( ) == timeToCompare2.getFullPeriods( ) ) &&
-                 ( timeToCompare1.getSecondsIntoFullPeriod( ) >= timeToCompare2.getSecondsIntoFullPeriod( ) ) )
+          ( timeToCompare1.getSecondsIntoFullPeriod( ) >= timeToCompare2.getSecondsIntoFullPeriod( ) ) )
         {
             return true;
         }
@@ -703,7 +716,7 @@ public:
      */
     friend bool operator<= ( const Time& timeToCompare1, const Time& timeToCompare2 )
     {
-        if( timeToCompare1.getFullPeriods( ) <= timeToCompare2.getFullPeriods( ) )
+        if( timeToCompare1.getFullPeriods( ) < timeToCompare2.getFullPeriods( ) )
         {
             return true;
         }
@@ -718,7 +731,7 @@ public:
         }
     }
 
-        //! Smaller-than operator for Time object with double
+    //! Smaller-than operator for Time object with double
     /*!
      * Smaller-than operator for two Time objects
      * \param timeToCompare1 First time to compare
@@ -911,9 +924,9 @@ public:
     }
 
     //!Output operator for Time object
-    friend std::ostream& operator<<( std::ostream& stream, const Time& timeToPrint )
+    friend std::ostream& operator << ( std::ostream& stream, const Time& timeToPrint )
     {
-        stream<<"("<<timeToPrint.getFullPeriods( )<<", "<<timeToPrint.getSecondsIntoFullPeriod( )<<") ";
+        stream << "(" << timeToPrint.getFullPeriods( ) << ", " << timeToPrint.getSecondsIntoFullPeriod( ) << ") ";
         return stream;
     }
 
@@ -980,6 +993,7 @@ public:
     }
 
 protected:
+
     //! Function to renormalize the members of the Time object, so that secondsIntoFullPeriod_ is between 0 and 3600
     void normalizeMembers( )
     {

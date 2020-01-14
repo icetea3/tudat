@@ -1,4 +1,4 @@
-/*    Copyright (c) 2010-2017, Delft University of Technology
+/*    Copyright (c) 2010-2019, Delft University of Technology
  *    All rigths reserved
  *
  *    This file is part of the Tudat. Redistribution and use in source and
@@ -15,12 +15,19 @@
 #include <iostream>
 #include <limits>
 
-#include <boost/function.hpp>
+#include <functional>
+#include <memory>
 
 #include <Eigen/Core>
 
+#include "Tudat/Basics/basicTypedefs.h"
+#include "Tudat/Basics/timeType.h"
+#include "Tudat/Basics/utilityMacros.h"
+#include "Tudat/Mathematics/BasicMathematics/mathematicalConstants.h"
+
 namespace tudat
 {
+
 namespace numerical_integrators
 {
 
@@ -33,8 +40,8 @@ namespace numerical_integrators
  *          multiplication with IndependentVariableType and doubles.
  * \tparam IndependentVariableType The type of the independent variable.
  */
-template < typename IndependentVariableType = double, typename StateType = Eigen::VectorXd,
-           typename StateDerivativeType = Eigen::VectorXd, typename TimeStepType = IndependentVariableType >
+template< typename IndependentVariableType = double, typename StateType = Eigen::VectorXd,
+          typename StateDerivativeType = StateType, typename TimeStepType = IndependentVariableType >
 class NumericalIntegrator
 {
 public:
@@ -44,7 +51,7 @@ public:
      * Typedef to the state derivative function. This should be a pointer to a function or a boost
      * function.
      */
-    typedef boost::function< StateDerivativeType(
+    typedef std::function< StateDerivativeType(
             const IndependentVariableType, const StateType& ) > StateDerivativeFunction;
 
     //! Default constructor.
@@ -53,7 +60,9 @@ public:
      * \param stateDerivativeFunction State derivative function.
      */
     NumericalIntegrator( const StateDerivativeFunction& stateDerivativeFunction ) :
-        stateDerivativeFunction_( stateDerivativeFunction ) { }
+        stateDerivativeFunction_( stateDerivativeFunction ),
+        propagationTerminationFunction_( [ = ]( const double, const double ){ return false; } )
+    { }
 
     //! Default virtual destructor.
     /*!
@@ -98,6 +107,28 @@ public:
      */
     virtual bool rollbackToPreviousState( ) = 0;
 
+    //! Get previous independent variable.
+    /*!
+     * Returns the previoius value of the independent variable of the integrator. Derived classes
+     * should override this and provide the computed independent variable. If not implemented, throws error.
+     * \return Previous independent variable.
+     */
+    virtual IndependentVariableType getPreviousIndependentVariable( )
+    {
+        throw std::runtime_error( "Function getPreviousIndependentVariable not implemented in this integrator" );
+    }
+
+    //! Get previous state value.
+    /*!
+     * Returns the previous value of the state. Derived classes
+     * should override this and provide the computed state. If not implemented, throws error.
+     * \return Previous state
+     */
+    virtual StateType getPreviousState( )
+    {
+        throw std::runtime_error( "Function getPreviousState not implemented in this integrator" );
+    }
+
     //! Perform an integration to a specified independent variable value.
     /*!
      * Performs an integration to independentVariableEnd with initial state and initial independent
@@ -113,7 +144,7 @@ public:
     virtual StateType integrateTo(
             const IndependentVariableType intervalEnd,
             const TimeStepType initialStepSize,
-            const TimeStepType finalTimeTolerance = std::numeric_limits< TimeStepType >::epsilon( )  );
+            const TimeStepType finalTimeTolerance = std::numeric_limits< TimeStepType >::epsilon( ) );
 
     //! Perform a single integration step.
     /*!
@@ -137,6 +168,71 @@ public:
         return stateDerivativeFunction_;
     }
 
+    //! Function to return the termination condition was reached during the current step
+    /*!
+     *  Function to return the termination condition was reached during the current step
+     * \return  True if the termination condition was reached during the current step
+     */
+    bool getPropagationTerminationConditionReached( )
+    {
+        return propagationTerminationConditionReachedDuringStep_;
+    }
+
+    //! Setter for the (optional) propagation termination function
+    /*!
+     *  Setter for the (optional) propagation termination function, to be evaluated during the intermediate state updates
+     *  performed to compute the quantities necessary to integrate the state to a new epoch (e.g. k1-k4 for RK$).
+     *  \param terminationFunction Function that returns true if termination condition is reached, false if it has not,
+     *  as a function of current time.
+     */
+    void setPropagationTerminationFunction( std::function< bool( const double, const double ) > terminationFunction )
+    {
+        propagationTerminationFunction_ = terminationFunction;
+    }
+
+    //! Function to toggle the use of step-size control
+    /*!
+     * Function to toggle the use of step-size control. To be implemented in derived classes with variable step sizes
+     * \param useStepSizeControl Boolean denoting whether step size control is to be used
+     */
+    virtual void setStepSizeControl( const bool useStepSizeControl ) { }
+
+    //! Replace the state with a new value.
+    /*!
+     * Replace the state with a new value. This allows for discrete jumps in the state, often
+     * used in simulations of discrete events. In astrodynamics, this relates to simulations of rocket staging,
+     * impulsive shots, parachuting, ideal control, etc. The modified state, by default, cannot be rolled back; to do this, either
+     * set the flag to true, or store the state before calling this function the first time, and call it again with the initial state
+     * as parameter to revert to the state before the discrete change.
+     * \param newState The value of the new state.
+     * \param allowRollback Boolean denoting whether roll-back should be allowed.
+     */
+    virtual void modifyCurrentState( const StateType& newState, const bool allowRollback = false )
+    {
+        TUDAT_UNUSED_PARAMETER( newState );
+        TUDAT_UNUSED_PARAMETER( allowRollback );
+
+        throw std::runtime_error(
+                    "Error in numerical integrator. The function to modify the current state has not been implemented" );
+    }
+
+    //! Modify the state and time for the current step.
+    /*!
+     * Modify the state and time for the current step.
+     * \param newState The new state to set the current state to.
+     * \param newTime The time to set the current time to.
+     * \param allowRollback Boolean denoting whether roll-back should be allowed.
+     */
+    virtual void modifyCurrentIntegrationVariables( const StateType& newState, const IndependentVariableType newTime,
+                                                    const bool allowRollback = false )
+    {
+        TUDAT_UNUSED_PARAMETER( newState );
+        TUDAT_UNUSED_PARAMETER( newTime );
+        TUDAT_UNUSED_PARAMETER( allowRollback );
+        throw std::runtime_error( "Error in numerical integrator. The function to modify the current integration variables has not "
+                                  "been implemented in this integrator." );
+    }
+
 protected:
 
     //! Function that returns the state derivative.
@@ -145,10 +241,31 @@ protected:
      */
     StateDerivativeFunction stateDerivativeFunction_;
 
+    //! Boolean to denote whether the propagation termination condition was reached during the evaluation of one of the sub-steps
+    /*!
+     *  Boolean to denote whether the propagation termination condition was reached during the evaluation of one of the sub-steps
+     *  necessary to perform the last integration step. Parameter is false by default, and when set to true must be accompanied by
+     *  propagationTerminationFunction_ (which is non-active by default)
+     */
+    bool propagationTerminationConditionReachedDuringStep_ = false;
+
+    //! Propagation termination function
+    /*!
+     *  Propagation termination function to be evaluated during the intermediate state updates performed to compute
+     *  the quantities necessary to integrate the state to a new epoch.
+     *  By default, this function evaluates always to false, so the propagation termination conditions will not be
+     *  checked during the integration subteps.
+     */
+    std::function< bool( const double, const double ) > propagationTerminationFunction_;
 };
 
+
+extern template class NumericalIntegrator < double, Eigen::VectorXd, Eigen::VectorXd >;
+extern template class NumericalIntegrator < double, Eigen::Vector6d, Eigen::Vector6d >;
+extern template class NumericalIntegrator < double, Eigen::MatrixXd, Eigen::MatrixXd >;
+
 //! Perform an integration to a specified independent variable value.
-template < typename IndependentVariableType, typename StateType, typename StateDerivativeType, typename TimeStepType >
+template< typename IndependentVariableType, typename StateType, typename StateDerivativeType, typename TimeStepType >
 StateType NumericalIntegrator< IndependentVariableType, StateType, StateDerivativeType, TimeStepType >::integrateTo(
         const IndependentVariableType intervalEnd,
         const TimeStepType initialStepSize,
@@ -178,7 +295,6 @@ StateType NumericalIntegrator< IndependentVariableType, StateType, StateDerivati
             // off errors, it may not be possible to use
             // ( currentIndependentVariable >= independentVariableEnd ) // in the while condition.
             atIntegrationIntervalEnd = true;
-
         }
 
         // Perform the step.
@@ -203,9 +319,9 @@ StateType NumericalIntegrator< IndependentVariableType, StateType, StateDerivati
                 }
                 else
                 {
-                    std::cerr<<"Warning, integrateTo function has failed to converge to final time to within tolerances, difference between true and requested final time is "<<
-                        intervalEnd - getCurrentIndependentVariable( ) <<", final time is: "<<
-                               getCurrentIndependentVariable( )<<std::endl;
+                    std::cerr << "Warning, integrateTo function has failed to converge to final time to within tolerances, difference between true and requested final time is " <<
+                                 intervalEnd - getCurrentIndependentVariable( ) << ", final time is: " <<
+                                 getCurrentIndependentVariable( ) << std::endl;
                 }
             }
         }
@@ -219,17 +335,17 @@ StateType NumericalIntegrator< IndependentVariableType, StateType, StateDerivati
  * Typedef for shared-pointer to a default numerical integrator (IndependentVariableType = double,
  * StateType = Eigen::VectorXd, StateDerivativeType = Eigen::VectorXd).
  */
-typedef boost::shared_ptr< NumericalIntegrator< > > NumericalIntegratorXdPointer;
+typedef std::shared_ptr< NumericalIntegrator< > > NumericalIntegratorXdPointer;
 
 //! Typedef for a shared-pointer to a scalar numerical integrator.
 /*!
  * Typedef for shared-pointer to a scalar numerical integrator (IndependentVariableType = double,
  * StateType = double, StateDerivativeType = double).
  */
-typedef boost::shared_ptr< NumericalIntegrator< double, double, double > >
-NumericalIntegratordPointer;
+typedef std::shared_ptr< NumericalIntegrator< double, double, double > > NumericalIntegratordPointer;
 
 } // namespace numerical_integrators
+
 } // namespace tudat
 
 #endif // TUDAT_NUMERICAL_INTEGRATOR_H

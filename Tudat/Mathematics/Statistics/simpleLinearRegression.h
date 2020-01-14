@@ -1,4 +1,4 @@
-/*    Copyright (c) 2010-2017, Delft University of Technology
+/*    Copyright (c) 2010-2019, Delft University of Technology
  *    All rigths reserved
  *
  *    This file is part of the Tudat. Redistribution and use in source and
@@ -24,7 +24,7 @@
 
 #include <map>
 
-#include <boost/shared_ptr.hpp>
+#include <memory>
 
 #include "Tudat/Mathematics/BasicMathematics/mathematicalConstants.h"
 
@@ -209,7 +209,7 @@ private:
 };
 
 //! Typedef for shared-pointer to SimpleLinearRegression object.
-typedef boost::shared_ptr< SimpleLinearRegression > SimpleLinearRegressionPointer;
+typedef std::shared_ptr< SimpleLinearRegression > SimpleLinearRegressionPointer;
 
 } // namespace statistics
 } // namespace tudat

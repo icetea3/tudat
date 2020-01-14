@@ -1,4 +1,4 @@
-/*    Copyright (c) 2010-2017, Delft University of Technology
+/*    Copyright (c) 2010-2019, Delft University of Technology
  *    All rigths reserved
  *
  *    This file is part of the Tudat. Redistribution and use in source and
@@ -16,7 +16,7 @@
 #include <string>
 
 #include <boost/algorithm/string/predicate.hpp>
-#include <boost/shared_ptr.hpp>
+#include <memory>
 
 #include "Tudat/InputOutput/dictionaryEntry.h"
 #include "Tudat/InputOutput/fieldType.h"
@@ -142,7 +142,7 @@ private:
 };
 
 //! Typedef for shared-pointer to DictionaryComparer object.
-typedef boost::shared_ptr< DictionaryComparer > DictionaryComparerPointer;
+typedef std::shared_ptr< DictionaryComparer > DictionaryComparerPointer;
 
 } // namespace dictionary
 } // namespace input_output

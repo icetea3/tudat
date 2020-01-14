@@ -1,4 +1,4 @@
-/*    Copyright (c) 2010-2017, Delft University of Technology
+/*    Copyright (c) 2010-2019, Delft University of Technology
  *    All rigths reserved
  *
  *    This file is part of the Tudat. Redistribution and use in source and
@@ -25,7 +25,7 @@ FixedWidthParser::FixedWidthParser( int numberOfFields, ... ) : TextParser( fals
 
     // Create a fancy vector (list) of all the fields:
     // Define argument list variable.
-    va_list	listOfArguments;
+    va_list        listOfArguments;
 
     // Initialize list. Point to last defined argument.
     va_start( listOfArguments, numberOfFields );
@@ -113,7 +113,7 @@ void FixedWidthParser::parseLine( std::string& line )
         FieldType type ( typeList.at( currentFieldNumber ) );
 
         // Define unit transformer
-        boost::shared_ptr< FieldTransform > transformer;
+        std::shared_ptr< FieldTransform > transformer;
 
         // If type corresponds to one of the entries of the unit transformation map
         if ( unitTransformationMap_.find( type ) != unitTransformationMap_.end( ) )
@@ -125,7 +125,7 @@ void FixedWidthParser::parseLine( std::string& line )
         else
         {
             // Else, do nothing.
-            transformer = boost::shared_ptr< FieldTransform >( );
+            transformer = std::shared_ptr< FieldTransform >( );
         }
 
         // Store the resulting string.

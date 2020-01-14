@@ -1,4 +1,4 @@
-/*    Copyright (c) 2010-2017, Delft University of Technology
+/*    Copyright (c) 2010-2019, Delft University of Technology
  *    All rigths reserved
  *
  *    This file is part of the Tudat. Redistribution and use in source and
@@ -14,7 +14,7 @@
  *        last updated: 13 Dec, 2012, last accessed: 19th March, 2013.
  *      JPL, NASA. Introduction to SPICE, 
  *        http://naif.jpl.nasa.gov/pub/naif/toolkit_docs/C/info/intrdctn.html, last updated:
- *        29th Feb, 2008, last accessed: 22nd March, 2012.   		
+ *        29th Feb, 2008, last accessed: 22nd March, 2012. 
  *      EGM 2008 gravity field model, http://earth-info.nga.mil/GandG/wgs84/gravitymod/egm2008/
  *        last accessed: 21 March, 2013.
  *
@@ -31,6 +31,8 @@
 
 #ifndef TUDAT_CELESTIAL_BODY_CONSTANTS_H
 #define TUDAT_CELESTIAL_BODY_CONSTANTS_H
+
+#include <map>
 
 namespace tudat
 {
@@ -121,6 +123,34 @@ const static double NEPTUNE_GRAVITATIONAL_PARAMETER = SUN_GRAVITATIONAL_PARAMETE
  * Gravitational constant of Pluto, derived from Sun/Pluto mass ratio [m^3 s^-2] (JPL, 2012).
  */
 const static double PLUTO_GRAVITATIONAL_PARAMETER = SUN_GRAVITATIONAL_PARAMETER / 1.35e8;
+
+static std::map< int, std::string > planetNames =
+{
+    { 0, "Sun" },
+    { 1, "Mercury" },
+    { 2, "Venus" },
+    { 3, "Earth" },
+    { 4, "Mars" },
+    { 5, "Jupiter" },
+    { 6, "Saturn" },
+    { 7, "Uranus" },
+    { 8, "Neptune" },
+    { 9, "Pluto" }
+};
+
+static std::map< std::string, int > planetIdNumbers =
+{
+    { "Sun", 0 },
+    { "Mercury", 1 },
+    { "Venus", 2 },
+    { "Earth", 3 },
+    { "Mars", 4 },
+    { "Jupiter", 5 },
+    { "Saturn", 6 },
+    { "Uranus", 7 },
+    { "Neptune", 8 },
+    { "Pluto", 9 }
+};
 
 } // namespace celestial_body_constants
 

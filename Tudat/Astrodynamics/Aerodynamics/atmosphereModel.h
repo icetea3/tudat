@@ -1,4 +1,4 @@
-/*    Copyright (c) 2010-2017, Delft University of Technology
+/*    Copyright (c) 2010-2019, Delft University of Technology
  *    All rigths reserved
  *
  *    This file is part of the Tudat. Redistribution and use in source and
@@ -12,14 +12,42 @@
 #ifndef TUDAT_ATMOSPHERE_MODEL_H
 #define TUDAT_ATMOSPHERE_MODEL_H
 
-#include <boost/shared_ptr.hpp>
+#include <memory>
 
 #include "Tudat/Mathematics/BasicMathematics/mathematicalConstants.h"
+#include "Tudat/Astrodynamics/Aerodynamics/windModel.h"
 
 namespace tudat
 {
+
 namespace aerodynamics
 {
+
+//! Enum of all the possible independent variables on which the atmosphere can depend.
+/*!
+ * Enum of all the possible independent variables on which the atmosphere can depend.
+ */
+enum AtmosphereIndependentVariables
+{
+    altitude_dependent_atmosphere = 0,
+    longitude_dependent_atmosphere = 1,
+    latitude_dependent_atmosphere = 2,
+    time_dependent_atmosphere = 3
+};
+
+//! Enum of all the possible dependent variables that an atmosphere can describe.
+/*!
+ * Enum of all the possible dependent variables that an atmosphere can describe.
+ */
+enum AtmosphereDependentVariables
+{
+    density_dependent_atmosphere = 0,
+    pressure_dependent_atmosphere = 1,
+    temperature_dependent_atmosphere = 2,
+    gas_constant_dependent_atmosphere = 3,
+    specific_heat_ratio_dependent_atmosphere = 4,
+    molar_mass_dependent_atmosphere = 5
+};
 
 //! Atmosphere model class.
 /*!
@@ -85,15 +113,40 @@ public:
     virtual double getSpeedOfSound( const double altitude, const double longitude,
                                     const double latitude, const double time ) = 0;
 
+    //! Function to retrieve the model describing the wind velocity vector of the atmosphere
+    /*!
+     * Function to retrieve the model describing the wind velocity vector of the atmosphere
+     * \return Model describing the wind velocity vector of the atmosphere
+     */
+    std::shared_ptr< WindModel > getWindModel( )
+    {
+        return windModel_;
+    }
+
+    //! Function to set the model describing the wind velocity vector of the atmosphere
+    /*!
+     * Function to set the model describing the wind velocity vector of the atmosphere
+     * \param windModel New model describing the wind velocity vector of the atmosphere
+     */
+    void setWindModel( const std::shared_ptr< WindModel > windModel )
+    {
+        windModel_ = windModel;
+    }
+
 protected:
 
+    //! Model describing the wind velocity vector of the atmosphere
+    std::shared_ptr< WindModel > windModel_;
+
 private:
+
 };
 
 //! Typedef for shared-pointer to AtmosphereModel object.
-typedef boost::shared_ptr< AtmosphereModel > AtmosphereModelPointer;
+typedef std::shared_ptr< AtmosphereModel > AtmosphereModelPointer;
 
 } // namespace aerodynamics
+
 } // namespace tudat
 
 #endif // TUDAT_ATMOSPHERE_MODEL_H

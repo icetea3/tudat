@@ -1,4 +1,4 @@
-/*    Copyright (c) 2010-2017, Delft University of Technology
+/*    Copyright (c) 2010-2019, Delft University of Technology
  *    All rigths reserved
  *
  *    This file is part of the Tudat. Redistribution and use in source and
@@ -47,8 +47,8 @@ BOOST_AUTO_TEST_CASE( testEquilibriumTemperature )
                 adiabaticWallTemperature
                         = computeAdiabaticWallTemperature( airTemperature , machNumber );
 
-                boost::function< double( const double ) > heatTransferFunction = boost::bind(
-                            &computeFayRiddellHeatFlux, airDensity, airSpeed, airTemperature, noseRadius, _1 );
+                std::function< double( const double ) > heatTransferFunction = std::bind(
+                            &computeFayRiddellHeatFlux, airDensity, airSpeed, airTemperature, noseRadius, std::placeholders::_1 );
 
                 equilibriumWallTemperature =
                         computeEquilibiumWallTemperature( heatTransferFunction, wallEmissivity, adiabaticWallTemperature );
@@ -84,8 +84,8 @@ BOOST_AUTO_TEST_CASE( testFayRiddellHeatFluxConsistency )
             adiabaticWallTemperature
                     = computeAdiabaticWallTemperature( airTemperature , machNumber );
 
-            boost::function< double( const double ) > heatTransferFunction = boost::bind(
-                        &computeFayRiddellHeatFlux, airDensity, airSpeed, airTemperature, noseRadius, _1 );
+            std::function< double( const double ) > heatTransferFunction = std::bind(
+                        &computeFayRiddellHeatFlux, airDensity, airSpeed, airTemperature, noseRadius, std::placeholders::_1 );
 
             heatFlux1 = computeEquilibriumFayRiddellHeatFlux(
                         airDensity, airSpeed, airTemperature, machNumber, noseRadius, wallEmissivity );

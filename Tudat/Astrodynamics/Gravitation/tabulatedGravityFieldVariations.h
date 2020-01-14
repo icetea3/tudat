@@ -1,4 +1,4 @@
-/*    Copyright (c) 2010-2017, Delft University of Technology
+/*    Copyright (c) 2010-2019, Delft University of Technology
  *    All rigths reserved
  *
  *    This file is part of the Tudat. Redistribution and use in source and
@@ -7,7 +7,6 @@
  *    a copy of the license with this file. If not, please or visit:
  *    http://tudat.tudelft.nl/LICENSE.
  */
-
 
 #ifndef TUDAT_TABULATEDGRAVITYFIELDVARIATIONS_H
 #define TUDAT_TABULATEDGRAVITYFIELDVARIATIONS_H
@@ -21,8 +20,6 @@ namespace tudat
 
 namespace gravitation
 {
-
-
 
 //! Class for variations in spherical harmonic coefficients, directly interpolated from tables.
 /*!
@@ -57,8 +54,8 @@ public:
             const std::map< double, Eigen::MatrixXd >& cosineCoefficientCorrections,
             const std::map< double, Eigen::MatrixXd >& sineCoefficientCorrections,
             const int minimumDegree, const int minimumOrder,
-            const boost::shared_ptr< interpolators::InterpolatorSettings > interpolatorType =
-            boost::make_shared< interpolators::InterpolatorSettings >(
+            const std::shared_ptr< interpolators::InterpolatorSettings > interpolatorType =
+            std::make_shared< interpolators::InterpolatorSettings >(
                 interpolators::linear_interpolator, interpolators::huntingAlgorithm ) );
 
     //! Function to (re)set the tabulated spherical harmonic coefficients.
@@ -111,7 +108,7 @@ public:
      *  between tabulated times.
      * \return Type of interpolator to use for calculating coefficients
      */
-    boost::shared_ptr< interpolators::InterpolatorSettings > getInterpolatorSettings( )
+    std::shared_ptr< interpolators::InterpolatorSettings > getInterpolatorSettings( )
     {
         return interpolatorType_;
     }
@@ -119,7 +116,7 @@ public:
 private:
 
     //! Type of interpolator to use for calculating coefficients at any time.
-    boost::shared_ptr< interpolators::InterpolatorSettings > interpolatorType_;
+    std::shared_ptr< interpolators::InterpolatorSettings > interpolatorType_;
 
     //! Map of cosine coefficient variations, with associated times as map key.
     std::map< double, Eigen::MatrixXd > cosineCoefficientCorrections_;
@@ -134,8 +131,9 @@ private:
      *  at discrete times. The coefficients are interpolated concurrently and then split to reduce
      *  the number of calls to the interpolator.
      */
-    boost::shared_ptr< interpolators::OneDimensionalInterpolator< double, Eigen::MatrixXd > >
+    std::shared_ptr< interpolators::OneDimensionalInterpolator< double, Eigen::MatrixXd > >
     variationInterpolator_;
+
 };
 
 } // namespace gravitation

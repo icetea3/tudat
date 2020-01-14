@@ -1,4 +1,4 @@
-/*    Copyright (c) 2010-2017, Delft University of Technology
+/*    Copyright (c) 2010-2019, Delft University of Technology
  *    All rigths reserved
  *
  *    This file is part of the Tudat. Redistribution and use in source and
@@ -13,13 +13,11 @@
 #define TUDAT_TERMINATION_CONDITIONS_H
 
 #include <cmath>
-#include <iostream>
 #include <stdexcept>
 #include <string>
 
-#include <boost/exception/all.hpp>
-#include <boost/function.hpp>
-#include <boost/shared_ptr.hpp>
+#include <functional>
+#include <memory>
 
 namespace tudat
 {
@@ -52,7 +50,7 @@ inline bool checkMaximumIterationsExceeded( const unsigned int numberOfIteration
         std::string errorMessage
                 = "Root-finder did not converge within maximum number of iterations!";
 
-        boost::throw_exception( boost::enable_error_info( std::runtime_error( errorMessage  ) ) );
+        throw std::runtime_error( errorMessage );
     }
 
     // Else, simply return whether maximum number of iterations have been exceeded.
@@ -419,7 +417,7 @@ bool checkRootFunctionValueCondition( const ScalarType currentRootGuess,
 }
 
 //! Typedef for shared-pointer to MaximumIterationsTerminationCondition object.
-typedef boost::shared_ptr< MaximumIterationsTerminationCondition >
+typedef std::shared_ptr< MaximumIterationsTerminationCondition >
 MaximumIterationsTerminationConditionPointer;
 
 } // namespace termination_conditions

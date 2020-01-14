@@ -1,4 +1,4 @@
-/*    Copyright (c) 2010-2017, Delft University of Technology
+/*    Copyright (c) 2010-2019, Delft University of Technology
  *    All rigths reserved
  *
  *    This file is part of the Tudat. Redistribution and use in source and
@@ -17,7 +17,7 @@
 #ifndef TUDAT_SINGLE_SURFACE_GEOMETRY_H
 #define TUDAT_SINGLE_SURFACE_GEOMETRY_H
 
-#include <boost/shared_ptr.hpp>
+#include <memory>
 
 #include <Eigen/Core>
 
@@ -277,7 +277,7 @@ private:
 };
 
 //! Typedef for shared-pointer to SingleSurfaceGeometry object.
-typedef boost::shared_ptr< SingleSurfaceGeometry > SingleSurfaceGeometryPointer;
+typedef std::shared_ptr< SingleSurfaceGeometry > SingleSurfaceGeometryPointer;
 
 } // namespace geometric_shapes
 } // namespace tudat

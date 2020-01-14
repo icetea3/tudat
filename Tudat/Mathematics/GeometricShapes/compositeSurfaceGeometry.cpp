@@ -1,4 +1,4 @@
-/*    Copyright (c) 2010-2017, Delft University of Technology
+/*    Copyright (c) 2010-2019, Delft University of Technology
  *    All rigths reserved
  *
  *    This file is part of the Tudat. Redistribution and use in source and
@@ -17,9 +17,9 @@ namespace geometric_shapes
 {
 
 CompositeSurfaceGeometry::CompositeSurfaceGeometry(
-                          std::vector< boost::shared_ptr< SingleSurfaceGeometry > >
+                          std::vector< std::shared_ptr< SingleSurfaceGeometry > >
                           singleSurfaceGeometryList,
-                          std::vector< boost::shared_ptr< CompositeSurfaceGeometry > >
+                          std::vector< std::shared_ptr< CompositeSurfaceGeometry > >
                           compositeSurfaceGeometryList )
 {
     setNumberOfSingleSurfaceGeometries( singleSurfaceGeometryList.size( ) );
@@ -37,7 +37,7 @@ CompositeSurfaceGeometry::CompositeSurfaceGeometry(
 }
 
 //! Overload ostream to print class information.
-std::ostream &operator<<( std::ostream &stream,
+std::ostream &operator << ( std::ostream &stream,
                           CompositeSurfaceGeometry& compositeSurfaceGeometry )
 {
     stream << "This is a composite surface geometry." << std::endl;

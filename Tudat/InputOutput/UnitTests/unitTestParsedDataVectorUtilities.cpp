@@ -1,4 +1,4 @@
-/*    Copyright (c) 2010-2017, Delft University of Technology
+/*    Copyright (c) 2010-2019, Delft University of Technology
  *    All rigths reserved
  *
  *    This file is part of the Tudat. Redistribution and use in source and
@@ -53,7 +53,7 @@ BOOST_AUTO_TEST_CASE( testParsedDataVectorUtilitiesGetFieldFunction )
 
     // Create a new pointer to data map.
     parsed_data_vector_utilities::ParsedDataLineMapPtr testDataMap =
-            boost::make_shared< parsed_data_vector_utilities::ParsedDataLineMap >(
+            std::make_shared< parsed_data_vector_utilities::ParsedDataLineMap >(
                 std::map< FieldType, parsed_data_vector_utilities::FieldValuePtr >( ) );
 
     // Store field values in data map.
@@ -113,13 +113,13 @@ BOOST_AUTO_TEST_CASE( testParsedDataVectorUtilitiesFilterMapKeyFunction )
 
     // Create data maps.
     parsed_data_vector_utilities::ParsedDataLineMapPtr testDataMapNameEpoch =
-            boost::make_shared< parsed_data_vector_utilities::ParsedDataLineMap >(
+            std::make_shared< parsed_data_vector_utilities::ParsedDataLineMap >(
                 std::map< FieldType, parsed_data_vector_utilities::FieldValuePtr >( ) );
     parsed_data_vector_utilities::ParsedDataLineMapPtr testDataMapNameID =
-            boost::make_shared< parsed_data_vector_utilities::ParsedDataLineMap >(
+            std::make_shared< parsed_data_vector_utilities::ParsedDataLineMap >(
                 std::map< FieldType, parsed_data_vector_utilities::FieldValuePtr >( ) );
     parsed_data_vector_utilities::ParsedDataLineMapPtr testDataMapIDEpoch =
-            boost::make_shared< parsed_data_vector_utilities::ParsedDataLineMap >(
+            std::make_shared< parsed_data_vector_utilities::ParsedDataLineMap >(
                 std::map< FieldType, parsed_data_vector_utilities::FieldValuePtr >( ) );
 
     // Store field values in data maps.
@@ -210,13 +210,13 @@ BOOST_AUTO_TEST_CASE( testParsedDataVectorUtilitiesFilterMapKeyValueFunction )
 
     // Create data maps.
     parsed_data_vector_utilities::ParsedDataLineMapPtr testDataMapNameEpoch =
-            boost::make_shared< parsed_data_vector_utilities::ParsedDataLineMap >(
+            std::make_shared< parsed_data_vector_utilities::ParsedDataLineMap >(
                 std::map< FieldType, parsed_data_vector_utilities::FieldValuePtr >( ) );
     parsed_data_vector_utilities::ParsedDataLineMapPtr testDataMapNameID =
-            boost::make_shared< parsed_data_vector_utilities::ParsedDataLineMap >(
+            std::make_shared< parsed_data_vector_utilities::ParsedDataLineMap >(
                 std::map< FieldType, parsed_data_vector_utilities::FieldValuePtr >( ) );
     parsed_data_vector_utilities::ParsedDataLineMapPtr testDataMapIDEpoch =
-            boost::make_shared< parsed_data_vector_utilities::ParsedDataLineMap >(
+            std::make_shared< parsed_data_vector_utilities::ParsedDataLineMap >(
                 std::map< FieldType, parsed_data_vector_utilities::FieldValuePtr >( ) );
 
     // Store field values in data maps.

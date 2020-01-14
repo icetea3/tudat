@@ -1,4 +1,4 @@
-/*    Copyright (c) 2010-2017, Delft University of Technology
+/*    Copyright (c) 2010-2019, Delft University of Technology
  *    All rigths reserved
  *
  *    This file is part of the Tudat. Redistribution and use in source and
@@ -9,8 +9,6 @@
  */
 
 #include <vector>
-#include <boost/lexical_cast.hpp>
-
 #include "Tudat/Mathematics/BasicMathematics/mathematicalConstants.h"
 #include "Tudat/Mathematics/BasicMathematics/coordinateConversions.h"
 #include "Tudat/Astrodynamics/BasicAstrodynamics/stateVectorIndices.h"
@@ -61,47 +59,6 @@ Eigen::Vector6d convertCartesianToSphericalOrbitalState(
 
     return sphericalOrbitalState;
 
-}
-
-//! Function to convert a spherical orbital to a Cartesian state.
-Eigen::Vector6d convertSphericalOrbitalToCartesianState(
-        const Eigen::Vector6d& sphericalOrbitalState )
-{
-    Eigen::Vector6d cartesianState;
-
-    // Compute Cartesian position
-    Eigen::Vector3d sphericalPosition = sphericalOrbitalState.segment( 0, 3 );
-    sphericalPosition( 1 ) = mathematical_constants::PI / 2.0 - sphericalOrbitalState( 1 );
-    cartesianState.segment( 0, 3 ) = coordinate_conversions::convertSphericalToCartesian(
-                sphericalPosition );
-
-    // Check whether flight path angle and heading angle are valid (corresponding velocity components are zero otherwise)
-    bool isFlightPathAngleValid = ( sphericalOrbitalState( flightPathIndex ) == sphericalOrbitalState( flightPathIndex ) );
-    bool isHeadingAngleValid = ( sphericalOrbitalState( headingAngleIndex ) == sphericalOrbitalState( headingAngleIndex ) );
-
-    // Compute velocity in vertical frame.
-    Eigen::Vector3d velocityInVerticalFrame = Eigen::Vector3d::Zero( );
-    if( isFlightPathAngleValid && isHeadingAngleValid )
-    {
-        velocityInVerticalFrame( 0 ) = sphericalOrbitalState( speedIndex ) *
-                std::cos( sphericalOrbitalState( flightPathIndex ) ) *
-                std::cos( sphericalOrbitalState( headingAngleIndex ) );
-        velocityInVerticalFrame( 1 ) = sphericalOrbitalState( speedIndex ) *
-                std::cos( sphericalOrbitalState( flightPathIndex ) ) *
-                std::sin( sphericalOrbitalState( headingAngleIndex ) );
-    }
-
-    if( isFlightPathAngleValid )
-    {
-        velocityInVerticalFrame( 2 ) = -sphericalOrbitalState( speedIndex ) *
-                std::sin( sphericalOrbitalState( flightPathIndex ) );
-    }
-
-    // Set velocity in body-fixed frame.
-    cartesianState.segment( 3, 3 ) = reference_frames::getLocalVerticalToRotatingPlanetocentricFrameTransformationQuaternion(
-                sphericalOrbitalState( longitudeIndex ), sphericalOrbitalState( latitudeIndex ) ) * velocityInVerticalFrame;
-
-    return cartesianState;
 }
 
 } // namespace tudat

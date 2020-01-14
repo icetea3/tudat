@@ -1,4 +1,4 @@
-/*    Copyright (c) 2010-2017, Delft University of Technology
+/*    Copyright (c) 2010-2019, Delft University of Technology
  *    All rigths reserved
  *
  *    This file is part of the Tudat. Redistribution and use in source and
@@ -9,10 +9,10 @@
  *
  */
 
+#include <iostream>
 #include <sstream>
 #include <stdexcept>
 
-#include <boost/exception/all.hpp>
 #include <boost/math/special_functions/factorials.hpp>
 
 #include "Tudat/Mathematics/BasicMathematics/legendrePolynomials.h"
@@ -39,7 +39,8 @@ LegendreCache::LegendreCache( const bool useGeodesyNormalization )
         legendrePolynomialFunction_ = regularLegendrePolynomialFunction;
     }
 
-    resetMaximumDegreeAndOrder( 0, 0 );
+    resetMaximumDegreeAndOrder( 1, 1 );
+
     computeSecondDerivatives_ = 0;
 
 }
@@ -238,10 +239,10 @@ double LegendreCache::getLegendrePolynomial(
     if( degree > maximumDegree_ || order > maximumOrder_ )
     {
         std::string errorMessage = "Error when requesting legendre cache, maximum degree or order exceeded " +
-                boost::lexical_cast< std::string >( degree ) + " " +
-                boost::lexical_cast< std::string >( maximumDegree_ ) + " " +
-                boost::lexical_cast< std::string >( order ) + " " +
-                boost::lexical_cast< std::string >( maximumOrder_ );
+                std::to_string( degree ) + " " +
+                std::to_string( maximumDegree_ ) + " " +
+                std::to_string( order ) + " " +
+                std::to_string( maximumOrder_ );
         throw std::runtime_error( errorMessage );
         return TUDAT_NAN;
     }
@@ -262,10 +263,10 @@ double LegendreCache::getLegendrePolynomialDerivative(
     if( degree > ( maximumDegree_ ) || order > maximumOrder_ )
     {
         std::string errorMessage = "Error when requesting legendre cache first derivatives, maximum degree or order exceeded " +
-                boost::lexical_cast< std::string >( degree ) + " " +
-                boost::lexical_cast< std::string >( maximumDegree_ ) + " " +
-                boost::lexical_cast< std::string >( order ) + " " +
-                boost::lexical_cast< std::string >( maximumOrder_ );
+                std::to_string( degree ) + " " +
+                std::to_string( maximumDegree_ ) + " " +
+                std::to_string( order ) + " " +
+                std::to_string( maximumOrder_ );
         throw std::runtime_error( errorMessage );
         return TUDAT_NAN;
     }
@@ -286,10 +287,10 @@ double LegendreCache::getLegendrePolynomialSecondDerivative(
     if( degree > ( maximumDegree_  ) || order > maximumOrder_ )
     {
         std::string errorMessage = "Error when requesting legendre cache second derivatives, maximum degree or order exceeded " +
-                boost::lexical_cast< std::string >( degree ) + " " +
-                boost::lexical_cast< std::string >( maximumDegree_ ) + " " +
-                boost::lexical_cast< std::string >( order ) + " " +
-                boost::lexical_cast< std::string >( maximumOrder_ );
+                std::to_string( degree ) + " " +
+                std::to_string( maximumDegree_ ) + " " +
+                std::to_string( order ) + " " +
+                std::to_string( maximumOrder_ );
         throw std::runtime_error( errorMessage );
         return TUDAT_NAN;
     }
@@ -326,8 +327,7 @@ double computeLegendrePolynomialFromCache( const int degree,
                      << order << " is undefined." << std::endl;
 
         // Throw a run-time error.
-        boost::throw_exception( boost::enable_error_info( std::runtime_error(
-                                                              errorMessage.str( ) ) ) );
+        throw std::runtime_error( errorMessage.str( ) );
     }
 
     // Else if order is greater than degree...
@@ -411,8 +411,7 @@ double computeGeodesyLegendrePolynomialFromCache( const int degree,
                      << order << " is undefined." << std::endl;
 
         // Throw a run-time error.
-        boost::throw_exception( boost::enable_error_info( std::runtime_error(
-                                                              errorMessage.str( ) ) ) );
+        throw std::runtime_error( errorMessage.str( ) );
     }
 
     // Else if order is greater than degree...
@@ -567,8 +566,8 @@ double computeLegendrePolynomialExplicit( const int degree,
         default:
         {
             std::string errorMessage = "Error, explicit legendre polynomial not possible for " +
-                    boost::lexical_cast< std::string >( degree ) + ", " +
-                    boost::lexical_cast< std::string >( order );
+                    std::to_string( degree ) + ", " +
+                    std::to_string( order );
             throw std::runtime_error( errorMessage );
         }
         }
@@ -583,8 +582,8 @@ double computeLegendrePolynomialExplicit( const int degree,
         default:
         {
             std::string errorMessage = "Error, explicit legendre polynomial not possible for " +
-                    boost::lexical_cast< std::string >( degree ) + ", " +
-                    boost::lexical_cast< std::string >( order );
+                    std::to_string( degree ) + ", " +
+                    std::to_string( order );
             throw std::runtime_error( errorMessage );
         }
         }
@@ -602,8 +601,8 @@ double computeLegendrePolynomialExplicit( const int degree,
         default:
         {
             std::string errorMessage = "Error, explicit legendre polynomial not possible for " +
-                    boost::lexical_cast< std::string >( degree ) + ", " +
-                    boost::lexical_cast< std::string >( order );
+                    std::to_string( degree ) + ", " +
+                    std::to_string( order );
             throw std::runtime_error( errorMessage );
         }
         }
@@ -625,8 +624,8 @@ double computeLegendrePolynomialExplicit( const int degree,
         default:
         {
             std::string errorMessage = "Error, explicit legendre polynomial not possible for " +
-                    boost::lexical_cast< std::string >( degree ) + ", " +
-                    boost::lexical_cast< std::string >( order );
+                    std::to_string( degree ) + ", " +
+                    std::to_string( order );
             throw std::runtime_error( errorMessage );
         }
         }
@@ -655,8 +654,8 @@ double computeLegendrePolynomialExplicit( const int degree,
         default:
         {
             std::string errorMessage = "Error, explicit legendre polynomial not possible for " +
-                    boost::lexical_cast< std::string >( degree ) + ", " +
-                    boost::lexical_cast< std::string >( order );
+                    std::to_string( degree ) + ", " +
+                    std::to_string( order );
             throw std::runtime_error( errorMessage );
         }
         }
@@ -664,8 +663,8 @@ double computeLegendrePolynomialExplicit( const int degree,
     default:
     {
         std::string errorMessage = "Error, explicit legendre polynomial not possible for " +
-                boost::lexical_cast< std::string >( degree ) + ", " +
-                boost::lexical_cast< std::string >( order );
+                std::to_string( degree ) + ", " +
+                std::to_string( order );
         throw std::runtime_error( errorMessage );
     }
     }
@@ -704,8 +703,7 @@ double computeGeodesyLegendrePolynomialExplicit( const int degree,
                        <<  " and order = "  <<  order  <<  " is not supported."  <<  std::endl;
 
         // Throw a run-time error.
-        boost::throw_exception( boost::enable_error_info( std::runtime_error(
-                                                              errorMessage.str( ) ) ) );
+        throw std::runtime_error( errorMessage.str( ) );
     }
 }
 
@@ -776,6 +774,74 @@ double calculateLegendreGeodesyNormalizationFactor( const int degree, const int 
                 / ( ( 2.0 - deltaFunction ) * ( 2.0 * static_cast< double >( degree ) + 1.0 )
                     * boost::math::factorial< double >( static_cast< double >( degree - order ) ) ) );
     return 1.0 / factor;
+}
+
+//! Function to convert unnormalized to geodesy-normalized (4-pi normalized) spherical harmonic coefficients
+void convertUnnormalizedToGeodesyNormalizedCoefficients(
+        const Eigen::MatrixXd& unnormalizedCosineCoefficients,
+        const Eigen::MatrixXd& unnormalizedSineCoefficients,
+        Eigen::MatrixXd& normalizedCosineCoefficients,
+        Eigen::MatrixXd& normalizedSineCoefficients )
+{
+    normalizedCosineCoefficients.setZero( unnormalizedCosineCoefficients.rows( ), unnormalizedCosineCoefficients.cols( ) );
+    normalizedSineCoefficients.setZero( unnormalizedSineCoefficients.rows( ), unnormalizedCosineCoefficients.cols( ) );
+
+    double normalizationFactor;
+
+    for( unsigned degree = 0 ; degree < unnormalizedCosineCoefficients.rows( ); degree++ )
+    {
+        for( unsigned order = 0 ; ( order < unnormalizedCosineCoefficients.cols( ) && order <= degree ); order++ )
+        {
+            normalizationFactor = calculateLegendreGeodesyNormalizationFactor( degree, order );
+            normalizedCosineCoefficients( degree, order ) = unnormalizedCosineCoefficients( degree, order ) /
+                    normalizationFactor;
+            normalizedSineCoefficients( degree, order ) = unnormalizedSineCoefficients( degree, order ) /
+                    normalizationFactor;
+        }
+    }
+}
+
+//! Function to convert geodesy-normalized (4-pi normalized) to unnormalized spherical harmonic coefficients
+void convertGeodesyNormalizedToUnnormalizedCoefficients(
+        const Eigen::MatrixXd& normalizedCosineCoefficients,
+        const Eigen::MatrixXd& normalizedSineCoefficients,
+        Eigen::MatrixXd& unnormalizedCosineCoefficients,
+        Eigen::MatrixXd& unnormalizedSineCoefficients )
+{
+    unnormalizedCosineCoefficients.setZero( normalizedCosineCoefficients.rows( ), normalizedCosineCoefficients.cols( ) );
+    unnormalizedSineCoefficients.setZero( normalizedSineCoefficients.rows( ), normalizedSineCoefficients.cols( ) );
+
+    double normalizationFactor;
+
+    for( unsigned degree = 0 ; degree < unnormalizedCosineCoefficients.rows( ); degree++ )
+    {
+        for( unsigned order = 0 ; ( order < unnormalizedCosineCoefficients.cols( ) && order <= degree ); order++ )
+        {
+            normalizationFactor = calculateLegendreGeodesyNormalizationFactor( degree, order );
+            unnormalizedCosineCoefficients( degree, order ) = normalizedCosineCoefficients( degree, order ) *
+                    normalizationFactor;
+            unnormalizedSineCoefficients( degree, order ) = normalizedSineCoefficients( degree, order ) *
+                    normalizationFactor;
+        }
+    }
+}
+
+//! Function to convert unnormalized to geodesy-normalized (4-pi normalized) spherical harmonic coefficients
+void geodesyNormalizeUnnormalizedCoefficients(
+        Eigen::MatrixXd& cosineCoefficients,
+        Eigen::MatrixXd& sineCoefficients )
+{
+    double normalizationFactor;
+
+    for( unsigned degree = 0 ; degree < cosineCoefficients.rows( ); degree++ )
+    {
+        for( unsigned order = 0 ; ( order < sineCoefficients.cols( ) && order <= degree ); order++ )
+        {
+            normalizationFactor = calculateLegendreGeodesyNormalizationFactor( degree, order );
+            cosineCoefficients( degree, order ) /=  normalizationFactor;
+            sineCoefficients( degree, order ) /=  normalizationFactor;
+        }
+    }
 }
 
 } // namespace basic_mathematics

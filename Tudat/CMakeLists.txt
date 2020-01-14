@@ -1,11 +1,11 @@
- #    Copyright (c) 2010-2017, Delft University of Technology
- #    All rigths reserved
- #
- #    This file is part of the Tudat. Redistribution and use in source and
- #    binary forms, with or without modification, are permitted exclusively
- #    under the terms of the Modified BSD license. You should have received
- #    a copy of the license with this file. If not, please or visit:
- #    http://tudat.tudelft.nl/LICENSE.
+#    Copyright (c) 2010-2019, Delft University of Technology
+#    All rigths reserved
+#
+#    This file is part of the Tudat. Redistribution and use in source and
+#    binary forms, with or without modification, are permitted exclusively
+#    under the terms of the Modified BSD license. You should have received
+#    a copy of the license with this file. If not, please or visit:
+#    http://tudat.tudelft.nl/LICENSE.
 
 # Specify minimum CMake version required to compile Tudat.
 cmake_minimum_required( VERSION 2.6 )
@@ -13,25 +13,33 @@ cmake_minimum_required( VERSION 2.6 )
 # Specific Tudat project name.
 project( Tudat )
 
+
+
+# Tudat-specific options
+option(BUILD_WITH_SOCIS_2019 "Build Tudat with 2019 SOCIS functionality." OFF)
+option(BUILD_WITH_FILTERS "Build Tudat with preliminary Kalman Filter functionality." OFF)
+option(BUILD_WITH_EXTENDED_PRECISION_PROPAGATION_TOOLS  "Build Tudat with high-precision (>16 digits) capabilities. These may cause excessive (>3 GB)) RAM usage with gcc/mingw." OFF)
+option(BUILD_WITH_PROPAGATION_TESTS "Build Tudat with unit tests involving long (> 30 s) propagations. Total unit test run time may be >10 minutes." ON)
+
 # Load UserSettings.txt
 if(${CMAKE_SOURCE_DIR} STREQUAL ${CMAKE_CURRENT_SOURCE_DIR})
-  set(BUILD_STYLE "standalone")
-  include("${CMAKE_CURRENT_SOURCE_DIR}/UserSettings.txt" OPTIONAL)
+ set(BUILD_STYLE "standalone")
+ include("${CMAKE_CURRENT_SOURCE_DIR}/UserSettings.txt" OPTIONAL)
 else()
-  set(BUILD_STYLE "part of ${CMAKE_PROJECT_NAME}")
-  include("${CMAKE_CURRENT_SOURCE_DIR}/UserSettings.txt" OPTIONAL)
-  include("${CMAKE_SOURCE_DIR}/UserSettings.txt" OPTIONAL)
-  STRING(REGEX REPLACE ${CMAKE_SOURCE_DIR} "" RELATIVE_PROJECT_PATH ${CMAKE_CURRENT_SOURCE_DIR})
-  set(RELATIVE_PROJECT_PATH "${RELATIVE_PROJECT_PATH}" CACHE STRING "Relative path wrt to project for function")
-  # message(STATUS "Relative path (wrt to project): ${RELATIVE_PROJECT_PATH}")
+ set(BUILD_STYLE "part of ${CMAKE_PROJECT_NAME}")
+ include("${CMAKE_CURRENT_SOURCE_DIR}/UserSettings.txt" OPTIONAL)
+ include("${CMAKE_SOURCE_DIR}/UserSettings.txt" OPTIONAL)
+ STRING(REGEX REPLACE ${CMAKE_SOURCE_DIR} "" RELATIVE_PROJECT_PATH ${CMAKE_CURRENT_SOURCE_DIR})
+ set(RELATIVE_PROJECT_PATH "${RELATIVE_PROJECT_PATH}" CACHE STRING "Relative path wrt to project for function")
+ # message(STATUS "Relative path (wrt to project): ${RELATIVE_PROJECT_PATH}")
 endif()
 
 # Set CMake build-type. If it not supplied by the user (either directly as an argument of through
 # the "UserSettings.txt" file, the default built type is "Release".
 if((NOT CMAKE_BUILD_TYPE) OR (CMAKE_BUILD_TYPE STREQUAL "Release"))
-  set(CMAKE_BUILD_TYPE Release)
+ set(CMAKE_BUILD_TYPE Release)
 elseif(CMAKE_BUILD_TYPE STREQUAL "Debug")
-  set(CMAKE_BUILD_TYPE Debug)
+ set(CMAKE_BUILD_TYPE Debug)
 endif()
 
 message(STATUS "<< ${PROJECT_NAME} (${CMAKE_BUILD_TYPE} - ${BUILD_STYLE}) >>")
@@ -58,14 +66,14 @@ enable_testing( )
 
 # Set the global macros for setting up targets.
 macro(setup_tudat_library_target target_name CUSTOM_OUTPUT_PATH)
-  set_property(TARGET ${target_name} PROPERTY LIBRARY_OUTPUT_DIRECTORY "${LIBROOT}")
-  set_property(TARGET ${target_name} PROPERTY ARCHIVE_OUTPUT_DIRECTORY "${LIBROOT}")
+ set_property(TARGET ${target_name} PROPERTY LIBRARY_OUTPUT_DIRECTORY "${LIBROOT}")
+ set_property(TARGET ${target_name} PROPERTY ARCHIVE_OUTPUT_DIRECTORY "${LIBROOT}")
 endmacro(setup_tudat_library_target)
 
 macro(setup_custom_test_program target_name CUSTOM_OUTPUT_PATH)
-  set_property(TARGET ${target_name} PROPERTY RUNTIME_OUTPUT_DIRECTORY "${BINROOT}/unit_tests")
-  get_property(CUSTOM_TEST_PROGRAM_NAME TARGET ${target_name} PROPERTY OUTPUT_NAME)
-  add_test("${target_name}" "${BINROOT}/unit_tests/${target_name}")
+ set_property(TARGET ${target_name} PROPERTY RUNTIME_OUTPUT_DIRECTORY "${BINROOT}/unit_tests")
+ get_property(CUSTOM_TEST_PROGRAM_NAME TARGET ${target_name} PROPERTY OUTPUT_NAME)
+ add_test("${target_name}" "${BINROOT}/unit_tests/${target_name}")
 endmacro(setup_custom_test_program)
 
 # Set the main sub-directories.
@@ -79,7 +87,7 @@ set(SIMULATIONSETUPDIR "/SimulationSetup")
 
 # Include the top-level directories.
 include_directories(AFTER
-  "${CODEROOT}"
+ "${CODEROOT}"
 )
 
 # Find Eigen3 library on local system.
@@ -88,9 +96,9 @@ find_package(Eigen3 REQUIRED)
 # Include Eigen3 directories.
 # Set CMake flag to suppress Eigen warnings (platform-dependent solution).
 if(NOT APPLE OR APPLE_INCLUDE_FORCE)
-  include_directories(SYSTEM AFTER "${EIGEN3_INCLUDE_DIR}")
+ include_directories(SYSTEM AFTER "${EIGEN3_INCLUDE_DIR}")
 else( )
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -isystem \"${EIGEN3_INCLUDE_DIR}\"")
+ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -isystem \"${EIGEN3_INCLUDE_DIR}\"")
 endif( )
 
 # Configure Boost libraries.
@@ -104,35 +112,35 @@ find_package(Boost 1.45.0 COMPONENTS date_time system unit_test_framework filesy
 # Include Boost directories.
 # Set CMake flag to suppress Boost warnings (platform-dependent solution).
 if(NOT APPLE OR APPLE_INCLUDE_FORCE)
-  include_directories(SYSTEM AFTER "${Boost_INCLUDE_DIRS}")
+ include_directories(SYSTEM AFTER "${Boost_INCLUDE_DIRS}")
 else( )
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -isystem \"${Boost_INCLUDE_DIRS}\"")
+ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -isystem \"${Boost_INCLUDE_DIRS}\"")
 endif( )
 
 # Add an option to toggle the generation of the API documentation.
 # If documentation should be built, find Doxygen package and setup config file.
 option(BUILD_DOCUMENTATION "Use Doxygen to create the HTML based API documentation" OFF)
 if(BUILD_DOCUMENTATION)
-  find_package(Doxygen)
+ find_package(Doxygen)
 
-  if(NOT DOXYGEN_FOUND)
-    message(FATAL_ERROR
-            "Doxygen is needed to build the documentation. Please install it correctly.")
-  endif()
+ if(NOT DOXYGEN_FOUND)
+   message(FATAL_ERROR
+           "Doxygen is needed to build the documentation. Please install it correctly.")
+ endif()
 
-  # Configure the Template Doxyfile for our specific project.
-  configure_file(${CODEROOT}/Doxyfile.in ${PROJECT_BINARY_DIR}/Doxyfile @ONLY IMMEDIATE)
+ # Configure the Template Doxyfile for our specific project.
+ configure_file(${CODEROOT}/Doxyfile.in ${PROJECT_BINARY_DIR}/Doxyfile @ONLY IMMEDIATE)
 
-  # Add a custom target to run Doxygen when ever the project is built.
-  # IF you do NOT want the documentation to be generated EVERY time you build the project
-  # then leave out the 'ALL' keyword from the above command.
-  add_custom_target (docs ALL COMMAND ${DOXYGEN_EXECUTABLE}
-                     ${PROJECT_BINARY_DIR}/Doxyfile
-                     SOURCES ${PROJECT_BINARY_DIR}/Doxyfile)
+ # Add a custom target to run Doxygen when ever the project is built.
+ # IF you do NOT want the documentation to be generated EVERY time you build the project
+ # then leave out the 'ALL' keyword from the above command.
+ add_custom_target (docs ALL COMMAND ${DOXYGEN_EXECUTABLE}
+                    ${PROJECT_BINARY_DIR}/Doxyfile
+                    SOURCES ${PROJECT_BINARY_DIR}/Doxyfile)
 
-  # Install documentation.
-  install(DIRECTORY "${CODEROOT}/Documentation"
-          DESTINATION "${TUDAT_DISTRIBUTION_PATH}")
+ # Install documentation.
+ install(DIRECTORY "${CODEROOT}/Documentation"
+         DESTINATION "${TUDAT_DISTRIBUTION_PATH}")
 endif()
 
 #
@@ -143,23 +151,72 @@ endif()
 # is "OFF". NB: It is important this section is placed AFTER the "UserSettings.txt" file is
 # included, to ensure that that the correct indiciation is given for whether SPICE should be
 # included or not has been selected.
-option(USE_CSPICE "build Tudat with CSPICE enabled" ON) # OFF is the default
 if(NOT USE_CSPICE)
-  message(STATUS "SPICE disabled!")
-  add_definitions(-DUSE_CSPICE=0)
+ message(STATUS "SPICE disabled!")
+ add_definitions(-DUSE_CSPICE=0)
 else()
-  message(STATUS "SPICE enabled!")
+ message(STATUS "SPICE enabled!")
 add_definitions(-DUSE_CSPICE=1)
 
-  # Find CSPICE library on local system.
-  find_package(Spice)
+ # Find CSPICE library on local system.
+ find_package(Spice)
 
-  # Include CSpice directories.
-  if(NOT APPLE OR APPLE_INCLUDE_FORCE)
-    include_directories(SYSTEM AFTER "${SPICE_INCLUDE_DIR}")
-  else( )
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -isystem \"${SPICE_INCLUDE_DIR}\"")
-  endif( )
+ # Include CSpice directories.
+ if(NOT APPLE OR APPLE_INCLUDE_FORCE)
+   include_directories(SYSTEM AFTER "${SPICE_INCLUDE_DIR}")
+ else( )
+   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -isystem \"${SPICE_INCLUDE_DIR}\"")
+ endif( )
+endif()
+
+
+#
+# JSON
+#
+# Set whether to use the JSON library.
+if(NOT USE_JSON)
+ message(STATUS "JSON disabled!")
+ add_definitions(-DUSE_JSON=0)
+else()
+ message(STATUS "JSON enabled!")
+ add_definitions(-DUSE_JSON=1)
+
+ # Find JSON library on local system.
+ find_package(nlohmann_json)
+
+ # Include JSON directories.
+ if(NOT APPLE OR APPLE_INCLUDE_FORCE)
+   include_directories(SYSTEM AFTER "${JSON_INCLUDE_DIR}")
+ else( )
+   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -isystem \"${JSON_INCLUDE_DIR}\"")
+ endif( )
+endif()
+
+
+#
+# SOFA
+#
+# Set whether to use the SOFA library integration with Tudat or not. If it not supplied by the
+# user (either directly as an argument or through the "UserSettings.txt" file, the default setting
+# is "OFF". NB: It is important this section is placed AFTER the "UserSettings.txt" file is
+# included, to ensure that that the correct indiciation is given for whether SOFA should be
+# included or not has been selected.
+if(NOT USE_SOFA)
+ message(STATUS "SOFA disabled!")
+ add_definitions(-DUSE_SOFA=0)
+else()
+ message(STATUS "SOFA enabled!")
+add_definitions(-DUSE_SOFA=1)
+
+ # Find SOFA library on local system.
+ find_package(Sofa)
+
+ # Include Sofa directories.
+ if(NOT APPLE OR APPLE_INCLUDE_FORCE)
+   include_directories(SYSTEM AFTER "${SOFA_INCLUDE_DIR}")
+ else( )
+   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -isystem \"${SOFA_INCLUDE_DIR}\"")
+ endif( )
 endif()
 
 #
@@ -168,22 +225,45 @@ endif()
 # Set whether to use the NRLMSISE-00 library integration with Tudat or not. If it not supplied by the
 # user (either directly as an argument or through the "UserSettings.txt" file, the default setting
 # is "ON").
-option(USE_NRLMSISE00 "build Tudat with NRLMSISE-00 enabled" ON)
 if(NOT USE_NRLMSISE00)
-  message(STATUS "NRLMSISE-00 disabled!")
-  add_definitions(-DUSE_NRLMSISE00=0)
+ message(STATUS "NRLMSISE-00 disabled!")
+ add_definitions(-DUSE_NRLMSISE00=0)
 else()
-  message(STATUS "NRLMSISE-00 enabled!")
-  add_definitions(-DUSE_NRLMSISE00=1)
-  # Find USE_NRLMSISE00 library on local system.
-  find_package(NRLMSISE00)
+ message(STATUS "NRLMSISE-00 enabled!")
+ add_definitions(-DUSE_NRLMSISE00=1)
+ # Find USE_NRLMSISE00 library on local system.
+ find_package(NRLMSISE00)
 
-  # Include NRLMSISE00 directories.
-  if(NOT APPLE OR APPLE_INCLUDE_FORCE)
-    include_directories(SYSTEM AFTER "${NRLMSISE00_INCLUDE_DIR}")
-  else( )
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -isystem \"${NRLMSISE00_INCLUDE_DIR}\"")
-  endif( )
+ # Include NRLMSISE00 directories.
+ if(NOT APPLE OR APPLE_INCLUDE_FORCE)
+   include_directories(SYSTEM AFTER "${NRLMSISE00_INCLUDE_DIR}")
+ else( )
+   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -isystem \"${NRLMSISE00_INCLUDE_DIR}\"")
+ endif( )
+endif()
+
+
+#
+# Pagmo
+#
+# Set whether to use the Pagmo library integration with Tudat or not. If it not supplied by the
+# user (either directly as an argument or through the "UserSettings.txt" file, the default setting
+# is "ON").
+if(NOT USE_PAGMO)
+  message(STATUS "PAGMO disabled!")
+  add_definitions(-DUSE_PAGMO=0)
+else()
+  message(STATUS "PAGMO enabled!")
+  # Find USE_PAGMO library on local system.
+  find_package(PaGMO2)
+  add_definitions(-DUSE_PAGMO=1)
+
+ # Include Pagmo directories.
+ if(NOT APPLE OR APPLE_INCLUDE_FORCE)
+   include_directories(SYSTEM AFTER "${PAGMO_INCLUDE_DIR}")
+ else( )
+   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -isystem \"${PAGMO_INCLUDE_DIR}\"")
+ endif( )
 endif()
 
 #
@@ -192,57 +272,46 @@ endif()
 # Set whether to use the GSL library integration with Tudat or not. If it not supplied by the
 # user (either directly as an argument or through the "UserSettings.txt" file, the default setting
 # is "OFF").
-option(USE_GSL "build Tudat with GSL enabled" OFF)
 if(NOT USE_GSL)
-  message(STATUS "GSL disabled!")
-  add_definitions(-DUSE_GSL=0)
+ message(STATUS "GSL disabled!")
+ add_definitions(-DUSE_GSL=0)
 else()
-  message(STATUS "GSL enabled!")
-  add_definitions(-DUSE_GSL=1)
-  # Find USE_NRLMSISE00 library on local system.
-  find_package(GSL)
+ message(STATUS "GSL enabled!")
+ add_definitions(-DUSE_GSL=1)
+ # Find USE_NRLMSISE00 library on local system.
+ find_package(GSL)
 
-  # Include NRLMSISE00 directories.
-  if(NOT APPLE OR APPLE_INCLUDE_FORCE)
-    include_directories(SYSTEM AFTER "${GSL_INCLUDE_DIR}")
-  else( )
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -isystem \"${GSL_INCLUDE_DIR}\"")
-  endif( )
+ # Include NRLMSISE00 directories.
+ if(NOT APPLE OR APPLE_INCLUDE_FORCE)
+   include_directories(SYSTEM AFTER "${GSL_INCLUDE_DIR}")
+ else( )
+   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -isystem \"${GSL_INCLUDE_DIR}\"")
+ endif( )
 endif()
 
-
-# Create lists of static libraries for ease of use
-list(APPEND TUDAT_EXTERNAL_LIBRARIES "")
-if(USE_CSPICE)
-  list(APPEND TUDAT_EXTERNAL_LIBRARIES tudat_spice_interface cspice)
+if(NOT BUILD_WITH_EXTENDED_PRECISION_PROPAGATION_TOOLS)
+ message(STATUS "Extended precision propagation disabled!")
+ add_definitions(-DBUILD_WITH_EXTENDED_PRECISION_PROPAGATION_TOOLS=0)
+else()
+    message(STATUS "Extended precision propagation enabled!")
+ add_definitions(-DBUILD_WITH_EXTENDED_PRECISION_PROPAGATION_TOOLS=1)
 endif()
 
-if(USE_NRLMSISE00)
-  list(APPEND TUDAT_EXTERNAL_LIBRARIES nrlmsise00)
-endif()
-
-if(USE_GSL)
-  list(APPEND TUDAT_EXTERNAL_LIBRARIES gsl)
-endif()
-
-
-list(APPEND TUDAT_PROPAGATION_LIBRARIES tudat_simulation_setup tudat_propagators
-    tudat_aerodynamics tudat_system_models tudat_geometric_shapes tudat_relativity tudat_gravitation tudat_mission_segments
-    tudat_electro_magnetism tudat_propulsion tudat_ephemerides tudat_numerical_integrators tudat_reference_frames
-    tudat_basic_astrodynamics tudat_basic_mathematics tudat_propagators tudat_input_output tudat_basics ${TUDAT_EXTERNAL_LIBRARIES})
-
-list(APPEND TUDAT_ESTIMATION_LIBRARIES tudat_simulation_setup tudat_ground_stations tudat_observation_models tudat_acceleration_partials
-    tudat_observation_partials tudat_estimatable_parameters tudat_orbit_determination  tudat_propagators
-    tudat_aerodynamics tudat_system_models tudat_geometric_shapes tudat_relativity tudat_gravitation tudat_mission_segments
-    tudat_electro_magnetism tudat_propulsion tudat_ephemerides tudat_numerical_integrators tudat_reference_frames
-    tudat_basic_astrodynamics tudat_basic_mathematics tudat_propagators tudat_input_output tudat_basics ${TUDAT_EXTERNAL_LIBRARIES})
-
-
+# Set compiler based on preferences (e.g. USE_CLANG) and system.
+include(tudatLinkLibraries)
 
 # Set sub-directories.
 set(SUBDIRS ${APPLICATIONSDIR} ${ASTRODYNAMICSDIR} ${BASICSDIR} ${INPUTOUTPUTDIR} ${MATHEMATICSDIR} ${EXTERNALDIR} ${SIMULATIONSETUPDIR})
 
+if(USE_JSON)
+  # Set JSON interface directory.
+  set(JSONINTERFACEDIR "/JsonInterface")
+
+  # Add subdirectories.
+  list(APPEND SUBDIRS ${JSONINTERFACEDIR})
+endif()
+
 # Add sub-directories to CMake process.
 foreach(CURRENT_SUBDIR ${SUBDIRS})
-add_subdirectory("${SRCROOT}${CURRENT_SUBDIR}")
+  add_subdirectory("${SRCROOT}${CURRENT_SUBDIR}")
 endforeach(CURRENT_SUBDIR)

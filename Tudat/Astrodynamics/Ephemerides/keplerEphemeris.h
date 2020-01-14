@@ -1,4 +1,4 @@
-/*    Copyright (c) 2010-2017, Delft University of Technology
+/*    Copyright (c) 2010-2019, Delft University of Technology
  *    All rigths reserved
  *
  *    This file is part of the Tudat. Redistribution and use in source and
@@ -97,7 +97,7 @@ private:
     Eigen::Quaterniond rotationFromOrbitalPlane_;
 
     //! Root finder used to convert mean to eccentric anomalies.
-    boost::shared_ptr< root_finders::RootFinderCore< double > > rootFinder_;
+    std::shared_ptr< root_finders::RootFinderCore< double > > rootFinder_;
 
     //! Initial epoch from which propagation of Kepler orbit is performed.
     double epochOfInitialState_;

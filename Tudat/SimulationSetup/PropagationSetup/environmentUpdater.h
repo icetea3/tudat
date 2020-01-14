@@ -1,4 +1,4 @@
-/*    Copyright (c) 2010-2017, Delft University of Technology
+/*    Copyright (c) 2010-2019, Delft University of Technology
  *    All rigths reserved
  *
  *    This file is part of the Tudat. Redistribution and use in source and
@@ -16,7 +16,7 @@
 #include <map>
 
 #include <boost/bind.hpp>
-#include <boost/function.hpp>
+#include <functional>
 #include <boost/tuple/tuple.hpp>
 #include <boost/tuple/tuple_comparison.hpp>
 #include <boost/tuple/tuple_io.hpp>
@@ -31,7 +31,6 @@ namespace tudat
 
 namespace propagators
 {
-
 
 //! Class used to update the environment during numerical integration.
 /*!
@@ -96,12 +95,12 @@ public:
             std::vector< IntegratedStateType >( ) )
     {
         // Check consistency of input.
-        if( integratedStatesToSet.size( ) + setIntegratedStatesFromEnvironment.size( ) != integratedStates_.size( ) )
+        if( ( integratedStatesToSet.size( ) + setIntegratedStatesFromEnvironment.size( ) ) != integratedStates_.size( ) )
         {
             throw std::runtime_error( "Error when updating environment, input size is inconsistent " +
-                                      boost::lexical_cast< std::string >( integratedStatesToSet.size( ) ) + " " +
-                                      boost::lexical_cast< std::string >( setIntegratedStatesFromEnvironment.size( ) ) + " " +
-                                      boost::lexical_cast< std::string >( integratedStates_.size( ) ) );
+                                      std::to_string( integratedStatesToSet.size( ) ) + " " +
+                                      std::to_string( setIntegratedStatesFromEnvironment.size( ) ) + " " +
+                                      std::to_string( integratedStates_.size( ) ) );
         }
 
         for( unsigned int i = 0; i < resetFunctionVector_.size( ); i++ )
@@ -144,14 +143,25 @@ private:
         {
             switch( integratedStateIterator_->first )
             {
-            case transational_state:
+            case translational_state:
             {
                 // Set translational states for bodies provided as input.
-                for( unsigned int i = 0; i < integratedStates_[ transational_state ].size( ); i++ )
+                for( unsigned int i = 0; i < integratedStates_[ translational_state ].size( ); i++ )
                 {
-                    bodyList_[ integratedStates_[ transational_state ][ i ].first ]->template
+                    bodyList_[ integratedStates_[ translational_state ][ i ].first ]->template
                             setTemplatedState< StateScalarType >(
                                 integratedStateIterator_->second.segment( i * 6, 6 ) );
+                }
+                break;
+            }
+            case rotational_state:
+            {
+                std::vector< std::pair< std::string, std::string > > bodiesWithIntegratedStates =
+                        integratedStates_.at( rotational_state );
+                for( unsigned int i = 0; i < bodiesWithIntegratedStates.size( ); i++ )
+                {
+                    bodyList_[ bodiesWithIntegratedStates[ i ].first ]->setCurrentRotationalStateToLocalFrame(
+                                integratedStateIterator_->second.segment( i * 7, 7 ).template cast< double >( ) );
                 }
                 break;
             }
@@ -174,7 +184,7 @@ private:
             }
             default:
                 throw std::runtime_error( "Error, could not find integrated state settings for " +
-                                          boost::lexical_cast< std::string >( integratedStateIterator_->first ) );
+                                          std::to_string( integratedStateIterator_->first ) );
             }
         }
     }
@@ -195,16 +205,27 @@ private:
         {
             switch( statesToSet.at( i ) )
             {
-            case transational_state:
+            case translational_state:
             {
                 // Iterate over all integrated translational states.
                 std::vector< std::pair< std::string, std::string > > bodiesWithIntegratedStates =
-                        integratedStates_[ transational_state ];
+                        integratedStates_[ translational_state ];
                 for( unsigned int i = 0; i < bodiesWithIntegratedStates.size( ); i++ )
                 {
                     bodyList_[ bodiesWithIntegratedStates[ i ].first ]->
                             template setStateFromEphemeris< StateScalarType, TimeType >( currentTime );
 
+                }
+                break;
+            }
+            case rotational_state:
+            {
+                std::vector< std::pair< std::string, std::string > > bodiesWithIntegratedStates =
+                        integratedStates_.at( rotational_state );
+                for( unsigned int i = 0; i < bodiesWithIntegratedStates.size( ); i++ )
+                {
+                    bodyList_[ bodiesWithIntegratedStates[ i ].first ]->template setCurrentRotationalStateToLocalFrameFromEphemeris< TimeType >(
+                                currentTime );
                 }
                 break;
             }
@@ -223,7 +244,7 @@ private:
             }
             default:
                 throw std::runtime_error( "Error, could not find  state settings for " +
-                                          boost::lexical_cast< std::string >( statesToSet.at( i ) ) );
+                                          std::to_string( statesToSet.at( i ) ) );
             }
         }
     }
@@ -245,19 +266,19 @@ private:
             if( updateFunctionVector_.at( i ).template get< 0 >( ) == body_rotational_state_update )
             {
                 // Check id body has no rotational ephemeris (i.e. if rotation comes from iterationNumber ).
-                if( bodyList_.at( updateFunctionVector_.at( i ).template get< 1 >( ) )->getRotationalEphemeris( ) == NULL )
+                if( bodyList_.at( updateFunctionVector_.at( i ).template get< 1 >( ) )->getRotationalEphemeris( ) == nullptr )
                 {
                     // Check if DependentOrientationCalculator is an AerodynamicAngleCalculator.
-                    boost::shared_ptr< reference_frames::DependentOrientationCalculator > dependentOrientationCalculator =
+                    std::shared_ptr< reference_frames::DependentOrientationCalculator > dependentOrientationCalculator =
                             bodyList_.at( updateFunctionVector_.at( i ).template get< 1 >( ) )->
                             getDependentOrientationCalculator( );
-                    boost::shared_ptr< reference_frames::AerodynamicAngleCalculator > aerodynamicAngleCalculator =
-                            boost::dynamic_pointer_cast< reference_frames::AerodynamicAngleCalculator >(
+                    std::shared_ptr< reference_frames::AerodynamicAngleCalculator > aerodynamicAngleCalculator =
+                            std::dynamic_pointer_cast< reference_frames::AerodynamicAngleCalculator >(
                                 dependentOrientationCalculator );
 
                     // Check if properties of AerodynamicAngleCalculator are such that a different update order is warranted.
-                    if( boost::dynamic_pointer_cast< reference_frames::AerodynamicAngleCalculator >(
-                                dependentOrientationCalculator ) != NULL )
+                    if( std::dynamic_pointer_cast< reference_frames::AerodynamicAngleCalculator >(
+                                dependentOrientationCalculator ) != nullptr )
                     {
                         unsigned int centralTranslationalUpdateIndex = 0;
                         unsigned int centralRotationalUpdateIndex = 0;
@@ -273,7 +294,7 @@ private:
                         // Check if the state or orientation of the central body of AerodynamicAngleCalculator is updated.
                         for( unsigned int j = 0; j < updateFunctionVector_.size( ); j++ )
                         {
-                            if( ( updateFunctionVector_.at( j ).template get< 0 >( ) == body_transational_state_update ) &&
+                            if( ( updateFunctionVector_.at( j ).template get< 0 >( ) == body_translational_state_update ) &&
                                     ( updateFunctionVector_.at( j ).template get< 1 >( ) ==
                                       aerodynamicAngleCalculator->getCentralBodyName( ) ) )
                             {
@@ -289,7 +310,7 @@ private:
                                 centralRotationalUpdateIndexSet = true;
                             }
 
-                            if( ( updateFunctionVector_.at( j ).template get< 0 >( ) == body_transational_state_update ) &&
+                            if( ( updateFunctionVector_.at( j ).template get< 0 >( ) == body_translational_state_update ) &&
                                     ( updateFunctionVector_.at( j ).template get< 1 >( ) ==
                                       updateFunctionVector_.at( i ).template get< 1 >( ) ) )
                             {
@@ -308,7 +329,7 @@ private:
 
 
                         std::vector< int > indices;
-                        std::vector< boost::tuple< EnvironmentModelsToUpdate, std::string, boost::function< void( const double ) > > > updatesToMove;
+                        std::vector< boost::tuple< EnvironmentModelsToUpdate, std::string, std::function< void( const double ) > > > updatesToMove;
 
                         if( centralTranslationalUpdateIndexSet )
                         {
@@ -319,7 +340,7 @@ private:
                         if( centralRotationalUpdateIndexSet )
                         {
                             indices.push_back( centralRotationalUpdateIndex );
-                            updatesToMove.push_back( updateFunctionVector_.at( centralTranslationalUpdateIndex ) );
+                            updatesToMove.push_back( updateFunctionVector_.at( centralRotationalUpdateIndex ) );
                         }
 
                         if( vehicleTranslationalUpdateIndexSet )
@@ -376,7 +397,7 @@ private:
                              std::vector< std::string > >& updateSettings )
     {
         std::map< EnvironmentModelsToUpdate,
-                std::vector< std::pair< std::string, boost::function< void( const double ) > > > > updateTimeFunctionList;
+                std::vector< std::pair< std::string, std::function< void( const double ) > > > > updateTimeFunctionList;
 
         // Iterate over all required updates and set associated update function in lists
         for( std::map< EnvironmentModelsToUpdate,
@@ -402,18 +423,18 @@ private:
                     {
 
                     // If requested body is not propagated, add to list.
-                    case body_transational_state_update:
+                    case body_translational_state_update:
                     {
                         bool addUpdate = 1;
 
                         // Check if mass is propagated
-                        if( integratedStates_.count( transational_state ) > 0 )
+                        if( integratedStates_.count( translational_state ) > 0 )
                         {
                             // Check if current body is propagated
                             std::pair< std::string, std::string > bodyToCheck
                                     = std::make_pair( currentBodies.at( i ), "" );
                             std::vector< std::pair< std::string, std::string > > integratedTranslationalStates
-                                    = integratedStates_.at( transational_state );
+                                    = integratedStates_.at( translational_state );
                             if( std::find( integratedTranslationalStates.begin( ),
                                            integratedTranslationalStates.end( ),
                                            bodyToCheck ) != integratedTranslationalStates.end( ) )
@@ -425,51 +446,69 @@ private:
                         // Add state update function to list.
                         if( addUpdate == 1 )
                         {
-                            boost::function< void( const TimeType ) > stateSetFunction =
-                                    boost::bind(
+                            std::function< void( const TimeType ) > stateSetFunction =
+                                    std::bind(
                                         &simulation_setup::Body
                                             ::setStateFromEphemeris< StateScalarType, TimeType >,
-                                        bodyList_.at( currentBodies.at( i ) ), _1 );
+                                        bodyList_.at( currentBodies.at( i ) ), std::placeholders::_1 );
 
-                            updateTimeFunctionList[ body_transational_state_update ].push_back(
+                            updateTimeFunctionList[ body_translational_state_update ].push_back(
                                         std::make_pair( currentBodies.at( i ), stateSetFunction ) );
 
                             resetFunctionVector_.push_back(
                                         boost::make_tuple(
-                                            body_transational_state_update, currentBodies.at( i ),
-                                            boost::bind( &simulation_setup::Body::recomputeStateOnNextCall,
+                                            body_translational_state_update, currentBodies.at( i ),
+                                            std::bind( &simulation_setup::Body::recomputeStateOnNextCall,
                                                          bodyList_.at( currentBodies.at( i ) ) ) ) );
                         }
                         break;
                     }
                     case body_rotational_state_update:
                     {
-                        // Check if rotational ephemeris exists
-                        if(  ( bodyList_.at( currentBodies.at( i ) )->getRotationalEphemeris( ) != NULL ) ||
-                             ( bodyList_.at( currentBodies.at( i ) )->getDependentOrientationCalculator( ) != NULL ) )
-                        {
-                            boost::function< void( const TimeType ) > rotationalStateSetFunction =
-                                    boost::bind( &simulation_setup::Body
-                                                 ::setCurrentRotationalStateToLocalFrameFromEphemeris,
-                                                 bodyList_.at( currentBodies.at( i ) ), _1 );
-                            updateTimeFunctionList[ body_rotational_state_update ].push_back(
-                                        std::make_pair( currentBodies.at( i ), rotationalStateSetFunction ) );
 
-                            if( bodyList_.at( currentBodies.at( i ) )->getRotationalEphemeris( ) == NULL )
+                        bool addUpdate = 1;
+                        if( integratedStates_.count( rotational_state ) > 0 )
+                        {
+                            std::pair< std::string, std::string > bodyToCheck = std::make_pair( currentBodies.at( i ), "" );
+                            std::vector< std::pair< std::string, std::string > > integratedRotationalStates =
+                                    integratedStates_.at( rotational_state );
+                            if( std::find( integratedRotationalStates.begin( ), integratedRotationalStates.end( ), bodyToCheck ) !=
+                                    integratedRotationalStates.end( ) )
                             {
-                                resetFunctionVector_.push_back(
-                                            boost::make_tuple(
-                                                body_rotational_state_update, currentBodies.at( i ),
-                                                boost::bind( &reference_frames::DependentOrientationCalculator::
-                                                             resetCurrentTime, bodyList_.at( currentBodies.at( i ) )->
-                                                             getDependentOrientationCalculator( ), TUDAT_NAN ) ) );
+                                addUpdate = 0;
                             }
                         }
-                        else
+
+                        if( addUpdate == 1 )
                         {
-                            throw std::runtime_error(
-                                        "Request rotation update of " + currentBodies.at( i ) +
-                                        ", but body has no rotational ephemeris" );
+
+                            // Check if rotational ephemeris exists
+                            if(  ( bodyList_.at( currentBodies.at( i ) )->getRotationalEphemeris( ) != nullptr ) ||
+                                 ( bodyList_.at( currentBodies.at( i ) )->getDependentOrientationCalculator( ) != nullptr ) )
+                            {
+                                std::function< void( const TimeType ) > rotationalStateSetFunction =
+                                        std::bind( &simulation_setup::Body
+                                                     ::setCurrentRotationalStateToLocalFrameFromEphemeris< TimeType >,
+                                                     bodyList_.at( currentBodies.at( i ) ), std::placeholders::_1 );
+                                updateTimeFunctionList[ body_rotational_state_update ].push_back(
+                                            std::make_pair( currentBodies.at( i ), rotationalStateSetFunction ) );
+
+                                if( bodyList_.at( currentBodies.at( i ) )->getRotationalEphemeris( ) == nullptr )
+                                {
+                                    resetFunctionVector_.push_back(
+                                                boost::make_tuple(
+                                                    body_rotational_state_update, currentBodies.at( i ),
+                                                    std::bind( &reference_frames::DependentOrientationCalculator::
+                                                                 resetCurrentTime, bodyList_.at( currentBodies.at( i ) )->
+                                                                 getDependentOrientationCalculator( ), TUDAT_NAN ) ) );
+                                }
+                            }
+                            else
+                            {
+                                throw std::runtime_error(
+                                            "Request rotation update of " + currentBodies.at( i ) +
+                                            ", but body has no rotational ephemeris" );
+                            }
                         }
 
                         break;
@@ -499,8 +538,8 @@ private:
                         {
                             updateTimeFunctionList[ body_mass_update ].push_back(
                                         std::make_pair( currentBodies.at( i ),
-                                                        boost::bind( &simulation_setup::Body::updateMass,
-                                                                     bodyList_.at( currentBodies.at( i ) ), _1  ) ) );
+                                                        std::bind( &simulation_setup::Body::updateMass,
+                                                                     bodyList_.at( currentBodies.at( i ) ), std::placeholders::_1  ) ) );
                         }
                         break;
                     }
@@ -508,23 +547,23 @@ private:
                     {
 
                         // Check if body has time-dependent sh field
-                        boost::shared_ptr< gravitation::TimeDependentSphericalHarmonicsGravityField >
-                                gravityField = boost::dynamic_pointer_cast
+                        std::shared_ptr< gravitation::TimeDependentSphericalHarmonicsGravityField >
+                                gravityField = std::dynamic_pointer_cast
                                 < gravitation::TimeDependentSphericalHarmonicsGravityField >
                                 (  bodyList_.at( currentBodies.at( i ) )->getGravityFieldModel( ) );
-                        if( gravityField != NULL )
+                        if( gravityField != nullptr )
                         {
                             updateTimeFunctionList[ spherical_harmonic_gravity_field_update ].push_back(
                                         std::make_pair(
                                             currentBodies.at( i ),
-                                            boost::bind( &gravitation
+                                            std::bind( &gravitation
                                                          ::TimeDependentSphericalHarmonicsGravityField
                                                          ::update,
-                                                         gravityField, _1 ) ) );
+                                                         gravityField, std::placeholders::_1 ) ) );
                         }
                         // If no sh field at all, throw eeror.
-                        else if( boost::dynamic_pointer_cast< gravitation::SphericalHarmonicsGravityField >
-                                 (  bodyList_.at( currentBodies.at( i ) )->getGravityFieldModel( ) ) == NULL )
+                        else if( std::dynamic_pointer_cast< gravitation::SphericalHarmonicsGravityField >
+                                 (  bodyList_.at( currentBodies.at( i ) )->getGravityFieldModel( ) ) == nullptr )
                         {
                             throw std::runtime_error( "Request sh update of " + currentBodies.at( i ) +
                                                       ", but body has no sh model" );
@@ -535,21 +574,21 @@ private:
                     case vehicle_flight_conditions_update:
                     {
                         // Check if current body has flight conditions set.
-                        if( bodyList_.at( currentBodies.at( i ) )->getFlightConditions( ) != NULL )
+                        if( bodyList_.at( currentBodies.at( i ) )->getFlightConditions( ) != nullptr )
                         {
                             // If vehicle has flight conditions, add flight conditions update
                             // function to update list.
                             updateTimeFunctionList[ vehicle_flight_conditions_update ].push_back(
                                         std::make_pair(
-                                            currentBodies.at( i ), boost::bind(
+                                            currentBodies.at( i ), std::bind(
                                                 &aerodynamics::FlightConditions::updateConditions,
                                                 bodyList_.at( currentBodies.at( i ) )
-                                                ->getFlightConditions( ), _1 ) ) );
+                                                ->getFlightConditions( ), std::placeholders::_1 ) ) );
 
                             resetFunctionVector_.push_back(
                                         boost::make_tuple(
                                             vehicle_flight_conditions_update, currentBodies.at( i ),
-                                            boost::bind( &aerodynamics::FlightConditions::
+                                            std::bind( &aerodynamics::FlightConditions::
                                                          resetCurrentTime, bodyList_.at( currentBodies.at( i ) )->
                                                          getFlightConditions( ), TUDAT_NAN ) ) );
                         }
@@ -565,7 +604,7 @@ private:
                     case radiation_pressure_interface_update:
                     {
                         // Get body radiation pressure interface(s) (one per source)
-                        std::map< std::string, boost::shared_ptr< electro_magnetism
+                        std::map< std::string, std::shared_ptr< electro_magnetism
                                 ::RadiationPressureInterface > >
                                 radiationPressureInterfaces =
                                 bodyList_.at( currentBodies.at( i ) )->getRadiationPressureInterfaces( );
@@ -578,23 +617,23 @@ private:
                         }
                         else if( radiationPressureInterfaces.size( ) > 1 )
                         {
-                            std::cerr<<"Warning, requested radiation pressure update of "<<currentBodies.at( i )<<
-                                       ", but body has multiple radiation pressure interfaces: updating all."<<std::endl;
+                            std::cerr << "Warning, requested radiation pressure update of " << currentBodies.at( i ) <<
+                                       ", but body has multiple radiation pressure interfaces: updating all." << std::endl;
                         }
 
                         // Add each interface update function to update list.
                         for( std::map< std::string,
-                             boost::shared_ptr< electro_magnetism::RadiationPressureInterface > >
+                             std::shared_ptr< electro_magnetism::RadiationPressureInterface > >
                              ::iterator iterator = radiationPressureInterfaces.begin( );
                              iterator != radiationPressureInterfaces.end( ); iterator++ )
                         {
                             updateTimeFunctionList[ radiation_pressure_interface_update ].push_back(
                                         std::make_pair( currentBodies.at( i ),
-                                                        boost::bind(
+                                                        std::bind(
                                                             &electro_magnetism
                                                             ::RadiationPressureInterface
                                                             ::updateInterface,
-                                                            iterator->second, _1 ) ) );
+                                                            iterator->second, std::placeholders::_1 ) ) );
                         }
                         break;
                     }
@@ -605,7 +644,7 @@ private:
 
         // Create list of update functions.
         for( std::map< EnvironmentModelsToUpdate, std::vector< std::pair< std::string,
-             boost::function< void( const double ) > > > >::iterator updateTimeIterator  = updateTimeFunctionList.begin( );
+             std::function< void( const double ) > > > >::iterator updateTimeIterator  = updateTimeFunctionList.begin( );
              updateTimeIterator != updateTimeFunctionList.end( ); updateTimeIterator++ )
         {
             for( unsigned int i = 0; i < updateTimeIterator->second.size( ); i++ )
@@ -636,12 +675,12 @@ private:
     integratedStates_;
 
     //! List of time-dependent functions to call to update the environment.
-    std::vector< boost::tuple< EnvironmentModelsToUpdate, std::string, boost::function< void( const double ) > > >
+    std::vector< boost::tuple< EnvironmentModelsToUpdate, std::string, std::function< void( const double ) > > >
     updateFunctionVector_;
 
     //! List of time-dependent functions to call to reset the time of the environment (to NaN signal recomputation for next
     //! time step).
-    std::vector< boost::tuple< EnvironmentModelsToUpdate, std::string, boost::function< void( ) > > > resetFunctionVector_;
+    std::vector< boost::tuple< EnvironmentModelsToUpdate, std::string, std::function< void( ) > > > resetFunctionVector_;
 
 
 
@@ -652,6 +691,14 @@ private:
 
 
 };
+
+extern template class EnvironmentUpdater< double, double >;
+
+#if( BUILD_WITH_EXTENDED_PRECISION_PROPAGATION_TOOLS )
+extern template class EnvironmentUpdater< double, Time >;
+extern template class EnvironmentUpdater< long double, double >;
+extern template class EnvironmentUpdater< long double, Time >;
+#endif
 
 } // namespace propagators
 

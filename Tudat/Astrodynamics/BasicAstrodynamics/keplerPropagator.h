@@ -1,4 +1,4 @@
-/*    Copyright (c) 2010-2017, Delft University of Technology
+/*    Copyright (c) 2010-2019, Delft University of Technology
  *    All rigths reserved
  *
  *    This file is part of the Tudat. Redistribution and use in source and
@@ -12,7 +12,6 @@
 #ifndef TUDAT_KEPLER_PROPAGATOR_H
 #define TUDAT_KEPLER_PROPAGATOR_H
 
-#include <boost/exception/all.hpp>
 #include <boost/make_shared.hpp>
 
 #include <Eigen/Core>
@@ -67,8 +66,8 @@ Eigen::Matrix< ScalarType, 6, 1 > propagateKeplerOrbit(
         const Eigen::Matrix< ScalarType, 6, 1 >& initialStateInKeplerianElements,
         const ScalarType propagationTime,
         const ScalarType centralBodyGravitationalParameter,
-        boost::shared_ptr< root_finders::RootFinderCore< ScalarType > > aRootFinder =
-        boost::shared_ptr< root_finders::RootFinderCore< ScalarType > >( ) )
+        std::shared_ptr< root_finders::RootFinderCore< ScalarType > > aRootFinder =
+        std::shared_ptr< root_finders::RootFinderCore< ScalarType > >( ) )
 {
     // Create final state in Keplerian elements.
     Eigen::Matrix< ScalarType, 6, 1 > finalStateInKeplerianElements =
@@ -78,9 +77,7 @@ Eigen::Matrix< ScalarType, 6, 1 > propagateKeplerOrbit(
     if ( initialStateInKeplerianElements( eccentricityIndex ) <
          mathematical_constants::getFloatingInteger< ScalarType >( 0 ) )
     {
-        boost::throw_exception(
-                    boost::enable_error_info(
-                        std::runtime_error( "Eccentricity is invalid (smaller than 0)." ) ) );
+        throw std::runtime_error( "Eccentricity is invalid (smaller than 0)." );
     }
 
     // Check if orbit is elliptical.
@@ -156,9 +153,7 @@ Eigen::Matrix< ScalarType, 6, 1 > propagateKeplerOrbit(
     // In this case the eccentricity has to be 1.0, hence the orbit is parabolic.
     else
     {
-        boost::throw_exception(
-                    boost::enable_error_info(
-                        std::runtime_error( "Parabolic orbits are not (yet) supported." ) ) );
+        throw std::runtime_error( "Parabolic orbits are not (yet) supported." );
     }
 
     return finalStateInKeplerianElements;

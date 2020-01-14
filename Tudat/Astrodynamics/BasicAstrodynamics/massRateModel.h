@@ -1,4 +1,4 @@
-/*    Copyright (c) 2010-2017, Delft University of Technology
+/*    Copyright (c) 2010-2019, Delft University of Technology
  *    All rigths reserved
  *
  *    This file is part of the Tudat. Redistribution and use in source and
@@ -13,8 +13,8 @@
 
 #include <map>
 #include <vector>
-#include <boost/function.hpp>
-#include <boost/shared_ptr.hpp>
+#include <functional>
+#include <memory>
 
 #include <Eigen/Core>
 
@@ -100,7 +100,7 @@ public:
      * \param massRateFunction Function returning mass rate as a function of time.
      */
     CustomMassRateModel(
-            const boost::function< double( const double ) > massRateFunction ):
+            const std::function< double( const double ) > massRateFunction ):
     massRateFunction_( massRateFunction ){ }
 
     //! Destructor.
@@ -123,9 +123,12 @@ public:
 private:
 
     //! Function returning mass rate as a function of time.
-    boost::function< double( const double ) > massRateFunction_;
+    std::function< double( const double ) > massRateFunction_;
 
 };
+
+//! Typedef for the massrate model map.
+typedef std::map< std::string, std::vector< std::shared_ptr< MassRateModel > > > MassRateModelMap;
 
 
 } // namespace basic_astrodynamics

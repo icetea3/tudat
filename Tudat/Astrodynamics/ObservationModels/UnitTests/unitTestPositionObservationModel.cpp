@@ -1,4 +1,4 @@
-/*    Copyright (c) 2010-2017, Delft University of Technology
+/*    Copyright (c) 2010-2019, Delft University of Technology
  *    All rigths reserved
  *
  *    This file is part of the Tudat. Redistribution and use in source and
@@ -13,7 +13,6 @@
 #include <limits>
 #include <string>
 
-#include <boost/format.hpp>
 #include <boost/test/unit_test.hpp>
 #include <boost/make_shared.hpp>
 
@@ -22,7 +21,6 @@
 #include "Tudat/InputOutput/basicInputOutput.h"
 
 #include "Tudat/SimulationSetup/EnvironmentSetup/body.h"
-#include "Tudat/Astrodynamics/ObservationModels/angularPositionObservationModel.h"
 #include "Tudat/SimulationSetup/EstimationSetup/createObservationModel.h"
 #include "Tudat/SimulationSetup/EnvironmentSetup/defaultBodies.h"
 #include "Tudat/SimulationSetup/EnvironmentSetup/createBodies.h"
@@ -43,11 +41,7 @@ BOOST_AUTO_TEST_SUITE( test_position_obsevable_model )
 
 BOOST_AUTO_TEST_CASE( testPositionObsevableModel )
 {
-    std::string kernelsPath = input_output::getSpiceKernelPath( );
-    spice_interface::loadSpiceKernelInTudat( kernelsPath + "de-403-masses.tpc");
-    spice_interface::loadSpiceKernelInTudat( kernelsPath + "naif0009.tls");
-    spice_interface::loadSpiceKernelInTudat( kernelsPath + "pck00009.tpc");
-    spice_interface::loadSpiceKernelInTudat( kernelsPath + "de421.bsp");
+    spice_interface::loadStandardSpiceKernels( );
 
     // Define bodies to use.
     std::vector< std::string > bodiesToCreate;
@@ -61,7 +55,7 @@ BOOST_AUTO_TEST_CASE( testPositionObsevableModel )
     double buffer = 10.0 * maximumTimeStep;
 
     // Create bodies settings needed in simulation
-    std::map< std::string, boost::shared_ptr< BodySettings > > defaultBodySettings =
+    std::map< std::string, std::shared_ptr< BodySettings > > defaultBodySettings =
             getDefaultBodySettings(
                 bodiesToCreate, initialEphemerisTime - buffer, finalEphemerisTime + buffer );
 
@@ -74,15 +68,19 @@ BOOST_AUTO_TEST_CASE( testPositionObsevableModel )
     LinkEnds linkEnds;
     linkEnds[ observed_body ] = std::make_pair( "Earth" , ""  );
 
-    // Create observation model.
-    boost::shared_ptr< ObservationBias< 3 > > observationBias =
-            boost::make_shared< ConstantObservationBias< 3 > >(
-                ( Eigen::Vector3d( ) << 543.2454, -34.244, 3431.24345 ).finished( ) );
 
-    boost::shared_ptr< ObservationModel< 3, double, double, double > > observationModel =
-           ObservationModelCreator< 3, double, double, double >::createObservationModel(
-                position_observable, linkEnds, bodyMap,
-                std::vector< boost::shared_ptr< LightTimeCorrectionSettings > >( ), observationBias );
+    // Create observation settings
+    std::shared_ptr< ObservationSettings > observableSettings = std::make_shared< ObservationSettings >
+            ( position_observable, std::vector< std::shared_ptr< LightTimeCorrectionSettings > >( ),
+              std::make_shared< ConstantObservationBiasSettings >(
+                  ( Eigen::Vector3d( ) << 543.2454, -34.244, 3431.24345 ).finished( ), true ) );
+
+    // Create observation model.
+    std::shared_ptr< ObservationModel< 3, double, double > > observationModel =
+           ObservationModelCreator< 3, double, double >::createObservationModel(
+                linkEnds, observableSettings, bodyMap );
+    std::shared_ptr< ObservationBias< 3 > > observationBias = observationModel->getObservationBiasCalculator( );
+
 
     // Compute observation separately with two functions.
     double observationTime = ( finalEphemerisTime + initialEphemerisTime ) / 2.0;
@@ -90,6 +88,7 @@ BOOST_AUTO_TEST_CASE( testPositionObsevableModel )
     std::vector< Eigen::Vector6d > linkEndStates;
     Eigen::Vector3d observation = observationModel->computeObservations(
                 observationTime, observed_body );
+
     Eigen::Vector3d observation2 = observationModel->computeObservationsWithLinkEndData(
                 observationTime, observed_body, linkEndTimes, linkEndStates );
 

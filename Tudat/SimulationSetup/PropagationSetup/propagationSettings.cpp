@@ -1,9 +1,37 @@
-/*    Copyright (c) 2010-2017, Delft University of Technology
- *    All rigths reserved
- *
- *    This file is part of the Tudat. Redistribution and use in source and
- *    binary forms, with or without modification, are permitted exclusively
- *    under the terms of the Modified BSD license. You should have received
- *    a copy of the license with this file. If not, please or visit:
- *    http://tudat.tudelft.nl/LICENSE.
- */
+#include "Tudat/SimulationSetup/PropagationSetup/propagationSettings.h"
+
+namespace tudat
+{
+
+namespace propagators
+{
+
+template class PropagatorSettings< double >;
+template class SingleArcPropagatorSettings< double >;
+template class MultiArcPropagatorSettings< double >;
+template class TranslationalStatePropagatorSettings< double >;
+template class RotationalStatePropagatorSettings< double >;
+template class MassPropagatorSettings< double >;
+template class CustomStatePropagatorSettings< double >;
+template class MultiTypePropagatorSettings< double >;
+
+#if( BUILD_WITH_EXTENDED_PRECISION_PROPAGATION_TOOLS )
+template class PropagatorSettings< long double >;
+template class SingleArcPropagatorSettings< long double >;
+template class MultiArcPropagatorSettings< long double >;
+template class TranslationalStatePropagatorSettings< long double >;
+template class RotationalStatePropagatorSettings< long double >;
+template class MassPropagatorSettings< long double >;
+template class MultiTypePropagatorSettings< long double >;
+template class CustomStatePropagatorSettings< long double >;
+template class CustomStatePropagatorSettings< double, Time >;
+template class CustomStatePropagatorSettings< long double, Time >;
+#endif
+
+template std::map< IntegratedStateType, std::vector< std::pair< std::string, std::string > > > getIntegratedTypeAndBodyList< double >(
+        const std::shared_ptr< SingleArcPropagatorSettings< double > > propagatorSettings );
+
+} // namespace propagators
+
+} // namespace tudat
+

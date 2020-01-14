@@ -1,4 +1,4 @@
-/*    Copyright (c) 2010-2017, Delft University of Technology
+/*    Copyright (c) 2010-2019, Delft University of Technology
  *    All rigths reserved
  *
  *    This file is part of the Tudat. Redistribution and use in source and
@@ -38,7 +38,7 @@ LambertTargeterGooding::LambertTargeterGooding(
     // Required because the make_shared in the function definition gives problems for MSVC.
     if ( !rootFinder.get( ) )
     {
-        rootFinder = boost::make_shared< NewtonRaphson >( 1.0e-12, 1000 );
+        rootFinder = std::make_shared< NewtonRaphson >( 1.0e-12, 1000 );
     }
 
     // Execute algorithm.

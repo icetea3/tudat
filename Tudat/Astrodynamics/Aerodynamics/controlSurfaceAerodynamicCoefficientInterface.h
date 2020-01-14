@@ -1,4 +1,4 @@
-/*    Copyright (c) 2010-2017, Delft University of Technology
+/*    Copyright (c) 2010-2019, Delft University of Technology
  *    All rigths reserved
  *
  *    This file is part of the Tudat. Redistribution and use in source and
@@ -11,17 +11,15 @@
 #ifndef TUDAT_CONTROLSURFACEAERODYNAMICCOEFFICIENTINTERFACE_H
 #define TUDAT_CONTROLSURFACEAERODYNAMICCOEFFICIENTINTERFACE_H
 
-#include <iostream>
 #include <vector>
 
-#include <boost/function.hpp>
+#include <functional>
 #include <boost/bind.hpp>
 
 #include <Eigen/Core>
 
 #include "Tudat/Basics/basicTypedefs.h"
-#include <Tudat/Astrodynamics/Aerodynamics/aerodynamics.h>
-
+#include "Tudat/Astrodynamics/Aerodynamics/aerodynamics.h"
 namespace tudat
 {
 
@@ -65,9 +63,9 @@ public:
         // Provide warning if number of control surface deflections is not equal to 1.
         if( numberOfControlSurfaceDeflections != 1 )
         {
-            std::string errorMessage = "Warnining when making control surface deflection interface, " + boost::lexical_cast< std::string >(
+            std::string errorMessage = "Warnining when making control surface deflection interface, " + std::to_string(
                         numberOfControlSurfaceDeflections ) + " deflection independent variables found, must be 1 per object ";
-            std::cerr<<errorMessage<<std::endl;
+            throw std::runtime_error( errorMessage );
         }
 
         numberOfIndependentVariables_ = independentVariableNames_.size( );
@@ -148,8 +146,8 @@ public:
             throw std::runtime_error(
                         std::string( "Error when retrieving aerodynamic coefficient interface " ) +
                         ( " variable name, requested variable index " ) +
-                        boost::lexical_cast< std::string >( index ) +
-                        ", but only " + boost::lexical_cast< std::string >(
+                        std::to_string( index ) +
+                        ", but only " + std::to_string(
                             numberOfIndependentVariables_ ) + " variables available." );
         }
 
@@ -215,19 +213,20 @@ public:
      *  independent variable of the aerodynamic coefficients.
      */
     CustomControlSurfaceIncrementAerodynamicInterface(
-            const boost::function< Eigen::Vector6d( const std::vector< double >& ) > coefficientFunction,
+            const std::function< Eigen::Vector6d( const std::vector< double >& ) > coefficientFunction,
             const std::vector< AerodynamicCoefficientsIndependentVariables > independentVariableNames ):
         ControlSurfaceIncrementAerodynamicInterface( independentVariableNames ),
         coefficientFunction_( coefficientFunction ){ }
 
     CustomControlSurfaceIncrementAerodynamicInterface(
-            const boost::function< Eigen::Vector3d( const std::vector< double >& ) > forceCoefficientFunction,
-            const boost::function< Eigen::Vector3d( const std::vector< double >& ) > momentCoefficientFunction,
+            const std::function< Eigen::Vector3d( const std::vector< double >& ) > forceCoefficientFunction,
+            const std::function< Eigen::Vector3d( const std::vector< double >& ) > momentCoefficientFunction,
             const std::vector< AerodynamicCoefficientsIndependentVariables > independentVariableNames ):
         ControlSurfaceIncrementAerodynamicInterface( independentVariableNames )
     {
-        coefficientFunction_ = boost::bind(
-                    &concatenateForceAndMomentCoefficients, forceCoefficientFunction, momentCoefficientFunction, _1 );
+        coefficientFunction_ = std::bind(
+                    &concatenateForceAndMomentCoefficients, forceCoefficientFunction, momentCoefficientFunction,
+                    std::placeholders::_1 );
     }
 
 
@@ -263,7 +262,7 @@ protected:
 
     //! Function returning the concatenated aerodynamic force and moment coefficient increments as function of the set of
     //! independent variables.
-    boost::function< Eigen::Vector6d( const std::vector< double >& ) > coefficientFunction_;
+    std::function< Eigen::Vector6d( const std::vector< double >& ) > coefficientFunction_;
 };
 
 }

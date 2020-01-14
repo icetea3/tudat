@@ -1,4 +1,4 @@
-/*    Copyright (c) 2010-2017, Delft University of Technology
+/*    Copyright (c) 2010-2019, Delft University of Technology
  *    All rigths reserved
  *
  *    This file is part of the Tudat. Redistribution and use in source and
@@ -15,7 +15,7 @@
 #ifndef TUDAT_RUNGE_KUTTA_COEFFICIENTS_H
 #define TUDAT_RUNGE_KUTTA_COEFFICIENTS_H
 
-#include <boost/shared_ptr.hpp>
+#include <memory>
 
 #include <Eigen/Core>
 
@@ -92,6 +92,7 @@ struct RungeKuttaCoefficients
     //! Enum of predefined coefficient sets.
     enum CoefficientSets
     {
+        undefinedCoefficientSet = -1,
         rungeKuttaFehlberg45,
         rungeKuttaFehlberg56,
         rungeKuttaFehlberg78,
@@ -108,7 +109,7 @@ struct RungeKuttaCoefficients
 };
 
 //! Typedef for shared-pointer to RungeKuttaCoefficients object.
-typedef boost::shared_ptr< RungeKuttaCoefficients > RungeKuttaCoefficientsPointer;
+typedef std::shared_ptr< RungeKuttaCoefficients > RungeKuttaCoefficientsPointer;
 
 } // namespace numerical_integrators
 } // namespace tudat

@@ -1,4 +1,4 @@
-/*    Copyright (c) 2010-2017, Delft University of Technology
+/*    Copyright (c) 2010-2019, Delft University of Technology
  *    All rigths reserved
  *
  *    This file is part of the Tudat. Redistribution and use in source and
@@ -52,6 +52,15 @@ BOOST_AUTO_TEST_CASE( testMatrixTextFileReader )
 
         // Check if data input file matrix matches expected matrix.
         TUDAT_CHECK_MATRIX_CLOSE_FRACTION( expectedMatrix, inputFileMatrix,
+                                           std::numeric_limits< double >::epsilon( ) );
+
+        // Read input file and store data in matrix (with empty lines).
+        const Eigen::MatrixXd inputFileMatrix2 = input_output::readMatrixFromFile(
+                    input_output::getTudatRootPath( )
+                    + "/InputOutput/UnitTests/testMatrix4.txt", ";"  );
+
+        // Check if data input file matrix matches expected matrix.
+        TUDAT_CHECK_MATRIX_CLOSE_FRACTION( expectedMatrix, inputFileMatrix2,
                                            std::numeric_limits< double >::epsilon( ) );
 
     }

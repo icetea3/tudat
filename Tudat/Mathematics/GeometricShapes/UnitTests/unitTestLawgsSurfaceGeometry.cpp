@@ -1,4 +1,4 @@
-/*    Copyright (c) 2010-2017, Delft University of Technology
+/*    Copyright (c) 2010-2019, Delft University of Technology
  *    All rigths reserved
  *
  *    This file is part of the Tudat. Redistribution and use in source and
@@ -16,7 +16,7 @@
 #define BOOST_TEST_MAIN
 
 #include <boost/make_shared.hpp>
-#include <boost/shared_ptr.hpp>
+#include <memory>
 #include <boost/test/unit_test.hpp>
 
 #include <Eigen/Core>
@@ -41,7 +41,7 @@ BOOST_AUTO_TEST_CASE( testLawgsSurfaceGeometry )
 
     // Create a full sphere as test geometry, with a radius of 2.0.
     const double sphereRadius = 2.0;
-    boost::shared_ptr< SphereSegment > sphere = boost::make_shared< SphereSegment >(
+    std::shared_ptr< SphereSegment > sphere = std::make_shared< SphereSegment >(
                 sphereRadius );
 
     // Create a Lawgs mesh of the sphere.

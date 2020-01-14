@@ -1,4 +1,4 @@
- #    Copyright (c) 2010-2017, Delft University of Technology
+ #    Copyright (c) 2010-2019, Delft University of Technology
  #    All rigths reserved
  #
  #    This file is part of the Tudat. Redistribution and use in source and
@@ -9,6 +9,7 @@
  #
  #    Notes
  #
+
 # Define the sub-directories.
 set(BASICMATHEMATICSDIR "${MATHEMATICSDIR}/BasicMathematics")
 set(GEOMETRICSHAPESDIR "${MATHEMATICSDIR}/GeometricShapes")
@@ -17,6 +18,9 @@ set(NUMERICALINTEGRATORSDIR "${MATHEMATICSDIR}/NumericalIntegrators")
 set(ROOTFINDERSDIR "${MATHEMATICSDIR}/RootFinders")
 set(STATISTICSDIR "${MATHEMATICSDIR}/Statistics")
 set(NUMERICALQUADRATUREDIR "${MATHEMATICSDIR}/NumericalQuadrature")
+if(BUILD_WITH_FILTERS)
+  set(FILTERSDIR "${MATHEMATICSDIR}/Filters")
+endif()
 
 # Add sub-directories.
 add_subdirectory("${SRCROOT}${MATHEMATICSDIR}/BasicMathematics")
@@ -26,6 +30,9 @@ add_subdirectory("${SRCROOT}${MATHEMATICSDIR}/NumericalIntegrators")
 add_subdirectory("${SRCROOT}${MATHEMATICSDIR}/RootFinders")
 add_subdirectory("${SRCROOT}${MATHEMATICSDIR}/Statistics")
 add_subdirectory("${SRCROOT}${MATHEMATICSDIR}/NumericalQuadrature")
+if(BUILD_WITH_FILTERS)
+  add_subdirectory("${SRCROOT}${MATHEMATICSDIR}/Filters")
+endif()
 
 # Get target properties for static libraries.
 get_target_property(BASICMATHEMATICS tudat_basic_mathematics SOURCES)
@@ -35,3 +42,6 @@ get_target_property(NUMERICALINTEGRATORSSOURCES tudat_numerical_integrators SOUR
 get_target_property(ROOTFINDERSSOURCES tudat_root_finders SOURCES)
 get_target_property(STATISTICSSOURCES tudat_statistics SOURCES)
 get_target_property(NUMERICALQUADRATURESOURCES tudat_numerical_quadrature SOURCES)
+if(BUILD_WITH_FILTERS)
+ get_target_property(FILTERSSOURCES tudat_filters SOURCES)
+endif()

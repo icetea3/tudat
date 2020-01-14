@@ -1,4 +1,4 @@
-/*    Copyright (c) 2010-2017, Delft University of Technology
+/*    Copyright (c) 2010-2019, Delft University of Technology
  *    All rigths reserved
  *
  *    This file is part of the Tudat. Redistribution and use in source and
@@ -16,9 +16,7 @@
 #ifndef TUDAT_LAWGS_PART_GEOMETRY_H
 #define TUDAT_LAWGS_PART_GEOMETRY_H
 
-#include <iostream>
-
-#include <boost/shared_ptr.hpp>
+#include <memory>
 
 #include <Eigen/Core>
 
@@ -61,7 +59,7 @@ public:
      * \param numberOfPoints Number of points to be sampled from 2nd
      *          independent variable.
      */
-    void setMesh( boost::shared_ptr< SingleSurfaceGeometry > originalSurface,
+    void setMesh( std::shared_ptr< SingleSurfaceGeometry > originalSurface,
                   int numberOfLines, int numberOfPoints );
 
     //! Copy constructor.
@@ -139,7 +137,7 @@ public:
      * \param lawgsPartGeometry Lawgs part geometry.
      * \return Stream object.
      */
-    friend std::ostream& operator<<( std::ostream& stream, LawgsPartGeometry& lawgsPartGeometry );
+    friend std::ostream& operator << ( std::ostream& stream, LawgsPartGeometry& lawgsPartGeometry );
 
 protected:
 
@@ -153,7 +151,7 @@ private:
 };
 
 //! Typedef for shared-pointer to LawgsPartGeometry object.
-typedef boost::shared_ptr< LawgsPartGeometry > LawgsPartGeometryPointer;
+typedef std::shared_ptr< LawgsPartGeometry > LawgsPartGeometryPointer;
 
 } // namespace geometric_shapes
 } // namespace tudat

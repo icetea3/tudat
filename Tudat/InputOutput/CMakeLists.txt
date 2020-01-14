@@ -1,4 +1,4 @@
- #    Copyright (c) 2010-2017, Delft University of Technology
+ #    Copyright (c) 2010-2019, Delft University of Technology
  #    All rigths reserved
  #
  #    This file is part of the Tudat. Redistribution and use in source and
@@ -23,13 +23,13 @@ set(INPUTOUTPUT_SOURCES
   "${SRCROOT}${INPUTOUTPUTDIR}/textParser.cpp"
   "${SRCROOT}${INPUTOUTPUTDIR}/twoLineElementData.cpp"
   "${SRCROOT}${INPUTOUTPUTDIR}/twoLineElementsTextFileReader.cpp"
-  "${SRCROOT}${INPUTOUTPUTDIR}/matrixTextFileReader.cpp"
   "${SRCROOT}${INPUTOUTPUTDIR}/streamFilters.cpp"
   "${SRCROOT}${INPUTOUTPUTDIR}/parseSolarActivityData.cpp"
   "${SRCROOT}${INPUTOUTPUTDIR}/extractSolarActivityData.cpp"
   "${SRCROOT}${INPUTOUTPUTDIR}/solarActivityData.cpp"
   "${SRCROOT}${INPUTOUTPUTDIR}/multiDimensionalArrayReader.cpp"
   "${SRCROOT}${INPUTOUTPUTDIR}/aerodynamicCoefficientReader.cpp"
+  "${SRCROOT}${INPUTOUTPUTDIR}/tabulatedAtmosphereReader.cpp"
 )
 
 # Add header files.
@@ -53,13 +53,17 @@ set(INPUTOUTPUT_HEADERS
   "${SRCROOT}${INPUTOUTPUTDIR}/twoLineElementData.h"
   "${SRCROOT}${INPUTOUTPUTDIR}/twoLineElementsTextFileReader.h"
   "${SRCROOT}${INPUTOUTPUTDIR}/basicInputOutput.h"
+  "${SRCROOT}${INPUTOUTPUTDIR}/mapTextFileReader.h"
   "${SRCROOT}${INPUTOUTPUTDIR}/matrixTextFileReader.h"
   "${SRCROOT}${INPUTOUTPUTDIR}/streamFilters.h"
   "${SRCROOT}${INPUTOUTPUTDIR}/parseSolarActivityData.h"
   "${SRCROOT}${INPUTOUTPUTDIR}/extractSolarActivityData.h"
   "${SRCROOT}${INPUTOUTPUTDIR}/solarActivityData.h"
   "${SRCROOT}${INPUTOUTPUTDIR}/multiDimensionalArrayReader.h"
+  "${SRCROOT}${INPUTOUTPUTDIR}/multiDimensionalArrayWriter.h"
   "${SRCROOT}${INPUTOUTPUTDIR}/aerodynamicCoefficientReader.h"
+  "${SRCROOT}${INPUTOUTPUTDIR}/readHistoryFromFile.h"
+  "${SRCROOT}${INPUTOUTPUTDIR}/tabulatedAtmosphereReader.h"
 )
 
 # Add unit test files.
@@ -74,6 +78,10 @@ add_library(tudat_input_output STATIC ${INPUTOUTPUT_SOURCES} ${INPUTOUTPUT_HEADE
 setup_tudat_library_target(tudat_input_output "${SRCROOT}${INPUTOUTPUTDIR}")
 
 # Add unit tests.
+add_executable(test_MapTextFileReader "${SRCROOT}${INPUTOUTPUTDIR}/UnitTests/unitTestMapTextFileReader.cpp")
+setup_custom_test_program(test_MapTextFileReader "${SRCROOT}${INPUTOUTPUTDIR}")
+target_link_libraries(test_MapTextFileReader tudat_input_output tudat_basic_astrodynamics ${Boost_LIBRARIES})
+
 add_executable(test_MatrixTextFileReader "${SRCROOT}${INPUTOUTPUTDIR}/UnitTests/unitTestMatrixTextFileReader.cpp")
 setup_custom_test_program(test_MatrixTextFileReader "${SRCROOT}${INPUTOUTPUTDIR}")
 target_link_libraries(test_MatrixTextFileReader tudat_input_output tudat_basic_astrodynamics ${Boost_LIBRARIES})
@@ -137,6 +145,10 @@ target_link_libraries(test_SolarActivityData tudat_input_output tudat_basic_astr
 add_executable(test_MultiArrayReader "${SRCROOT}${INPUTOUTPUTDIR}/UnitTests/unitTestMultiArrayReader.cpp")
 setup_custom_test_program(test_MultiArrayReader "${SRCROOT}${INPUTOUTPUTDIR}")
 target_link_libraries(test_MultiArrayReader tudat_input_output tudat_basic_astrodynamics ${Boost_LIBRARIES})
+
+add_executable(test_MultiArrayWriter "${SRCROOT}${INPUTOUTPUTDIR}/UnitTests/unitTestMultiArrayWriter.cpp")
+setup_custom_test_program(test_MultiArrayWriter "${SRCROOT}${INPUTOUTPUTDIR}")
+target_link_libraries(test_MultiArrayWriter tudat_input_output tudat_basic_astrodynamics ${Boost_LIBRARIES})
 
 add_executable(test_AerodynamicCoefficientReader "${SRCROOT}${INPUTOUTPUTDIR}/UnitTests/unitTestAerodynamicCoefficientReader.cpp" )
 setup_custom_test_program(test_AerodynamicCoefficientReader "${SRCROOT}${INPUTOUTPUTDIR}")
